@@ -16,6 +16,15 @@
   <header class="border-b border-[var(--border)] bg-[var(--bg-card)] px-6 py-3 flex items-center justify-between gap-3 flex-wrap">
     <span class="logo-text">⬛ Null's RNG</span>
     <div class="flex gap-2 flex-wrap">
+      <div class="stat-chip" style="border-color:rgba(245,158,11,.45);flex-direction:column;align-items:stretch;gap:.25rem;min-width:150px">
+        <div class="flex items-center justify-between gap-2">
+          <span>🏆 <span id="levelLabel" class="val" style="color:#fbbf24">Niv. 1</span></span>
+          <span id="xpLabel" class="text-xs" style="color:var(--text-muted)">0/100 XP</span>
+        </div>
+        <div style="width:100%;height:5px;background:var(--border);border-radius:3px;overflow:hidden">
+          <div id="xpBar" class="timer-bar" style="width:0%;background:linear-gradient(90deg,#f59e0b,#fbbf24)"></div>
+        </div>
+      </div>
       <div class="stat-chip" style="position:relative" id="coinChip">
         💰 <span id="coinsDisplay" class="val">0</span>
         <span style="color:var(--text-muted)">pièces</span>
