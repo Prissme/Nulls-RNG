@@ -5,9 +5,11 @@
 const etat = {
   pieces:        0,
   totalRolls:    0,
-  inventaire:    {},        // { "brawlerId_variante": quantité }
-  petsEquipes:   [null, null, null],  // max 3 slots
-  historique:    [],        // derniers résultats
+  totalPotions:  0,          // compteur pour quêtes
+  inventaire:    {},         // { "brawlerId_variante": quantité }
+  petsEquipes:   [null, null, null],
+  historique:    [],
+
   autoRollActif: false,
   autoInterval:  null,
 
@@ -26,11 +28,16 @@ const etat = {
 
   // CPS tick
   cpsInterval: null,
+
+  // Quêtes
+  quetes:           [],      // liste des quêtes actives générées
+  quetesRefreshFin: 0,       // timestamp prochain refresh
+  quetesInterval:   null,
 };
 
 /* ── Clés inventaire ── */
-const cle       = (bId, variante) => `${bId}_${variante}`;
-const parseKey  = key => { const [a, b] = key.split('_'); return { brawlerId: +a, variante: b }; };
+const cle      = (bId, variante) => `${bId}_${variante}`;
+const parseKey = key => { const [a, b] = key.split('_'); return { brawlerId: +a, variante: b }; };
 
 /* ── Helpers calcul ── */
 const calcCPS  = (b, vKey) => b.cpsBase * VARIANTES[vKey].cpsMult;
