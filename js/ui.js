@@ -106,18 +106,47 @@ function afficherTableRarites() {
   const tbl = document.getElementById('rarityTable');
   const lm  = etat.luckActive ? 2 : 1;
 
-  tbl.innerHTML = [...BRAWLERS].reverse().map(b => {
-    const base = b.div;
-    const mod  = lm > 1
-      ? `<span style="color:#a855f7;font-weight:700"> → 1/${Math.round(base / lm)}</span>`
-      : '';
-    return `
-      <div class="flex items-center justify-between gap-2 py-1"
-           style="border-bottom:1px solid var(--border)">
-        <span>${b.emoji} <span style="color:${b.couleur};font-weight:700">${b.nom}</span></span>
-        <span style="color:var(--text-muted)">1/${base}${mod}</span>
-      </div>`;
-  }).join('');
+  // En-tête colonnes variantes
+  let html = `
+    <div style="display:grid;grid-template-columns:1fr repeat(4,auto);gap:.25rem .5rem;
+      font-size:.6rem;font-weight:900;text-transform:uppercase;letter-spacing:.05em;
+      color:var(--text-muted);padding-bottom:.3rem;border-bottom:1px solid var(--border);margin-bottom:.2rem">
+      <span>Brawler</span>
+      <span style="color:#94a3b8">Nor.</span>
+      <span style="color:#38bdf8">Shi.</span>
+      <span style="color:#fbbf24">Gol.</span>
+      <span style="color:#e879f9">Rain.</span>
+    </div>
+  `;
+
+  for (const b of [...BRAWLERS].reverse()) {
+    const norm    = b.div;
+    const shiny   = b.div * VARIANTES.shiny.chanceMult;
+    const golden  = b.div * VARIANTES.golden.chanceMult;
+    const rainbow = b.div * VARIANTES.rainbow.chanceMult;
+
+    const fmt = (n) => {
+      const effective = Math.round(n / lm);
+      if (effective >= 10000) return `1/${Math.round(effective/1000)}k`;
+      return `1/${effective}`;
+    };
+
+    html += `
+      <div style="display:grid;grid-template-columns:1fr repeat(4,auto);gap:.25rem .5rem;
+        padding:.3rem 0;border-bottom:1px solid rgba(255,255,255,.04);align-items:center">
+        <span style="display:flex;align-items:center;gap:.3rem">
+          <span>${b.emoji}</span>
+          <span style="color:${b.couleur};font-weight:700;font-size:.7rem">${b.nom}</span>
+        </span>
+        <span style="color:#94a3b8;font-size:.65rem">${fmt(norm)}</span>
+        <span style="color:#38bdf8;font-size:.65rem">${fmt(shiny)}</span>
+        <span style="color:#fbbf24;font-size:.65rem">${fmt(golden)}</span>
+        <span style="color:#e879f9;font-size:.65rem">${fmt(rainbow)}</span>
+      </div>
+    `;
+  }
+
+  tbl.innerHTML = html;
 }
 
 /* ── Historique des derniers rolls ── */
