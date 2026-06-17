@@ -2,5 +2,6 @@
 !index.html
 !Dockerfile
 !nginx.conf
+!docker-entrypoint.sh
 !css/
 !js/
