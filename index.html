@@ -16,13 +16,10 @@
   <header class="border-b border-[var(--border)] bg-[var(--bg-card)] px-6 py-3 flex items-center justify-between gap-3 flex-wrap">
     <span class="logo-text">⬛ Null's RNG</span>
     <div class="flex gap-2 flex-wrap">
-      <!-- Pièces + CPS -->
       <div class="stat-chip" style="position:relative" id="coinChip">
         💰 <span id="coinsDisplay" class="val">0</span>
         <span style="color:var(--text-muted)">pièces</span>
-        <span id="cpsDisplay" class="text-xs ml-1" style="color:#fbbf24">
-          +<span id="cpsVal">0</span>/s
-        </span>
+        <span id="cpsDisplay" class="text-xs ml-1" style="color:#fbbf24">+<span id="cpsVal">0</span>/s</span>
       </div>
       <div class="stat-chip">
         🎲 <span id="rollsDisplay" class="val">0</span>
@@ -50,8 +47,6 @@
       <!-- Boutique -->
       <div class="card flex flex-col gap-3">
         <h2 class="text-xs font-bold uppercase tracking-widest" style="color:var(--text-muted)">Boutique</h2>
-
-        <!-- Potion Luck -->
         <div class="rounded-lg p-3" style="background:rgba(168,85,247,.08);border:1px solid rgba(168,85,247,.2)">
           <div class="text-sm font-bold" style="color:#a855f7">✨ Potion de Chance</div>
           <div class="text-xs mt-0.5" style="color:var(--text-muted)">Luck ×2 — 30 secondes</div>
@@ -65,10 +60,7 @@
           style="background:linear-gradient(135deg,#7c3aed,#a855f7);color:#fff;border:none;cursor:pointer;box-shadow:0 0 14px rgba(168,85,247,.35)">
           Acheter — 50 💰
         </button>
-
         <div class="border-t" style="border-color:var(--border)"></div>
-
-        <!-- Potion Vitesse -->
         <div class="rounded-lg p-3" style="background:rgba(14,165,233,.08);border:1px solid rgba(14,165,233,.2)">
           <div class="text-sm font-bold" style="color:#38bdf8">⚡ Potion de Vitesse</div>
           <div class="text-xs mt-0.5" style="color:var(--text-muted)">Auto-Roll ×3 — 20 secondes</div>
@@ -84,14 +76,28 @@
         </button>
       </div>
 
+      <!-- Craft -->
+      <div class="card flex flex-col gap-2">
+        <div class="flex items-center justify-between">
+          <h2 class="text-xs font-bold uppercase tracking-widest" style="color:var(--text-muted)">Craft</h2>
+          <span class="text-xs" style="color:var(--text-muted)">10× → upgrade</span>
+        </div>
+        <div class="text-xs flex flex-col gap-0.5 mb-1" style="color:var(--text-muted)">
+          <div>✦ 10 <span style="color:#94a3b8">Normal</span> → 1 <span style="color:#38bdf8">Shiny</span></div>
+          <div>✦ 10 <span style="color:#38bdf8">Shiny</span> → 1 <span style="color:#fbbf24">Golden</span></div>
+          <div>✦ 10 <span style="color:#fbbf24">Golden</span> → 1 <span style="color:#e879f9">Rainbow</span></div>
+        </div>
+        <div id="craftList"></div>
+      </div>
+
       <!-- Table raretés -->
       <div class="card flex flex-col gap-1">
         <h2 class="text-xs font-bold uppercase tracking-widest mb-1" style="color:var(--text-muted)">Raretés</h2>
         <div id="rarityTable" class="flex flex-col gap-0.5 text-xs"></div>
         <div class="mt-2 pt-2 border-t text-xs flex flex-col gap-0.5" style="border-color:var(--border);color:var(--text-muted)">
-          <div>✦ <span style="color:var(--shiny-col)">Shiny</span> — variante ×3 plus rare</div>
-          <div>✦ <span style="color:var(--golden-col)">Golden</span> — variante ×9 plus rare</div>
-          <div>✦ <span style="color:var(--rainbow-col)">Rainbow</span> — variante ×27 plus rare</div>
+          <div>✦ <span style="color:var(--shiny-col)">Shiny</span> — ×3 plus rare</div>
+          <div>✦ <span style="color:var(--golden-col)">Golden</span> — ×9 plus rare</div>
+          <div>✦ <span style="color:var(--rainbow-col)">Rainbow</span> — ×27 plus rare</div>
         </div>
       </div>
     </section>
@@ -106,10 +112,7 @@
           <div id="resultName" style="color:var(--text-muted)">— Rien encore —</div>
           <div id="resultSub"></div>
         </div>
-
         <button id="rollBtn" onclick="effectuerRoll()">⚡ ROLL</button>
-
-        <!-- Auto-roll toggle -->
         <div class="flex items-center gap-3 mt-1">
           <span class="text-sm" style="color:var(--text-muted)">Auto-Roll</span>
           <div class="toggle-track" id="autoToggle" onclick="toggleAutoRoll()">
@@ -119,6 +122,15 @@
           <span id="autoSpeedBadge" class="hidden text-xs font-bold px-2 py-0.5 rounded-full"
                 style="background:rgba(14,165,233,.2);color:#38bdf8">⚡ ×3</span>
         </div>
+      </div>
+
+      <!-- Quêtes -->
+      <div class="card flex flex-col gap-2">
+        <div class="flex items-center justify-between">
+          <h2 class="text-xs font-bold uppercase tracking-widest" style="color:var(--text-muted)">Quêtes</h2>
+          <span id="quetesTimer" class="text-xs font-mono font-bold" style="color:var(--text-muted)"></span>
+        </div>
+        <div id="quetesList"></div>
       </div>
 
       <!-- Pets équipés -->
@@ -158,7 +170,7 @@
   </main>
 </div>
 
-<!-- ══ Scripts — ordre important (dépendances avant utilisateurs) ══ -->
+<!-- ══ Scripts ══ -->
 <script src="js/data.js"></script>
 <script src="js/state.js"></script>
 <script src="js/ui.js"></script>
@@ -167,6 +179,8 @@
 <script src="js/autoroll.js"></script>
 <script src="js/pets.js"></script>
 <script src="js/inventory.js"></script>
+<script src="js/craft.js"></script>
+<script src="js/quetes.js"></script>
 <script src="js/main.js"></script>
 
 </body>
