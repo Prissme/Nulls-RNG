@@ -1,0 +1,217 @@
+/* ════════════════════════════════════════════════
+   styles.css — Tous les styles de Null's RNG
+════════════════════════════════════════════════ */
+
+/* ── Palette & variables ── */
+:root {
+  --bg-deep:    #0a0b10;
+  --bg-card:    #12141f;
+  --bg-panel:   #1a1d2e;
+  --border:     #2a2d45;
+  --accent:     #7c3aed;
+  --gold:       #f59e0b;
+  --text-muted: #6b7280;
+
+  --shiny-col:   #38bdf8;
+  --golden-col:  #fbbf24;
+  --rainbow-col: #e879f9;
+}
+
+* { box-sizing: border-box; margin: 0; padding: 0; }
+body {
+  background: var(--bg-deep);
+  font-family: 'Segoe UI', system-ui, sans-serif;
+  color: #e2e8f0;
+  min-height: 100vh;
+  overflow-x: hidden;
+}
+::-webkit-scrollbar { width: 6px; }
+::-webkit-scrollbar-track { background: var(--bg-deep); }
+::-webkit-scrollbar-thumb { background: var(--border); border-radius: 3px; }
+
+/* ── Couleurs rareté brawler ── */
+.rarity-bg-1 { background: rgba(148,163,184,.12); border-color: rgba(148,163,184,.3); }
+.rarity-bg-2 { background: rgba(34,197,94,.10);   border-color: rgba(34,197,94,.3);  }
+.rarity-bg-3 { background: rgba(59,130,246,.10);  border-color: rgba(59,130,246,.3); }
+.rarity-bg-4 { background: rgba(6,182,212,.10);   border-color: rgba(6,182,212,.3);  }
+.rarity-bg-5 { background: rgba(245,158,11,.10);  border-color: rgba(245,158,11,.3); }
+.rarity-bg-6 { background: rgba(249,115,22,.10);  border-color: rgba(249,115,22,.3); }
+.rarity-bg-7 { background: rgba(236,72,153,.10);  border-color: rgba(236,72,153,.3); }
+.rarity-bg-8 { background: rgba(192,38,211,.15);  border-color: rgba(192,38,211,.5); }
+
+/* ── Badges variante ── */
+.badge-normal  { background: rgba(148,163,184,.2); color: #94a3b8; }
+.badge-shiny   { background: rgba(56,189,248,.2);  color: #38bdf8; }
+.badge-golden  { background: rgba(251,191,36,.2);  color: #fbbf24; }
+.badge-rainbow {
+  background: linear-gradient(90deg,#f472b6,#818cf8,#34d399,#fbbf24);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+  font-weight: 900;
+}
+
+/* ── Effets variante (carte inventaire) ── */
+.var-shiny  { box-shadow: 0 0 12px rgba(56,189,248,.45); }
+.var-golden { box-shadow: 0 0 14px rgba(251,191,36,.5); }
+.var-rainbow { animation: rainbowBorder 2s linear infinite; }
+
+@keyframes rainbowBorder {
+  0%   { box-shadow: 0 0 14px #f472b6; border-color: #f472b6; }
+  25%  { box-shadow: 0 0 14px #818cf8; border-color: #818cf8; }
+  50%  { box-shadow: 0 0 14px #34d399; border-color: #34d399; }
+  75%  { box-shadow: 0 0 14px #fbbf24; border-color: #fbbf24; }
+  100% { box-shadow: 0 0 14px #f472b6; border-color: #f472b6; }
+}
+
+/* ── Animation flash résultat ── */
+@keyframes flashIn {
+  0%   { opacity: 0; transform: scale(.6) translateY(20px); }
+  60%  { opacity: 1; transform: scale(1.08) translateY(-4px); }
+  100% { opacity: 1; transform: scale(1) translateY(0); }
+}
+@keyframes rainbowText {
+  0%   { color: #f472b6; }
+  25%  { color: #818cf8; }
+  50%  { color: #34d399; }
+  75%  { color: #fbbf24; }
+  100% { color: #f472b6; }
+}
+.flash-anim   { animation: flashIn .45s cubic-bezier(.22,.68,0,1.2) forwards; }
+.rainbow-text { animation: rainbowText 1.5s linear infinite; }
+
+/* ── Bouton Roll ── */
+#rollBtn {
+  background: linear-gradient(135deg,#7c3aed,#a855f7);
+  border: none; border-radius: 16px; color: #fff; cursor: pointer;
+  font-size: 1.6rem; font-weight: 900; letter-spacing: .12em;
+  padding: 1rem 3rem; text-transform: uppercase;
+  transition: transform .12s, box-shadow .12s;
+  box-shadow: 0 0 24px rgba(168,85,247,.5), 0 4px 20px rgba(0,0,0,.6);
+}
+#rollBtn:hover  { transform: scale(1.04); box-shadow: 0 0 40px rgba(168,85,247,.7), 0 4px 20px rgba(0,0,0,.6); }
+#rollBtn:active { transform: scale(.97); }
+
+/* ── Toggle auto-roll ── */
+.toggle-track {
+  width: 52px; height: 28px; background: var(--border);
+  border-radius: 14px; position: relative; cursor: pointer;
+  transition: background .25s; flex-shrink: 0;
+}
+.toggle-track.on { background: var(--accent); }
+.toggle-thumb {
+  width: 22px; height: 22px; background: #fff; border-radius: 50%;
+  position: absolute; top: 3px; left: 3px;
+  transition: left .25s; box-shadow: 0 1px 4px rgba(0,0,0,.4);
+}
+.toggle-track.on .toggle-thumb { left: 27px; }
+
+/* ── Cards ── */
+.card {
+  background: var(--bg-card);
+  border: 1px solid var(--border);
+  border-radius: 14px;
+  padding: 1rem 1.25rem;
+}
+
+/* ── Inventaire ── */
+.inv-item {
+  border: 1px solid; border-radius: 12px; padding: .65rem;
+  display: flex; flex-direction: column; gap: .3rem;
+  transition: transform .15s;
+}
+.inv-item:hover { transform: translateY(-2px); }
+
+.sell-btn {
+  background: rgba(245,158,11,.15); border: 1px solid rgba(245,158,11,.4);
+  border-radius: 8px; color: #f59e0b; cursor: pointer;
+  font-size: .68rem; font-weight: 700; padding: .25rem .5rem;
+  transition: background .2s; text-transform: uppercase; letter-spacing: .06em;
+}
+.sell-btn:hover { background: rgba(245,158,11,.3); }
+
+.equip-btn {
+  border-radius: 8px; cursor: pointer;
+  font-size: .68rem; font-weight: 700; padding: .25rem .5rem;
+  transition: background .2s; text-transform: uppercase; letter-spacing: .06em;
+  border: 1px solid rgba(168,85,247,.5);
+  background: rgba(168,85,247,.15); color: #a855f7;
+}
+.equip-btn:hover    { background: rgba(168,85,247,.3); }
+.equip-btn.equipped { background: rgba(168,85,247,.4); border-color: #a855f7; color: #fff; }
+.equip-btn:disabled { opacity: .35; cursor: not-allowed; }
+
+/* ── Slots pets équipés ── */
+.pet-slot {
+  border: 2px dashed var(--border); border-radius: 12px;
+  min-height: 70px; display: flex; flex-direction: column;
+  align-items: center; justify-content: center;
+  gap: .2rem; padding: .4rem; transition: border-color .2s;
+  position: relative;
+}
+.pet-slot.filled { border-style: solid; }
+.pet-slot .unequip-x {
+  position: absolute; top: 4px; right: 6px; cursor: pointer;
+  color: var(--text-muted); font-size: .8rem; line-height: 1;
+}
+.pet-slot .unequip-x:hover { color: #f87171; }
+
+/* ── Timer bars potions ── */
+.timer-bar { height: 5px; border-radius: 3px; transition: width .9s linear; }
+#luckBar   { background: linear-gradient(90deg,#a855f7,#ec4899); }
+#speedBar  { background: linear-gradient(90deg,#0ea5e9,#22d3ee); }
+
+/* ── Logo header ── */
+.logo-text {
+  font-size: 1.5rem; font-weight: 900; letter-spacing: .15em;
+  text-transform: uppercase;
+  background: linear-gradient(135deg,#a855f7,#ec4899,#f59e0b);
+  -webkit-background-clip: text; -webkit-text-fill-color: transparent;
+  background-clip: text;
+}
+
+/* ── Stat chips ── */
+.stat-chip {
+  background: var(--bg-panel); border: 1px solid var(--border);
+  border-radius: 10px; padding: .4rem .85rem;
+  font-size: .78rem; display: flex; align-items: center; gap: .4rem;
+}
+.stat-chip .val { font-size: 1rem; font-weight: 800; color: #fff; }
+
+/* ── Zone résultat ── */
+#resultZone {
+  min-height: 150px; display: flex; flex-direction: column;
+  align-items: center; justify-content: center; gap: .4rem;
+}
+#resultName { font-size: 2.2rem; font-weight: 900; letter-spacing: .05em; line-height: 1; }
+#resultSub  { font-size: .85rem; color: var(--text-muted); letter-spacing: .08em; }
+
+/* ── Grille BG ── */
+.bg-grid {
+  position: fixed; inset: 0; pointer-events: none; z-index: 0;
+  background-image:
+    linear-gradient(rgba(124,58,237,.04) 1px, transparent 1px),
+    linear-gradient(90deg,rgba(124,58,237,.04) 1px, transparent 1px);
+  background-size: 40px 40px;
+}
+.z-content { position: relative; z-index: 1; }
+
+/* ── Onglets inventaire ── */
+.tab-btn {
+  padding: .3rem .9rem; border-radius: 8px; font-size: .75rem;
+  font-weight: 700; letter-spacing: .05em; cursor: pointer;
+  border: 1px solid var(--border); background: transparent;
+  color: var(--text-muted); transition: all .2s;
+}
+.tab-btn.active { background: var(--accent); color: #fff; border-color: var(--accent); }
+
+/* ── CPS float animation ── */
+@keyframes cpsFloat {
+  0%   { opacity: 1; transform: translateY(0); }
+  100% { opacity: 0; transform: translateY(-28px); }
+}
+.cps-float {
+  position: absolute; font-size: .75rem; font-weight: 800;
+  color: #fbbf24; pointer-events: none;
+  animation: cpsFloat .9s ease forwards;
+}
