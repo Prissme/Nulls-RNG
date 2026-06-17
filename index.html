@@ -16,6 +16,9 @@
   <header class="border-b border-[var(--border)] bg-[var(--bg-card)] px-6 py-3 flex items-center justify-between gap-3 flex-wrap">
     <span class="logo-text">⬛ Null's RNG</span>
     <div class="flex gap-2 flex-wrap">
+      <div class="stat-chip" id="cloudStatusChip" style="display:none;border-color:rgba(148,163,184,.4)">
+        <span id="cloudStatusText" style="color:var(--text-muted)">☁️ …</span>
+      </div>
       <div class="stat-chip" style="border-color:rgba(245,158,11,.45);flex-direction:column;align-items:stretch;gap:.25rem;min-width:150px">
         <div class="flex items-center justify-between gap-2">
           <span>🏆 <span id="levelLabel" class="val" style="color:#fbbf24">Niv. 1</span></span>
@@ -179,6 +182,10 @@
   </main>
 </div>
 
+<!-- ══ Dépendances externes ══ -->
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.js"></script>
+<script src="js/config.js"></script>
+
 <!-- ══ Scripts ══ -->
 <script src="js/data.js"></script>
 <script src="js/state.js"></script>
@@ -190,6 +197,7 @@
 <script src="js/inventory.js"></script>
 <script src="js/craft.js"></script>
 <script src="js/quetes.js"></script>
+<script src="js/cloudsave.js"></script>
 <script src="js/main.js"></script>
 
 </body>
