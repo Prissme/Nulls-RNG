@@ -28,4 +28,5 @@
   mettreAJourCompteurs();
   demarrerCPS();
   initialiserQuetes();
+  initCloudSave();
 })();
