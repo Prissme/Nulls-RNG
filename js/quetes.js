@@ -1,5 +1,7 @@
 /* ════════════════════════════════════════════════
    quetes.js — Système de quêtes (refresh 5 min)
+   Les quêtes ne donnent plus de pièces : elles donnent de l'XP
+   pour faire progresser le niveau de compte.
 ════════════════════════════════════════════════ */
 
 const QUETE_REFRESH_MS = 5 * 60 * 1000; // 5 minutes
@@ -144,8 +146,7 @@ function reclamerQuete(uid) {
   if (!q || !q.complete || q.reclamee) return;
 
   q.reclamee = true;
-  etat.pieces += q.reward;
-  mettreAJourCompteurs();
+  gagnerXP(q.reward);
 
   // Flash récompense
   const notif = document.createElement('div');
@@ -154,7 +155,7 @@ function reclamerQuete(uid) {
     font-weight:900;font-size:.9rem;padding:.6rem 1.4rem;border-radius:12px;
     z-index:999;box-shadow:0 0 20px #fbbf2455;
     animation:craftIn .4s cubic-bezier(.22,.68,0,1.2) forwards`;
-  notif.textContent = `🎉 +${q.reward} pièces !`;
+  notif.textContent = `🎉 +${q.reward} XP !`;
   document.body.appendChild(notif);
   setTimeout(() => notif.remove(), 2000);
 
@@ -194,7 +195,7 @@ function afficherQuetes() {
             ${q.type === 'cps'
               ? `${q.progres}/${q.cible} 💰/s`
               : `${q.progres}/${q.cible}`}
-            <span style="color:#fbbf24;margin-left:.4rem">+${q.reward} 💰</span>
+            <span style="color:#fbbf24;margin-left:.4rem">+${q.reward} XP</span>
           </div>
         </div>
         ${done && !claimed
