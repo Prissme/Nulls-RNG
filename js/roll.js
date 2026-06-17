@@ -2,9 +2,6 @@
    roll.js — Algorithme de tirage & logique de roll
 ════════════════════════════════════════════════ */
 
-/* Tire un brawler + variante selon les probabilités.
-   Pour chaque variante (du + rare au + commun),
-   puis pour chaque brawler (du + rare au + commun).   */
 function effectuerTirage() {
   const luckMult = etat.luckActive ? 2 : 1;
 
@@ -18,7 +15,6 @@ function effectuerTirage() {
       }
     }
   }
-  // Fallback : Shelly Normal
   return { brawler: BRAWLERS[0], variante: 'normal' };
 }
 
@@ -26,17 +22,18 @@ function effectuerRoll() {
   const { brawler, variante } = effectuerTirage();
   etat.totalRolls++;
 
-  // Ajouter à l'inventaire
   const k = cle(brawler.id, variante);
   etat.inventaire[k] = (etat.inventaire[k] || 0) + 1;
 
-  // Historique (6 max)
   etat.historique.unshift({ brawler, variante });
   if (etat.historique.length > 6) etat.historique.pop();
 
-  // Mise à jour UI
+  // Progression quêtes
+  progresserQuete('roll', { brawlerId: brawler.id, variante });
+
   afficherResultat(brawler, variante);
   mettreAJourCompteurs();
   afficherInventaire();
   afficherHistorique();
+  afficherCraft();
 }
