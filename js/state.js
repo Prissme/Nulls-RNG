@@ -10,6 +10,10 @@ const etat = {
   petsEquipes:   [null, null, null],
   historique:    [],
 
+  // Niveau de compte (gagné via les quêtes, en XP)
+  niveau: 1,
+  xp:     0,
+
   autoRollActif: false,
   autoInterval:  null,
 
@@ -51,3 +55,24 @@ const couleurVariante = (brawler, variante) => {
   if (variante === 'shiny')   return '#38bdf8';
   return brawler.couleur;
 };
+
+/* ── Niveau de compte / XP ──
+   xp nécessaire pour passer du niveau n au niveau n+1 (courbe progressive) */
+const xpRequisPourNiveau = (niveau) => Math.round(100 * Math.pow(1.15, niveau - 1));
+
+/* Ajoute de l'XP à l'état, gère le(s) passage(s) de niveau (boucle si plusieurs
+   niveaux sont gagnés d'un coup) et met à jour l'UI + affiche une notif. */
+function gagnerXP(montant) {
+  if (montant <= 0) return;
+  etat.xp += montant;
+
+  let aLevelUp = false;
+  while (etat.xp >= xpRequisPourNiveau(etat.niveau)) {
+    etat.xp -= xpRequisPourNiveau(etat.niveau);
+    etat.niveau++;
+    aLevelUp = true;
+  }
+
+  mettreAJourCompteurs();
+  if (aLevelUp) afficherLevelUp(etat.niveau);
+}
