@@ -1,5 +1,6 @@
-# Ignorer tout sauf les fichiers nécessaires
 *
 !index.html
 !Dockerfile
 !nginx.conf
+!css/
+!js/
