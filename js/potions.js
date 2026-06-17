@@ -4,11 +4,12 @@
 
 function acheterPotion(type) {
   const potion = POTIONS[type];
-  if (etat.pieces < potion.cout)       { secouerBouton(`buy${type === 'luck' ? 'Luck' : 'Speed'}Btn`); return; }
+  if (etat.pieces < potion.cout)        { secouerBouton(`buy${type === 'luck' ? 'Luck' : 'Speed'}Btn`); return; }
   if (type === 'luck'  && etat.luckActive)  return;
   if (type === 'speed' && etat.speedActive) return;
 
   etat.pieces -= potion.cout;
+  etat.totalPotions++;
 
   if (type === 'luck') {
     etat.luckActive = true;
@@ -16,8 +17,12 @@ function acheterPotion(type) {
   } else {
     etat.speedActive = true;
     etat.speedFin    = Date.now() + potion.duree;
-    redemarrerAutoRoll(); // re-schedule avec ×3
+    redemarrerAutoRoll();
   }
+
+  // Progression quêtes
+  progresserQuete('potion');
+  if (type === 'luck') progresserQuete('potionLuck');
 
   demarrerTimer(type);
   mettreAJourCompteurs();
