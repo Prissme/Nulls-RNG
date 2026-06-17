@@ -38,6 +38,7 @@ function crafterVariante(brawlerId, recette) {
   afficherInventaire();
   afficherCraft();
   mettreAJourCompteurs();
+  sauvegarderEtatCloud();
 }
 
 /* Flash notification craft réussi */
