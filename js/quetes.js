@@ -160,6 +160,7 @@ function reclamerQuete(uid) {
   setTimeout(() => notif.remove(), 2000);
 
   afficherQuetes();
+  sauvegarderEtatCloud();
 }
 
 /* ── Rendu panneau quêtes ── */
