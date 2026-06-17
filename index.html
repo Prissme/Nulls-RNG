@@ -1,0 +1,696 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Null's RNG</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <style>
+    /* ──────────────────────────────────────────
+       PALETTE & VARIABLES
+    ────────────────────────────────────────── */
+    :root {
+      --bg-deep:    #0a0b10;
+      --bg-card:    #12141f;
+      --bg-panel:   #1a1d2e;
+      --border:     #2a2d45;
+      --accent:     #7c3aed;
+      --accent-glow:#a855f7;
+      --gold:       #f59e0b;
+      --text-muted: #6b7280;
+    }
+
+    /* ── BASE ── */
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+
+    body {
+      background: var(--bg-deep);
+      font-family: 'Segoe UI', system-ui, sans-serif;
+      color: #e2e8f0;
+      min-height: 100vh;
+      overflow-x: hidden;
+    }
+
+    /* ── SCROLLBAR ── */
+    ::-webkit-scrollbar { width: 6px; }
+    ::-webkit-scrollbar-track { background: var(--bg-deep); }
+    ::-webkit-scrollbar-thumb { background: var(--border); border-radius: 3px; }
+
+    /* ──────────────────────────────────────────
+       COULEURS PAR ITEM (commun → légendaire)
+    ────────────────────────────────────────── */
+    .rarity-1 { color: #94a3b8; }          /* Shelly   - Gris acier       */
+    .rarity-2 { color: #22c55e; }          /* Colt     - Vert              */
+    .rarity-3 { color: #3b82f6; }          /* Nita     - Bleu              */
+    .rarity-4 { color: #06b6d4; }          /* Poco     - Cyan              */
+    .rarity-5 { color: #f59e0b; }          /* Barley   - Ambre             */
+    .rarity-6 { color: #f97316; }          /* Bull     - Orange            */
+    .rarity-7 { color: #ec4899; }          /* El Primo - Rose vif          */
+    .rarity-8 { color: #c026d3; }          /* Rosa     - Violet/Rouge      */
+
+    .rarity-bg-1 { background: rgba(148,163,184,.12); border-color: rgba(148,163,184,.25); }
+    .rarity-bg-2 { background: rgba(34,197,94,.10);   border-color: rgba(34,197,94,.30); }
+    .rarity-bg-3 { background: rgba(59,130,246,.10);  border-color: rgba(59,130,246,.30); }
+    .rarity-bg-4 { background: rgba(6,182,212,.10);   border-color: rgba(6,182,212,.30); }
+    .rarity-bg-5 { background: rgba(245,158,11,.10);  border-color: rgba(245,158,11,.30); }
+    .rarity-bg-6 { background: rgba(249,115,22,.10);  border-color: rgba(249,115,22,.30); }
+    .rarity-bg-7 { background: rgba(236,72,153,.10);  border-color: rgba(236,72,153,.30); }
+    .rarity-bg-8 { background: rgba(192,38,211,.15);  border-color: rgba(192,38,211,.50); }
+
+    .glow-8 { box-shadow: 0 0 30px rgba(192,38,211,.5), 0 0 60px rgba(192,38,211,.2); }
+    .glow-7 { box-shadow: 0 0 20px rgba(236,72,153,.4); }
+    .glow-6 { box-shadow: 0 0 16px rgba(249,115,22,.35); }
+
+    /* ──────────────────────────────────────────
+       ANIMATION FLASH RÉSULTAT
+    ────────────────────────────────────────── */
+    @keyframes flashIn {
+      0%   { opacity: 0; transform: scale(.6) translateY(20px); }
+      60%  { opacity: 1; transform: scale(1.08) translateY(-4px); }
+      100% { opacity: 1; transform: scale(1) translateY(0); }
+    }
+    @keyframes pulse-glow {
+      0%, 100% { filter: brightness(1); }
+      50%       { filter: brightness(1.35); }
+    }
+
+    .flash-anim { animation: flashIn .45s cubic-bezier(.22,.68,0,1.2) forwards; }
+    .pulse-glow { animation: pulse-glow 1.8s ease-in-out infinite; }
+
+    /* ──────────────────────────────────────────
+       BOUTON ROLL
+    ────────────────────────────────────────── */
+    #rollBtn {
+      background: linear-gradient(135deg, #7c3aed, #a855f7);
+      border: none;
+      border-radius: 16px;
+      color: #fff;
+      cursor: pointer;
+      font-size: 1.6rem;
+      font-weight: 900;
+      letter-spacing: .12em;
+      padding: 1rem 3rem;
+      position: relative;
+      text-transform: uppercase;
+      transition: transform .12s, box-shadow .12s;
+      box-shadow: 0 0 24px rgba(168,85,247,.5), 0 4px 20px rgba(0,0,0,.6);
+    }
+    #rollBtn:hover  { transform: scale(1.04); box-shadow: 0 0 40px rgba(168,85,247,.7), 0 4px 20px rgba(0,0,0,.6); }
+    #rollBtn:active { transform: scale(.97); }
+    #rollBtn:disabled { opacity: .4; cursor: not-allowed; transform: none; }
+
+    /* ──────────────────────────────────────────
+       TOGGLE AUTO-ROLL
+    ────────────────────────────────────────── */
+    .toggle-track {
+      width: 52px; height: 28px;
+      background: var(--border);
+      border-radius: 14px;
+      position: relative;
+      cursor: pointer;
+      transition: background .25s;
+    }
+    .toggle-track.on { background: var(--accent); }
+    .toggle-thumb {
+      width: 22px; height: 22px;
+      background: #fff;
+      border-radius: 50%;
+      position: absolute;
+      top: 3px; left: 3px;
+      transition: left .25s;
+      box-shadow: 0 1px 4px rgba(0,0,0,.4);
+    }
+    .toggle-track.on .toggle-thumb { left: 27px; }
+
+    /* ──────────────────────────────────────────
+       CARD GÉNÉRIQUE
+    ────────────────────────────────────────── */
+    .card {
+      background: var(--bg-card);
+      border: 1px solid var(--border);
+      border-radius: 14px;
+      padding: 1rem 1.25rem;
+    }
+
+    /* ──────────────────────────────────────────
+       INVENTAIRE GRILLE
+    ────────────────────────────────────────── */
+    .inv-item {
+      border: 1px solid;
+      border-radius: 12px;
+      padding: .75rem;
+      display: flex;
+      flex-direction: column;
+      gap: .35rem;
+      transition: transform .15s;
+    }
+    .inv-item:hover { transform: translateY(-2px); }
+
+    .sell-btn {
+      background: rgba(245,158,11,.15);
+      border: 1px solid rgba(245,158,11,.4);
+      border-radius: 8px;
+      color: #f59e0b;
+      cursor: pointer;
+      font-size: .72rem;
+      font-weight: 700;
+      padding: .3rem .6rem;
+      transition: background .2s;
+      text-transform: uppercase;
+      letter-spacing: .06em;
+    }
+    .sell-btn:hover { background: rgba(245,158,11,.3); }
+
+    /* ──────────────────────────────────────────
+       POTION TIMER BAR
+    ────────────────────────────────────────── */
+    #potionBar {
+      height: 6px;
+      border-radius: 3px;
+      background: linear-gradient(90deg, #a855f7, #ec4899);
+      transition: width .9s linear;
+    }
+
+    /* ──────────────────────────────────────────
+       HEADER LOGO
+    ────────────────────────────────────────── */
+    .logo-text {
+      font-size: 1.5rem;
+      font-weight: 900;
+      letter-spacing: .15em;
+      text-transform: uppercase;
+      background: linear-gradient(135deg, #a855f7, #ec4899, #f59e0b);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+    }
+
+    /* ──────────────────────────────────────────
+       STAT CHIP
+    ────────────────────────────────────────── */
+    .stat-chip {
+      background: var(--bg-panel);
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      padding: .4rem .85rem;
+      font-size: .78rem;
+      display: flex;
+      align-items: center;
+      gap: .4rem;
+    }
+    .stat-chip .val { font-size: 1rem; font-weight: 800; color: #fff; }
+
+    /* ──────────────────────────────────────────
+       ZONE RÉSULTAT
+    ────────────────────────────────────────── */
+    #resultZone {
+      min-height: 130px;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      gap: .5rem;
+    }
+
+    #resultName {
+      font-size: 2.4rem;
+      font-weight: 900;
+      letter-spacing: .05em;
+      line-height: 1;
+    }
+
+    #resultRarity {
+      font-size: .9rem;
+      color: var(--text-muted);
+      letter-spacing: .08em;
+    }
+
+    /* ──────────────────────────────────────────
+       PARTICULES BG (décor)
+    ────────────────────────────────────────── */
+    .bg-grid {
+      position: fixed; inset: 0; pointer-events: none; z-index: 0;
+      background-image:
+        linear-gradient(rgba(124,58,237,.04) 1px, transparent 1px),
+        linear-gradient(90deg, rgba(124,58,237,.04) 1px, transparent 1px);
+      background-size: 40px 40px;
+    }
+
+    /* ── contenu au-dessus du grid ── */
+    .z-content { position: relative; z-index: 1; }
+  </style>
+</head>
+<body>
+
+<!-- Grille décorative en fond -->
+<div class="bg-grid"></div>
+
+<!-- ═══════════════════════════════════════════
+     CONTENEUR PRINCIPAL
+════════════════════════════════════════════ -->
+<div class="z-content flex flex-col min-h-screen">
+
+  <!-- ── HEADER ── -->
+  <header class="border-b border-[var(--border)] bg-[var(--bg-card)] px-6 py-3 flex items-center justify-between gap-4 flex-wrap">
+    <span class="logo-text">⬛ Null's RNG</span>
+
+    <!-- Statistiques rapides -->
+    <div class="flex gap-2 flex-wrap">
+      <div class="stat-chip">
+        💰 <span id="coinsDisplay" class="val">0</span>
+        <span style="color:var(--text-muted)">pièces</span>
+      </div>
+      <div class="stat-chip">
+        🎲 <span id="rollsDisplay" class="val">0</span>
+        <span style="color:var(--text-muted)">rolls</span>
+      </div>
+      <div class="stat-chip" id="luckChip" style="border-color:rgba(168,85,247,.4)">
+        ✨ <span id="luckLabel" class="val" style="color:#a855f7">x1</span>
+        <span style="color:var(--text-muted)">luck</span>
+        <span id="potionTimer" class="hidden text-xs font-bold" style="color:#a855f7"></span>
+      </div>
+    </div>
+  </header>
+
+  <!-- ── BODY ── -->
+  <main class="flex flex-1 gap-5 p-5 flex-wrap lg:flex-nowrap">
+
+    <!-- ════════════════════════════════
+         COLONNE GAUCHE — Roll + Potion
+    ═════════════════════════════════ -->
+    <section class="flex flex-col gap-5 w-full lg:w-72 flex-shrink-0">
+
+      <!-- Carte Potion -->
+      <div class="card flex flex-col gap-3">
+        <h2 class="text-xs font-bold uppercase tracking-widest" style="color:var(--text-muted)">Boutique</h2>
+
+        <!-- Statut Potion -->
+        <div id="potionStatus" class="rounded-lg p-3 text-center" style="background:rgba(168,85,247,.08); border:1px solid rgba(168,85,247,.2)">
+          <div class="text-sm font-bold" style="color:#a855f7">✨ Potion de Chance</div>
+          <div class="text-xs mt-1" style="color:var(--text-muted)">+100% Luck • 30 secondes</div>
+
+          <!-- Barre timer -->
+          <div id="potionBarWrap" class="hidden mt-2 rounded-full overflow-hidden" style="height:6px;background:var(--border)">
+            <div id="potionBar" style="width:100%"></div>
+          </div>
+          <div id="potionCountdown" class="hidden text-xs font-mono font-bold mt-1" style="color:#a855f7"></div>
+        </div>
+
+        <button id="buyPotionBtn" onclick="acheterPotion()"
+          class="w-full py-2 rounded-xl font-bold text-sm tracking-wide transition-all"
+          style="background:linear-gradient(135deg,#7c3aed,#a855f7);color:#fff;border:none;cursor:pointer;
+                 box-shadow:0 0 16px rgba(168,85,247,.35)">
+          Acheter pour 50 💰
+        </button>
+      </div>
+
+      <!-- Carte Infos Raretés -->
+      <div class="card flex flex-col gap-2">
+        <h2 class="text-xs font-bold uppercase tracking-widest mb-1" style="color:var(--text-muted)">Raretés</h2>
+        <div id="rarityTable" class="flex flex-col gap-1 text-xs"></div>
+      </div>
+
+    </section>
+
+    <!-- ════════════════════════════════
+         COLONNE CENTRE — Zone de Roll
+    ═════════════════════════════════ -->
+    <section class="flex-1 flex flex-col gap-5 min-w-0">
+
+      <!-- Zone résultat -->
+      <div class="card flex flex-col items-center gap-5 py-8">
+
+        <!-- Affichage de l'item obtenu -->
+        <div id="resultZone">
+          <div id="resultEmoji" class="text-5xl">🎰</div>
+          <div id="resultName" class="rarity-1" style="color:var(--text-muted)">— Rien encore —</div>
+          <div id="resultRarity" class="text-sm"></div>
+        </div>
+
+        <!-- Bouton Roll -->
+        <button id="rollBtn" onclick="effectuerRoll()">
+          ⚡ ROLL
+        </button>
+
+        <!-- Auto-Roll toggle -->
+        <div class="flex items-center gap-3 mt-1">
+          <span class="text-sm" style="color:var(--text-muted)">Auto-Roll</span>
+          <div class="toggle-track" id="autoToggle" onclick="toggleAutoRoll()">
+            <div class="toggle-thumb"></div>
+          </div>
+          <span id="autoLabel" class="text-xs font-bold" style="color:var(--text-muted)">OFF</span>
+        </div>
+
+      </div>
+
+      <!-- Historique compact (5 derniers) -->
+      <div class="card flex flex-col gap-2">
+        <h2 class="text-xs font-bold uppercase tracking-widest" style="color:var(--text-muted)">Derniers résultats</h2>
+        <div id="historyList" class="flex gap-2 flex-wrap"></div>
+      </div>
+
+    </section>
+
+    <!-- ════════════════════════════════
+         COLONNE DROITE — Inventaire
+    ═════════════════════════════════ -->
+    <section class="flex flex-col gap-3 w-full lg:w-80 flex-shrink-0">
+      <h2 class="text-xs font-bold uppercase tracking-widest px-1" style="color:var(--text-muted)">Inventaire</h2>
+      <div id="inventoryGrid" class="grid grid-cols-2 gap-3 overflow-y-auto" style="max-height:600px"></div>
+    </section>
+
+  </main>
+</div>
+
+<!-- ═══════════════════════════════════════════
+     JAVASCRIPT — LOGIQUE DU JEU
+════════════════════════════════════════════ -->
+<script>
+/* ──────────────────────────────────────────────
+   BASE DE DONNÉES DES ITEMS
+   sellValue : pièces obtenues à la vente
+   emoji     : représentation visuelle rapide
+────────────────────────────────────────────── */
+const ITEMS = [
+  { id: 1, nom: "Shelly",   chance: 1/2,  diviseur: 2,  couleur: "#94a3b8", emoji: "🔫", sellValue: 1,  rarityClass: "rarity-1", bgClass: "rarity-bg-1" },
+  { id: 2, nom: "Colt",     chance: 1/3,  diviseur: 3,  couleur: "#22c55e", emoji: "🤠", sellValue: 2,  rarityClass: "rarity-2", bgClass: "rarity-bg-2" },
+  { id: 3, nom: "Nita",     chance: 1/5,  diviseur: 5,  couleur: "#3b82f6", emoji: "🐻", sellValue: 3,  rarityClass: "rarity-3", bgClass: "rarity-bg-3" },
+  { id: 4, nom: "Poco",     chance: 1/8,  diviseur: 8,  couleur: "#06b6d4", emoji: "🎸", sellValue: 5,  rarityClass: "rarity-4", bgClass: "rarity-bg-4" },
+  { id: 5, nom: "Barley",   chance: 1/12, diviseur: 12, couleur: "#f59e0b", emoji: "🍾", sellValue: 7,  rarityClass: "rarity-5", bgClass: "rarity-bg-5" },
+  { id: 6, nom: "Bull",     chance: 1/18, diviseur: 18, couleur: "#f97316", emoji: "🐂", sellValue: 10, rarityClass: "rarity-6", bgClass: "rarity-bg-6" },
+  { id: 7, nom: "El Primo", chance: 1/25, diviseur: 25, couleur: "#ec4899", emoji: "🥊", sellValue: 12, rarityClass: "rarity-7", bgClass: "rarity-bg-7" },
+  { id: 8, nom: "Rosa",     chance: 1/40, diviseur: 40, couleur: "#c026d3", emoji: "🌹", sellValue: 15, rarityClass: "rarity-8", bgClass: "rarity-bg-8" },
+];
+
+/* ──────────────────────────────────────────────
+   ÉTAT DU JEU
+────────────────────────────────────────────── */
+let etat = {
+  pieces:       0,      // Monnaie du joueur
+  totalRolls:   0,      // Compteur global de rolls
+  inventaire:   {},     // { itemId: quantité }
+  autoRollActif: false, // Mode auto-roll
+  potionActive:  false, // Potion de luck active
+  potionFin:     0,     // Timestamp de fin de potion
+  autoInterval:  null,  // Handle de l'intervalle auto-roll
+  potionInterval: null, // Handle de l'intervalle timer potion
+  historique:    [],    // 5 derniers résultats
+};
+
+/* ──────────────────────────────────────────────
+   ALGORITHME DE TIRAGE
+   On teste du plus RARE (id=8) au plus COMMUN (id=1).
+   Si aucun test ne réussit → on retourne l'item 1 par sécurité.
+────────────────────────────────────────────── */
+function effectuerTirage() {
+  // Multiplicateur luck : x2 si potion active, x1 sinon
+  const mult = etat.potionActive ? 2 : 1;
+
+  // Trier du plus rare au plus commun (chance la plus faible en premier)
+  const itemsParRarete = [...ITEMS].sort((a, b) => a.chance - b.chance);
+
+  for (const item of itemsParRarete) {
+    // Chance modifiée par le multiplicateur de luck
+    const chanceModifiee = item.chance * mult;
+    if (Math.random() < chanceModifiee) {
+      return item;
+    }
+  }
+
+  // Fallback : item le plus commun (ne devrait quasiment jamais arriver)
+  return ITEMS[0];
+}
+
+/* ──────────────────────────────────────────────
+   LANCER UN ROLL
+────────────────────────────────────────────── */
+function effectuerRoll() {
+  const item = effectuerTirage();
+
+  // Mise à jour de l'état
+  etat.totalRolls++;
+  etat.pieces++;
+  etat.inventaire[item.id] = (etat.inventaire[item.id] || 0) + 1;
+  etat.historique.unshift(item);
+  if (etat.historique.length > 5) etat.historique.pop();
+
+  // Rafraîchir l'interface
+  afficherResultat(item);
+  mettreAJourCompteurs();
+  afficherInventaire();
+  afficherHistorique();
+}
+
+/* ──────────────────────────────────────────────
+   AFFICHAGE DU RÉSULTAT AVEC ANIMATION FLASH
+────────────────────────────────────────────── */
+function afficherResultat(item) {
+  const zone  = document.getElementById('resultZone');
+  const emoji = document.getElementById('resultEmoji');
+  const name  = document.getElementById('resultName');
+  const rar   = document.getElementById('resultRarity');
+
+  // Réinitialiser animation
+  zone.classList.remove('flash-anim');
+  void zone.offsetWidth; // forcer reflow
+  zone.classList.add('flash-anim');
+
+  // Texte
+  emoji.textContent = item.emoji;
+  name.textContent  = item.nom;
+  name.style.color  = item.couleur;
+  rar.textContent   = `1 / ${item.diviseur}  •  Valeur : ${item.sellValue} 💰`;
+
+  // Effet lumineux pour les items rares (6, 7, 8)
+  zone.style.filter = item.id >= 8 ? `drop-shadow(0 0 18px ${item.couleur})`
+                    : item.id >= 6 ? `drop-shadow(0 0 10px ${item.couleur})`
+                    : 'none';
+}
+
+/* ──────────────────────────────────────────────
+   MISE À JOUR DES COMPTEURS EN HAUT
+────────────────────────────────────────────── */
+function mettreAJourCompteurs() {
+  document.getElementById('coinsDisplay').textContent = etat.pieces.toLocaleString('fr-FR');
+  document.getElementById('rollsDisplay').textContent = etat.totalRolls.toLocaleString('fr-FR');
+  document.getElementById('luckLabel').textContent    = etat.potionActive ? 'x2' : 'x1';
+}
+
+/* ──────────────────────────────────────────────
+   AUTO-ROLL : activer / désactiver
+────────────────────────────────────────────── */
+function toggleAutoRoll() {
+  etat.autoRollActif = !etat.autoRollActif;
+  const toggle = document.getElementById('autoToggle');
+  const label  = document.getElementById('autoLabel');
+
+  if (etat.autoRollActif) {
+    toggle.classList.add('on');
+    label.textContent  = 'ON';
+    label.style.color  = '#a855f7';
+    // Un roll toutes les 1 seconde
+    etat.autoInterval = setInterval(effectuerRoll, 1000);
+  } else {
+    toggle.classList.remove('on');
+    label.textContent = 'OFF';
+    label.style.color = 'var(--text-muted)';
+    clearInterval(etat.autoInterval);
+  }
+}
+
+/* ──────────────────────────────────────────────
+   ACHETER UNE POTION DE CHANCE (coût : 50 pièces)
+   • Durée : 30 secondes
+   • Effet : multiplicateur luck x2 (chance divisée par 2)
+────────────────────────────────────────────── */
+function acheterPotion() {
+  if (etat.pieces < 50) {
+    secouerBouton('buyPotionBtn');
+    return;
+  }
+  if (etat.potionActive) return; // déjà active
+
+  etat.pieces      -= 50;
+  etat.potionActive = true;
+  etat.potionFin    = Date.now() + 30_000;
+
+  mettreAJourCompteurs();
+  demarrerTimerPotion();
+}
+
+/* ──────────────────────────────────────────────
+   TIMER VISUEL DE LA POTION
+────────────────────────────────────────────── */
+function demarrerTimerPotion() {
+  const barWrap    = document.getElementById('potionBarWrap');
+  const bar        = document.getElementById('potionBar');
+  const countdown  = document.getElementById('potionCountdown');
+  const buyBtn     = document.getElementById('buyPotionBtn');
+  const potionTimer = document.getElementById('potionTimer');
+
+  barWrap.classList.remove('hidden');
+  countdown.classList.remove('hidden');
+  buyBtn.disabled   = true;
+  buyBtn.style.opacity = '0.4';
+
+  clearInterval(etat.potionInterval);
+  etat.potionInterval = setInterval(() => {
+    const restant = Math.max(0, etat.potionFin - Date.now());
+    const pct     = (restant / 30_000) * 100;
+
+    bar.style.width          = pct + '%';
+    countdown.textContent    = `⏳ ${Math.ceil(restant / 1000)}s`;
+    potionTimer.textContent  = `${Math.ceil(restant / 1000)}s`;
+    potionTimer.classList.remove('hidden');
+
+    if (restant <= 0) {
+      // Potion expirée
+      clearInterval(etat.potionInterval);
+      etat.potionActive = false;
+
+      barWrap.classList.add('hidden');
+      countdown.classList.add('hidden');
+      potionTimer.classList.add('hidden');
+      buyBtn.disabled      = false;
+      buyBtn.style.opacity = '1';
+
+      mettreAJourCompteurs();
+    }
+  }, 250);
+}
+
+/* ──────────────────────────────────────────────
+   VENDRE UN ITEM DE L'INVENTAIRE
+────────────────────────────────────────────── */
+function vendreItem(itemId) {
+  if (!etat.inventaire[itemId] || etat.inventaire[itemId] <= 0) return;
+
+  const item  = ITEMS.find(i => i.id === itemId);
+  etat.pieces += item.sellValue;
+  etat.inventaire[itemId]--;
+  if (etat.inventaire[itemId] === 0) delete etat.inventaire[itemId];
+
+  mettreAJourCompteurs();
+  afficherInventaire();
+}
+
+/* ──────────────────────────────────────────────
+   AFFICHAGE DE L'INVENTAIRE EN GRILLE
+────────────────────────────────────────────── */
+function afficherInventaire() {
+  const grid = document.getElementById('inventoryGrid');
+  grid.innerHTML = '';
+
+  // Items possédés, triés du plus rare
+  const itemsPossedes = ITEMS
+    .filter(item => etat.inventaire[item.id] > 0)
+    .sort((a, b) => b.id - a.id);
+
+  if (itemsPossedes.length === 0) {
+    grid.innerHTML = `<p class="col-span-2 text-center text-xs py-4" style="color:var(--text-muted)">
+      Lance un Roll pour obtenir des brawlers !
+    </p>`;
+    return;
+  }
+
+  for (const item of itemsPossedes) {
+    const qty  = etat.inventaire[item.id];
+    const card = document.createElement('div');
+    card.className = `inv-item ${item.bgClass}`;
+
+    card.innerHTML = `
+      <div class="flex items-center justify-between">
+        <span class="text-2xl">${item.emoji}</span>
+        <span class="text-xs font-bold px-2 py-0.5 rounded-full"
+              style="background:rgba(0,0,0,.3);color:${item.couleur}">
+          x${qty}
+        </span>
+      </div>
+      <div class="font-bold text-sm leading-tight" style="color:${item.couleur}">${item.nom}</div>
+      <div class="text-xs" style="color:var(--text-muted)">1 / ${item.diviseur}</div>
+      <button class="sell-btn mt-1" onclick="vendreItem(${item.id})">
+        Vendre +${item.sellValue}💰
+      </button>
+    `;
+    grid.appendChild(card);
+  }
+}
+
+/* ──────────────────────────────────────────────
+   HISTORIQUE DES 5 DERNIERS ROLLS
+────────────────────────────────────────────── */
+function afficherHistorique() {
+  const list = document.getElementById('historyList');
+  list.innerHTML = '';
+
+  if (etat.historique.length === 0) {
+    list.innerHTML = `<span class="text-xs" style="color:var(--text-muted)">Aucun roll pour l'instant.</span>`;
+    return;
+  }
+
+  for (const item of etat.historique) {
+    const chip = document.createElement('span');
+    chip.className = 'text-sm font-bold px-3 py-1 rounded-full';
+    chip.style.cssText = `background:rgba(0,0,0,.4);border:1px solid ${item.couleur}44;color:${item.couleur}`;
+    chip.textContent = `${item.emoji} ${item.nom}`;
+    list.appendChild(chip);
+  }
+}
+
+/* ──────────────────────────────────────────────
+   TABLE DES RARETÉS (colonne gauche)
+────────────────────────────────────────────── */
+function afficherTableRarites() {
+  const tbl = document.getElementById('rarityTable');
+  const mult = etat.potionActive ? 2 : 1;
+
+  tbl.innerHTML = [...ITEMS].reverse().map(item => {
+    const chanceMod = item.diviseur / mult;
+    const modLabel  = mult > 1
+      ? `<span style="color:#a855f7;font-weight:700"> → 1/${Math.round(chanceMod)}</span>`
+      : '';
+    return `
+      <div class="flex items-center justify-between gap-2 py-1"
+           style="border-bottom:1px solid var(--border)">
+        <span>${item.emoji} <span style="color:${item.couleur};font-weight:700">${item.nom}</span></span>
+        <span style="color:var(--text-muted)">1/${item.diviseur}${modLabel}</span>
+      </div>
+    `;
+  }).join('');
+}
+
+/* ──────────────────────────────────────────────
+   SECOUEMENT D'UN BOUTON (feedback d'erreur)
+────────────────────────────────────────────── */
+function secouerBouton(id) {
+  const btn = document.getElementById(id);
+  btn.style.animation = 'none';
+  void btn.offsetWidth;
+  btn.style.animation = 'shake .3s ease';
+}
+
+/* ──────────────────────────────────────────────
+   INITIALISATION AU CHARGEMENT
+────────────────────────────────────────────── */
+(function init() {
+  // Injecter keyframe shake dynamiquement
+  const styleTag = document.createElement('style');
+  styleTag.textContent = `
+    @keyframes shake {
+      0%,100% { transform: translateX(0); }
+      20%      { transform: translateX(-6px); }
+      40%      { transform: translateX(6px); }
+      60%      { transform: translateX(-4px); }
+      80%      { transform: translateX(4px); }
+    }
+  `;
+  document.head.appendChild(styleTag);
+
+  afficherInventaire();
+  afficherHistorique();
+  afficherTableRarites();
+  mettreAJourCompteurs();
+})();
+</script>
+</body>
+</html>
