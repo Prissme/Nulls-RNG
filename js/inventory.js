@@ -21,6 +21,7 @@ function vendreItem(brawlerId, variante) {
 
   mettreAJourCompteurs();
   afficherInventaire();
+  sauvegarderEtatCloud();
 }
 
 /* ── Filtre par variante ── */
