@@ -27,6 +27,7 @@ function acheterPotion(type) {
   demarrerTimer(type);
   mettreAJourCompteurs();
   afficherTableRarites();
+  sauvegarderEtatCloud();
 }
 
 function demarrerTimer(type) {
