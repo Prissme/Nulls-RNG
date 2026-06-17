@@ -76,6 +76,29 @@ function mettreAJourCompteurs() {
   document.getElementById('speedLabel').textContent   = etat.speedActive ? 'x3' : 'x1';
   document.getElementById('cpsVal').textContent       = totalCPS();
   document.getElementById('totalCPS').textContent     = totalCPS();
+
+  // Niveau / XP
+  const xpRequis = xpRequisPourNiveau(etat.niveau);
+  const pct      = Math.min(100, (etat.xp / xpRequis) * 100);
+  document.getElementById('levelLabel').textContent = `Niv. ${etat.niveau}`;
+  document.getElementById('xpLabel').textContent     = `${etat.xp}/${xpRequis} XP`;
+  document.getElementById('xpBar').style.width       = pct + '%';
+}
+
+/* ── Notification de passage de niveau ── */
+function afficherLevelUp(niveau) {
+  const notif = document.createElement('div');
+  notif.style.cssText = `
+    position:fixed; top:140px; left:50%; transform:translateX(-50%);
+    background:var(--bg-card); border:1px solid #fbbf24;
+    color:#fbbf24; font-weight:900; font-size:1rem;
+    padding:.7rem 1.6rem; border-radius:14px; z-index:999;
+    box-shadow:0 0 24px rgba(251,191,36,.5);
+    animation: craftIn .4s cubic-bezier(.22,.68,0,1.2) forwards;
+  `;
+  notif.textContent = `🏆 Niveau ${niveau} atteint !`;
+  document.body.appendChild(notif);
+  setTimeout(() => notif.remove(), 2200);
 }
 
 /* ── Table des raretés (colonne gauche) ── */
