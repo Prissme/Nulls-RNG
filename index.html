@@ -50,136 +50,173 @@
     </div>
   </header>
 
-  <!-- ══ MAIN ══ -->
-  <main class="flex flex-1 gap-5 p-5 flex-wrap lg:flex-nowrap">
+  <!-- ══ MAIN — Hub central : Roll + Pets en évidence ══ -->
+  <main class="flex-1 flex flex-col items-center gap-6 p-5 md:p-8">
 
-    <!-- ═══ COLONNE GAUCHE ═══ -->
-    <section class="flex flex-col gap-4 w-full lg:w-72 flex-shrink-0">
-
-      <!-- Boutique -->
-      <div class="card flex flex-col gap-3">
-        <h2 class="text-xs font-bold uppercase tracking-widest" style="color:var(--text-muted)">Boutique</h2>
-        <div class="rounded-lg p-3" style="background:rgba(168,85,247,.08);border:1px solid rgba(168,85,247,.2)">
-          <div class="text-sm font-bold" style="color:#a855f7">✨ Potion de Chance</div>
-          <div class="text-xs mt-0.5" style="color:var(--text-muted)">Luck ×2 — 30 secondes</div>
-          <div id="luckBarWrap" class="hidden mt-2 rounded-full overflow-hidden" style="height:5px;background:var(--border)">
-            <div id="luckBar" class="timer-bar" style="width:100%"></div>
-          </div>
-          <div id="luckCountdown" class="hidden text-xs font-mono font-bold mt-1" style="color:#a855f7"></div>
-        </div>
-        <button id="buyLuckBtn" onclick="acheterPotion('luck')"
-          class="w-full py-2 rounded-xl font-bold text-sm tracking-wide"
-          style="background:linear-gradient(135deg,#7c3aed,#a855f7);color:#fff;border:none;cursor:pointer;box-shadow:0 0 14px rgba(168,85,247,.35)">
-          Acheter — 250 💰
-        </button>
-        <div class="border-t" style="border-color:var(--border)"></div>
-        <div class="rounded-lg p-3" style="background:rgba(14,165,233,.08);border:1px solid rgba(14,165,233,.2)">
-          <div class="text-sm font-bold" style="color:#38bdf8">⚡ Potion de Vitesse</div>
-          <div class="text-xs mt-0.5" style="color:var(--text-muted)">Auto-Roll ×3 — 20 secondes</div>
-          <div id="speedBarWrap" class="hidden mt-2 rounded-full overflow-hidden" style="height:5px;background:var(--border)">
-            <div id="speedBar" class="timer-bar" style="width:100%"></div>
-          </div>
-          <div id="speedCountdown" class="hidden text-xs font-mono font-bold mt-1" style="color:#38bdf8"></div>
-        </div>
-        <button id="buySpeedBtn" onclick="acheterPotion('speed')"
-          class="w-full py-2 rounded-xl font-bold text-sm tracking-wide"
-          style="background:linear-gradient(135deg,#0369a1,#0ea5e9);color:#fff;border:none;cursor:pointer;box-shadow:0 0 14px rgba(14,165,233,.35)">
-          Acheter — 400 💰
-        </button>
+    <!-- ═══ Zone de Roll (mise en avant) ═══ -->
+    <section class="hub-roll card w-full max-w-2xl flex flex-col items-center gap-6 py-10 px-6">
+      <div id="resultZone">
+        <div id="resultEmoji" class="text-7xl">🎰</div>
+        <div id="resultName" style="color:var(--text-muted)">— Rien encore —</div>
+        <div id="resultSub"></div>
       </div>
-
-      <!-- Craft -->
-      <div class="card flex flex-col gap-2">
-        <div class="flex items-center justify-between">
-          <h2 class="text-xs font-bold uppercase tracking-widest" style="color:var(--text-muted)">Craft</h2>
-          <span class="text-xs" style="color:var(--text-muted)">10× → upgrade</span>
+      <button id="rollBtn" onclick="effectuerRoll()">⚡ ROLL</button>
+      <div class="flex items-center gap-3 flex-wrap justify-center">
+        <span class="text-sm" style="color:var(--text-muted)">Auto-Roll</span>
+        <div class="toggle-track" id="autoToggle" onclick="toggleAutoRoll()">
+          <div class="toggle-thumb"></div>
         </div>
-        <div class="text-xs flex flex-col gap-0.5 mb-1" style="color:var(--text-muted)">
-          <div>✦ 10 <span style="color:#94a3b8">Normal</span> → 1 <span style="color:#38bdf8">Shiny</span></div>
-          <div>✦ 10 <span style="color:#38bdf8">Shiny</span> → 1 <span style="color:#fbbf24">Golden</span></div>
-          <div>✦ 10 <span style="color:#fbbf24">Golden</span> → 1 <span style="color:#e879f9">Rainbow</span></div>
-        </div>
-        <div id="craftList"></div>
-      </div>
-
-      <!-- Table raretés -->
-      <div class="card flex flex-col gap-1">
-        <h2 class="text-xs font-bold uppercase tracking-widest mb-1" style="color:var(--text-muted)">Raretés</h2>
-        <div id="rarityTable" class="flex flex-col gap-0.5 text-xs"></div>
-        <div class="mt-2 pt-2 border-t text-xs flex flex-col gap-0.5" style="border-color:var(--border);color:var(--text-muted)">
-          <div>✦ <span style="color:var(--shiny-col)">Shiny</span> — ×15 plus rare</div>
-          <div>✦ <span style="color:var(--golden-col)">Golden</span> — ×100 plus rare</div>
-          <div>✦ <span style="color:var(--rainbow-col)">Rainbow</span> — ×500 plus rare</div>
-        </div>
+        <span id="autoLabel" class="text-xs font-bold" style="color:var(--text-muted)">OFF</span>
+        <span id="autoSpeedBadge" class="hidden text-xs font-bold px-2 py-0.5 rounded-full"
+              style="background:rgba(14,165,233,.2);color:#38bdf8">⚡ ×3</span>
       </div>
     </section>
 
-    <!-- ═══ COLONNE CENTRE ═══ -->
-    <section class="flex-1 flex flex-col gap-4 min-w-0">
+    <!-- ═══ Historique (bande compacte) ═══ -->
+    <div id="historyList" class="history-strip"></div>
 
-      <!-- Zone résultat -->
-      <div class="card flex flex-col items-center gap-5 py-8">
-        <div id="resultZone">
-          <div id="resultEmoji" class="text-6xl">🎰</div>
-          <div id="resultName" style="color:var(--text-muted)">— Rien encore —</div>
-          <div id="resultSub"></div>
-        </div>
-        <button id="rollBtn" onclick="effectuerRoll()">⚡ ROLL</button>
-        <div class="flex items-center gap-3 mt-1">
-          <span class="text-sm" style="color:var(--text-muted)">Auto-Roll</span>
-          <div class="toggle-track" id="autoToggle" onclick="toggleAutoRoll()">
-            <div class="toggle-thumb"></div>
-          </div>
-          <span id="autoLabel" class="text-xs font-bold" style="color:var(--text-muted)">OFF</span>
-          <span id="autoSpeedBadge" class="hidden text-xs font-bold px-2 py-0.5 rounded-full"
-                style="background:rgba(14,165,233,.2);color:#38bdf8">⚡ ×3</span>
-        </div>
+    <!-- ═══ Pets équipés (mis en avant) ═══ -->
+    <section class="hub-pets card w-full max-w-3xl flex flex-col gap-4 py-6 px-6">
+      <div class="flex items-center justify-between flex-wrap gap-2">
+        <h2 class="hub-title">🐾 Pets équipés</h2>
+        <span class="text-xs" style="color:var(--text-muted)">Max 3 — génèrent des 💰/s</span>
       </div>
-
-      <!-- Quêtes -->
-      <div class="card flex flex-col gap-2">
-        <div class="flex items-center justify-between">
-          <h2 class="text-xs font-bold uppercase tracking-widest" style="color:var(--text-muted)">Quêtes</h2>
-          <span id="quetesTimer" class="text-xs font-mono font-bold" style="color:var(--text-muted)"></span>
-        </div>
-        <div id="quetesList"></div>
-      </div>
-
-      <!-- Pets équipés -->
-      <div class="card flex flex-col gap-3">
-        <div class="flex items-center justify-between">
-          <h2 class="text-xs font-bold uppercase tracking-widest" style="color:var(--text-muted)">Pets équipés</h2>
-          <span class="text-xs" style="color:var(--text-muted)">Max 3 — génèrent des 💰/s</span>
-        </div>
-        <div class="grid grid-cols-3 gap-3" id="petSlots"></div>
-        <div class="text-xs text-center" style="color:var(--text-muted)">
-          Total: <span id="totalCPS" class="font-bold" style="color:#fbbf24">0</span> pièces/s
-        </div>
-      </div>
-
-      <!-- Historique -->
-      <div class="card flex flex-col gap-2">
-        <h2 class="text-xs font-bold uppercase tracking-widest" style="color:var(--text-muted)">Derniers résultats</h2>
-        <div id="historyList" class="flex gap-2 flex-wrap"></div>
+      <div class="grid grid-cols-3 gap-4" id="petSlots"></div>
+      <div class="text-sm text-center" style="color:var(--text-muted)">
+        Total: <span id="totalCPS" class="font-bold" style="color:#fbbf24">0</span> pièces/s
       </div>
     </section>
 
-    <!-- ═══ COLONNE DROITE — Inventaire ═══ -->
-    <section class="flex flex-col gap-3 w-full lg:w-80 flex-shrink-0">
-      <div class="flex items-center justify-between">
-        <h2 class="text-xs font-bold uppercase tracking-widest" style="color:var(--text-muted)">Inventaire</h2>
-        <div class="flex gap-1">
-          <button class="tab-btn active" onclick="filtrerVariante('all', this)">Tous</button>
-          <button class="tab-btn" onclick="filtrerVariante('normal', this)">Base</button>
-          <button class="tab-btn" onclick="filtrerVariante('shiny', this)"   style="color:var(--shiny-col)">S</button>
-          <button class="tab-btn" onclick="filtrerVariante('golden', this)"  style="color:var(--golden-col)">G</button>
-          <button class="tab-btn" onclick="filtrerVariante('rainbow', this)" style="color:var(--rainbow-col)">R</button>
-        </div>
-      </div>
-      <div id="inventoryGrid" class="grid grid-cols-2 gap-2 overflow-y-auto pr-1" style="max-height:620px"></div>
-    </section>
+    <!-- ═══ Barre d'outils → ouvre les popups ═══ -->
+    <nav class="toolbar">
+      <button class="toolbar-btn" onclick="ouvrirModal('modalInventaire')">
+        <span class="toolbar-icon">🎒</span> Inventaire
+      </button>
+      <button class="toolbar-btn" onclick="ouvrirModal('modalBoutique')">
+        <span class="toolbar-icon">🛒</span> Boutique
+      </button>
+      <button class="toolbar-btn" onclick="ouvrirModal('modalQuetes')">
+        <span class="toolbar-icon">🎯</span> Quêtes
+        <span class="badge-dot hidden" id="quetesBadge"></span>
+      </button>
+      <button class="toolbar-btn" onclick="ouvrirModal('modalCraft')">
+        <span class="toolbar-icon">⚗️</span> Craft
+        <span class="badge-dot hidden" id="craftBadge"></span>
+      </button>
+      <button class="toolbar-btn" onclick="ouvrirModal('modalRaretes')">
+        <span class="toolbar-icon">📊</span> Raretés
+      </button>
+    </nav>
 
   </main>
+</div>
+
+<!-- ══ POPUPS ══ -->
+
+<!-- Inventaire -->
+<div class="modal-overlay" id="modalInventaire" onclick="fermerModalOverlay(event,'modalInventaire')">
+  <div class="modal-box">
+    <div class="modal-header">
+      <h2>🎒 Inventaire</h2>
+      <button class="modal-close" onclick="fermerModal('modalInventaire')">✕</button>
+    </div>
+    <div class="modal-tabs">
+      <button class="tab-btn active" onclick="filtrerVariante('all', this)">Tous</button>
+      <button class="tab-btn" onclick="filtrerVariante('normal', this)">Base</button>
+      <button class="tab-btn" onclick="filtrerVariante('shiny', this)"   style="color:var(--shiny-col)">S</button>
+      <button class="tab-btn" onclick="filtrerVariante('golden', this)"  style="color:var(--golden-col)">G</button>
+      <button class="tab-btn" onclick="filtrerVariante('rainbow', this)" style="color:var(--rainbow-col)">R</button>
+    </div>
+    <div id="inventoryGrid" class="modal-body grid grid-cols-2 sm:grid-cols-3 gap-2"></div>
+  </div>
+</div>
+
+<!-- Boutique -->
+<div class="modal-overlay" id="modalBoutique" onclick="fermerModalOverlay(event,'modalBoutique')">
+  <div class="modal-box modal-box-sm">
+    <div class="modal-header">
+      <h2>🛒 Boutique</h2>
+      <button class="modal-close" onclick="fermerModal('modalBoutique')">✕</button>
+    </div>
+    <div class="modal-body flex flex-col gap-3">
+      <div class="rounded-lg p-3" style="background:rgba(168,85,247,.08);border:1px solid rgba(168,85,247,.2)">
+        <div class="text-sm font-bold" style="color:#a855f7">✨ Potion de Chance</div>
+        <div class="text-xs mt-0.5" style="color:var(--text-muted)">Luck ×2 — 30 secondes</div>
+        <div id="luckBarWrap" class="hidden mt-2 rounded-full overflow-hidden" style="height:5px;background:var(--border)">
+          <div id="luckBar" class="timer-bar" style="width:100%"></div>
+        </div>
+        <div id="luckCountdown" class="hidden text-xs font-mono font-bold mt-1" style="color:#a855f7"></div>
+      </div>
+      <button id="buyLuckBtn" onclick="acheterPotion('luck')"
+        class="w-full py-2 rounded-xl font-bold text-sm tracking-wide"
+        style="background:linear-gradient(135deg,#7c3aed,#a855f7);color:#fff;border:none;cursor:pointer;box-shadow:0 0 14px rgba(168,85,247,.35)">
+        Acheter — 250 💰
+      </button>
+      <div class="border-t" style="border-color:var(--border)"></div>
+      <div class="rounded-lg p-3" style="background:rgba(14,165,233,.08);border:1px solid rgba(14,165,233,.2)">
+        <div class="text-sm font-bold" style="color:#38bdf8">⚡ Potion de Vitesse</div>
+        <div class="text-xs mt-0.5" style="color:var(--text-muted)">Auto-Roll ×3 — 20 secondes</div>
+        <div id="speedBarWrap" class="hidden mt-2 rounded-full overflow-hidden" style="height:5px;background:var(--border)">
+          <div id="speedBar" class="timer-bar" style="width:100%"></div>
+        </div>
+        <div id="speedCountdown" class="hidden text-xs font-mono font-bold mt-1" style="color:#38bdf8"></div>
+      </div>
+      <button id="buySpeedBtn" onclick="acheterPotion('speed')"
+        class="w-full py-2 rounded-xl font-bold text-sm tracking-wide"
+        style="background:linear-gradient(135deg,#0369a1,#0ea5e9);color:#fff;border:none;cursor:pointer;box-shadow:0 0 14px rgba(14,165,233,.35)">
+        Acheter — 400 💰
+      </button>
+    </div>
+  </div>
+</div>
+
+<!-- Quêtes -->
+<div class="modal-overlay" id="modalQuetes" onclick="fermerModalOverlay(event,'modalQuetes')">
+  <div class="modal-box modal-box-sm">
+    <div class="modal-header">
+      <h2>🎯 Quêtes</h2>
+      <span id="quetesTimer" class="text-xs font-mono font-bold" style="color:var(--text-muted)"></span>
+      <button class="modal-close" onclick="fermerModal('modalQuetes')">✕</button>
+    </div>
+    <div id="quetesList" class="modal-body"></div>
+  </div>
+</div>
+
+<!-- Craft -->
+<div class="modal-overlay" id="modalCraft" onclick="fermerModalOverlay(event,'modalCraft')">
+  <div class="modal-box modal-box-sm">
+    <div class="modal-header">
+      <h2>⚗️ Craft</h2>
+      <span class="text-xs" style="color:var(--text-muted)">10× → upgrade</span>
+      <button class="modal-close" onclick="fermerModal('modalCraft')">✕</button>
+    </div>
+    <div class="modal-body">
+      <div class="text-xs flex flex-col gap-0.5 mb-2" style="color:var(--text-muted)">
+        <div>✦ 10 <span style="color:#94a3b8">Normal</span> → 1 <span style="color:#38bdf8">Shiny</span></div>
+        <div>✦ 10 <span style="color:#38bdf8">Shiny</span> → 1 <span style="color:#fbbf24">Golden</span></div>
+        <div>✦ 10 <span style="color:#fbbf24">Golden</span> → 1 <span style="color:#e879f9">Rainbow</span></div>
+      </div>
+      <div id="craftList"></div>
+    </div>
+  </div>
+</div>
+
+<!-- Raretés -->
+<div class="modal-overlay" id="modalRaretes" onclick="fermerModalOverlay(event,'modalRaretes')">
+  <div class="modal-box modal-box-sm">
+    <div class="modal-header">
+      <h2>📊 Raretés</h2>
+      <button class="modal-close" onclick="fermerModal('modalRaretes')">✕</button>
+    </div>
+    <div class="modal-body">
+      <div id="rarityTable" class="flex flex-col gap-0.5 text-xs"></div>
+      <div class="mt-2 pt-2 border-t text-xs flex flex-col gap-0.5" style="border-color:var(--border);color:var(--text-muted)">
+        <div>✦ <span style="color:var(--shiny-col)">Shiny</span> — ×15 plus rare</div>
+        <div>✦ <span style="color:var(--golden-col)">Golden</span> — ×100 plus rare</div>
+        <div>✦ <span style="color:var(--rainbow-col)">Rainbow</span> — ×500 plus rare</div>
+      </div>
+    </div>
+  </div>
 </div>
 
 <!-- ══ Dépendances externes ══ -->
@@ -197,6 +234,7 @@
 <script src="js/inventory.js"></script>
 <script src="js/craft.js"></script>
 <script src="js/quetes.js"></script>
+<script src="js/modals.js"></script>
 <script src="js/cloudsave.js"></script>
 <script src="js/main.js"></script>
 
