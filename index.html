@@ -32,9 +32,9 @@
           <div id="xpBar" class="timer-bar" style="width:0%;background:linear-gradient(90deg,#f59e0b,#fbbf24)"></div>
         </div>
       </div>
-      <div class="stat-chip flex items-center gap-1.5" style="position:relative" id="coinChip">
-        <img src="images/Coins.webp" alt="Coins" class="w-4 h-4 object-contain inline" onerror="this.style.display='none'">
-        <span id="coinsDisplay" class="val">0</span>
+      <div class="stat-chip flex items-center gap-2" style="position:relative" id="coinChip">
+        <img src="./images/Coins.webp" alt="Coins" style="width: 24px; height: 24px; min-width: 24px;" class="object-contain inline-block align-middle" onerror="this.style.display='none'">
+        <span id="coinsDisplay" class="val text-base font-bold">0</span>
         <span style="color:var(--text-muted)">pièces</span>
         <span id="cpsDisplay" class="text-xs ml-1" style="color:#fbbf24">
           +<span id="cpsVal">0</span>/s
@@ -84,9 +84,9 @@
         <span class="text-xs" style="color:var(--text-muted)">Max 3 — génèrent des pièces/s</span>
       </div>
       <div class="grid grid-cols-3 gap-4" id="petSlots"></div>
-      <div class="text-sm text-center flex items-center justify-center gap-1.5" style="color:var(--text-muted)">
+      <div class="text-sm text-center flex items-center justify-center gap-2" style="color:var(--text-muted)">
         Total: <span id="totalCPS" class="font-bold" style="color:#fbbf24">0</span> 
-        <img src="images/Coins.webp" alt="Coins" class="w-4 h-4 object-contain inline" onerror="this.style.display='none'">/s
+        <img src="./images/Coins.webp" alt="Coins" style="width: 20px; height: 20px;" class="object-contain inline-block align-middle" onerror="this.style.display='none'">/s
       </div>
     </section>
 
@@ -116,6 +116,10 @@
       <button class="toolbar-card" onclick="ouvrirModal('modalCombat')">
         <span class="toolbar-card-icon">⚔️</span>
         <span class="toolbar-card-label">Combat</span>
+      </button>
+      <button class="toolbar-card" onclick="ouvrirModal('modalLeaderboard')">
+        <span class="toolbar-card-icon">🏆</span>
+        <span class="toolbar-card-label">Top CPS</span>
       </button>
     </nav>
   </main>
@@ -155,30 +159,30 @@
     <div class="modal-body flex flex-col gap-3">
       <div class="rounded-lg p-3" style="background:rgba(168,85,247,.08);border:1px solid rgba(168,85,247,.2)">
         <div class="text-sm font-bold" style="color:#a855f7">✨ Potion de Chance</div>
-        <div class="text-xs mt-0.5" style="color:var(--text-muted)">Luck ×2 — 30 secondes (achetable plusieurs fois, le temps s'additionne)</div>
+        <div class="text-xs mt-0.5" style="color:var(--text-muted)">Luck ×2 — 30 secondes</div>
         <div id="luckBarWrap" class="hidden mt-2 rounded-full overflow-hidden" style="height:5px;background:var(--border)">
           <div id="luckBar" class="timer-bar" style="width:100%"></div>
         </div>
         <div id="luckCountdown" class="hidden text-xs font-mono font-bold mt-1" style="color:#a855f7"></div>
       </div>
       <button id="buyLuckBtn" onclick="acheterPotion('luck')"
-        class="w-full py-2 rounded-xl font-bold text-sm tracking-wide flex items-center justify-center gap-1.5"
+        class="w-full py-2 rounded-xl font-bold text-sm tracking-wide flex items-center justify-center gap-2"
         style="background:linear-gradient(135deg,#7c3aed,#a855f7);color:#fff;border:none;cursor:pointer;box-shadow:0 0 14px rgba(168,85,247,.35)">
-        Acheter — 250 <img src="images/Coins.webp" alt="Coins" class="w-4 h-4 object-contain inline">
+        Acheter — 250 <img src="./images/Coins.webp" alt="Coins" class="w-5 h-5 object-contain inline">
       </button>
       <div class="border-t" style="border-color:var(--border)"></div>
       <div class="rounded-lg p-3" style="background:rgba(14,165,233,.08);border:1px solid rgba(14,165,233,.2)">
         <div class="text-sm font-bold" style="color:#38bdf8">⚡ Potion de Vitesse</div>
-        <div class="text-xs mt-0.5" style="color:var(--text-muted)">Auto-Roll ×3 — 20 secondes (achetable plusieurs fois, le temps s'additionne)</div>
+        <div class="text-xs mt-0.5" style="color:var(--text-muted)">Auto-Roll ×3 — 20 secondes</div>
         <div id="speedBarWrap" class="hidden mt-2 rounded-full overflow-hidden" style="height:5px;background:var(--border)">
           <div id="speedBar" class="timer-bar" style="width:100%"></div>
         </div>
         <div id="speedCountdown" class="hidden text-xs font-mono font-bold mt-1" style="color:#38bdf8"></div>
       </div>
       <button id="buySpeedBtn" onclick="acheterPotion('speed')"
-        class="w-full py-2 rounded-xl font-bold text-sm tracking-wide flex items-center justify-center gap-1.5"
+        class="w-full py-2 rounded-xl font-bold text-sm tracking-wide flex items-center justify-center gap-2"
         style="background:linear-gradient(135deg,#0369a1,#0ea5e9);color:#fff;border:none;cursor:pointer;box-shadow:0 0 14px rgba(14,165,233,.35)">
-        Acheter — 400 <img src="images/Coins.webp" alt="Coins" class="w-4 h-4 object-contain inline">
+        Acheter — 400 <img src="./images/Coins.webp" alt="Coins" class="w-5 h-5 object-contain inline">
       </button>
     </div>
   </div>
@@ -204,9 +208,9 @@
     </div>
     <div class="modal-body">
       <div class="text-xs flex flex-col gap-0.5 mb-2" style="color:var(--text-muted)">
-        <div>✦ 10 <span style="color:#94a3b8">Normal</span> → 1 <span style="color:#38bdf8">Shiny</span></div>
-        <div>✦ 10 <span style="color:#38bdf8">Shiny</span> → 1 <span style="color:#fbbf24">Golden</span></div>
-        <div>✦ 10 <span style="color:#fbbf24">Golden</span> → 1 <span style="color:#e879f9">Rainbow</span></div>
+        <div>✦ 10 Normal → 1 Shiny</div>
+        <div>✦ 10 Shiny → 1 Golden</div>
+        <div>✦ 10 Golden → 1 Rainbow</div>
       </div>
       <div id="craftList"></div>
     </div>
@@ -221,11 +225,6 @@
     </div>
     <div class="modal-body">
       <div id="rarityTable" class="flex flex-col gap-0.5 text-xs"></div>
-      <div class="mt-2 pt-2 border-t text-xs flex flex-col gap-0.5" style="border-color:var(--border);color:var(--text-muted)">
-        <div>✦ <span style="color:var(--shiny-col)">Shiny</span> — ×15 plus rare</div>
-        <div>✦ <span style="color:var(--golden-col)">Golden</span> — ×100 plus rare</div>
-        <div>✦ <span style="color:var(--rainbow-col)">Rainbow</span> — ×500 plus rare</div>
-      </div>
     </div>
   </div>
 </div>
@@ -240,21 +239,34 @@
       <div class="text-xs text-slate-400">
         Mesure tes familiers face aux menaces cybernétiques pour remporter de l'or et de l'expérience.
       </div>
-
       <div class="stat-chip bg-purple-950/40 border border-purple-500/30 px-3 py-1.5 rounded-xl w-full flex justify-between items-center">
         <span class="text-xs text-slate-300">⚡ Ta puissance (CPS) :</span>
         <span id="combatPower" class="val text-purple-400 font-extrabold text-base">0</span>
       </div>
-
       <div id="enemyArenaCard" class="w-full min-h-[160px] flex items-center justify-center"></div>
-
       <button onclick="lancerCombat()"
         class="w-full py-3 rounded-xl font-black text-sm tracking-wide uppercase transition-all duration-200 hover:brightness-110 active:scale-95"
         style="background:linear-gradient(135deg,#7c3aed,#a855f7);color:#fff;border:none;cursor:pointer;box-shadow:0 0 14px rgba(168,85,247,.35)">
         💥 Engager le Combat
       </button>
-
       <div id="combatResult" class="w-full"></div>
+    </div>
+  </div>
+</div>
+
+<div class="modal-overlay" id="modalLeaderboard" onclick="fermerModalOverlay(event,'modalLeaderboard')">
+  <div class="modal-box modal-box-sm">
+    <div class="modal-header">
+      <h2>🏆 Top Joueurs (CPS)</h2>
+      <button class="modal-close" onclick="fermerModal('modalLeaderboard')">✕</button>
+    </div>
+    <div class="modal-body">
+      <div class="text-xs text-slate-400 mb-3 text-center">
+        Classement mondial des joueurs générant le plus de revenus par seconde.
+      </div>
+      <div id="leaderboardList" class="flex flex-col gap-1.5 max-h-64 overflow-y-auto pr-1">
+        <div class="text-xs text-center text-slate-500 py-4">Chargement...</div>
+      </div>
     </div>
   </div>
 </div>
@@ -273,6 +285,7 @@
 <script src="js/craft.js"></script>
 <script src="js/quetes.js"></script>
 <script src="js/combat.js"></script>
+<script src="js/leaderboard.js"></script>
 <script src="js/modals.js"></script>
 <script src="js/cloudsave.js"></script>
 <script src="js/main.js"></script>
