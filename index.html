@@ -10,17 +10,13 @@
 <body>
 <div class="bg-photo"></div>
 <div class="bg-grid"></div>
-
 <div class="z-content flex flex-col min-h-screen">
-
-  <!-- ══ HEADER ══ -->
   <header class="border-b border-[var(--border)] bg-[var(--bg-card)] px-6 py-3 flex items-center justify-between gap-3 flex-wrap">
     <span class="logo-text">⬛ Null's RNG</span>
     <div class="flex gap-2 flex-wrap">
       <div class="stat-chip" id="cloudStatusChip" style="display:none;border-color:rgba(148,163,184,.4)">
         <span id="cloudStatusText" style="color:var(--text-muted)">☁️ …</span>
       </div>
-      <!-- Bouton mute son -->
       <button id="muteBtn" onclick="toggleMute()"
         class="stat-chip"
         style="cursor:pointer;border-color:rgba(168,85,247,.4);background:var(--bg-panel);border:1px solid rgba(168,85,247,.4);border-radius:10px;padding:.4rem .85rem;font-size:.85rem"
@@ -58,9 +54,7 @@
     </div>
   </header>
 
-  <!-- ══ MAIN ══ -->
   <main class="flex-1 flex flex-col items-center gap-6 p-5 md:p-8">
-
     <section class="hub-roll card w-full max-w-2xl flex flex-col items-center gap-6 py-10 px-6">
       <div id="resultZone">
         <div id="resultEmoji" class="text-7xl">🎰</div>
@@ -120,13 +114,9 @@
         <span class="toolbar-card-label">Combat</span>
       </button>
     </nav>
-
   </main>
 </div>
 
-<!-- ══ POPUPS ══ -->
-
-<!-- Inventaire -->
 <div class="modal-overlay" id="modalInventaire" onclick="fermerModalOverlay(event,'modalInventaire')">
   <div class="modal-box">
     <div class="modal-header">
@@ -136,8 +126,8 @@
     <div class="modal-tabs" id="variantTabs">
       <button class="tab-btn active" onclick="filtrerVariante('all', this)">Tous</button>
       <button class="tab-btn" onclick="filtrerVariante('normal', this)">Base</button>
-      <button class="tab-btn" onclick="filtrerVariante('shiny', this)"   style="color:var(--shiny-col)">S</button>
-      <button class="tab-btn" onclick="filtrerVariante('golden', this)"  style="color:var(--golden-col)">G</button>
+      <button class="tab-btn" onclick="filtrerVariante('shiny', this)" style="color:var(--shiny-col)">S</button>
+      <button class="tab-btn" onclick="filtrerVariante('golden', this)" style="color:var(--golden-col)">G</button>
       <button class="tab-btn" onclick="filtrerVariante('rainbow', this)" style="color:var(--rainbow-col)">R</button>
     </div>
     <div class="modal-tabs" id="sortTabs" style="padding-top:.6rem">
@@ -152,7 +142,6 @@
   </div>
 </div>
 
-<!-- Boutique -->
 <div class="modal-overlay" id="modalBoutique" onclick="fermerModalOverlay(event,'modalBoutique')">
   <div class="modal-box modal-box-sm">
     <div class="modal-header">
@@ -191,7 +180,6 @@
   </div>
 </div>
 
-<!-- Quêtes -->
 <div class="modal-overlay" id="modalQuetes" onclick="fermerModalOverlay(event,'modalQuetes')">
   <div class="modal-box modal-box-sm">
     <div class="modal-header">
@@ -203,7 +191,6 @@
   </div>
 </div>
 
-<!-- Craft -->
 <div class="modal-overlay" id="modalCraft" onclick="fermerModalOverlay(event,'modalCraft')">
   <div class="modal-box modal-box-sm">
     <div class="modal-header">
@@ -222,7 +209,6 @@
   </div>
 </div>
 
-<!-- Raretés -->
 <div class="modal-overlay" id="modalRaretes" onclick="fermerModalOverlay(event,'modalRaretes')">
   <div class="modal-box modal-box-sm">
     <div class="modal-header">
@@ -240,37 +226,38 @@
   </div>
 </div>
 
-<!-- Combat -->
 <div class="modal-overlay" id="modalCombat" onclick="fermerModalOverlay(event,'modalCombat')">
   <div class="modal-box modal-box-sm">
     <div class="modal-header">
-      <h2>⚔️ Combat</h2>
+      <h2>⚔️ Arène de Combat</h2>
       <button class="modal-close" onclick="fermerModal('modalCombat')">✕</button>
     </div>
-    <div class="modal-body flex flex-col gap-3 items-center text-center">
-      <div class="text-xs" style="color:var(--text-muted)">
-        Affronte un adversaire aléatoire en utilisant la puissance de tes pets équipés
-        pour gagner des <span style="color:#fbbf24">pièces</span> et de l'<span style="color:#fbbf24">XP</span>.
+    <div class="modal-body flex flex-col gap-4 items-center text-center">
+      <div class="text-xs text-slate-400">
+        Mesure tes familiers face aux menaces cybernétiques pour remporter de l'or et de l'expérience.
       </div>
-      <div class="stat-chip mt-2" style="border-color:rgba(124,58,237,.4)">
-        ⚔️ <span style="color:var(--text-muted)">Puissance actuelle :</span>
-        <span id="combatPower" class="val" style="color:#a855f7">0</span>
+
+      <div class="stat-chip bg-purple-950/40 border border-purple-500/30 px-3 py-1.5 rounded-xl w-full flex justify-between items-center">
+        <span class="text-xs text-slate-300">⚡ Ta puissance (CPS) :</span>
+        <span id="combatPower" class="val text-purple-400 font-extrabold text-base">0</span>
       </div>
+
+      <div id="enemyArenaCard" class="w-full min-h-[160px] flex items-center justify-center">
+        </div>
+
       <button onclick="lancerCombat()"
-        class="w-full py-2 rounded-xl font-bold text-sm tracking-wide"
+        class="w-full py-3 rounded-xl font-black text-sm tracking-wide uppercase transition-all duration-200 hover:brightness-110 active:scale-95"
         style="background:linear-gradient(135deg,#7c3aed,#a855f7);color:#fff;border:none;cursor:pointer;box-shadow:0 0 14px rgba(168,85,247,.35)">
-        ⚔️ Combattre
+        💥 Engager le Combat
       </button>
+
       <div id="combatResult" class="w-full"></div>
     </div>
   </div>
 </div>
 
-<!-- ══ Dépendances externes ══ -->
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.js"></script>
 <script src="js/config.js"></script>
-
-<!-- ══ Scripts ══ -->
 <script src="js/data.js"></script>
 <script src="js/state.js"></script>
 <script src="js/sound.js"></script>
@@ -286,13 +273,11 @@
 <script src="js/modals.js"></script>
 <script src="js/cloudsave.js"></script>
 <script src="js/main.js"></script>
-
 <script>
   function toggleMute() {
     const on = Sound.toggle();
     document.getElementById('muteBtn').textContent = on ? '🔊' : '🔇';
   }
 </script>
-
 </body>
 </html>
