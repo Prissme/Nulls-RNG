@@ -8,6 +8,7 @@
   <link rel="stylesheet" href="css/styles.css" />
 </head>
 <body>
+<div class="bg-photo"></div>
 <div class="bg-grid"></div>
 
 <div class="z-content flex flex-col min-h-screen">
@@ -125,13 +126,25 @@
       <h2>🎒 Inventaire</h2>
       <button class="modal-close" onclick="fermerModal('modalInventaire')">✕</button>
     </div>
-    <div class="modal-tabs">
+
+    <div class="modal-tabs" id="variantTabs">
       <button class="tab-btn active" onclick="filtrerVariante('all', this)">Tous</button>
       <button class="tab-btn" onclick="filtrerVariante('normal', this)">Base</button>
       <button class="tab-btn" onclick="filtrerVariante('shiny', this)"   style="color:var(--shiny-col)">S</button>
       <button class="tab-btn" onclick="filtrerVariante('golden', this)"  style="color:var(--golden-col)">G</button>
       <button class="tab-btn" onclick="filtrerVariante('rainbow', this)" style="color:var(--rainbow-col)">R</button>
     </div>
+
+    <div class="modal-tabs" id="sortTabs" style="padding-top:.6rem">
+      <span class="text-xs flex items-center" style="color:var(--text-muted)">Trier :</span>
+      <button class="tab-btn active" onclick="trierInventaire('rarete', this)">✦ Rareté</button>
+      <button class="tab-btn" onclick="trierInventaire('revenus', this)">💰 Revenus</button>
+    </div>
+
+    <div style="padding:.75rem 1.25rem 0">
+      <button class="equip-best-btn" onclick="equiperMeilleurs()">⚡ Équiper les meilleurs pets</button>
+    </div>
+
     <div id="inventoryGrid" class="modal-body grid grid-cols-2 sm:grid-cols-3 gap-2"></div>
   </div>
 </div>
@@ -146,7 +159,7 @@
     <div class="modal-body flex flex-col gap-3">
       <div class="rounded-lg p-3" style="background:rgba(168,85,247,.08);border:1px solid rgba(168,85,247,.2)">
         <div class="text-sm font-bold" style="color:#a855f7">✨ Potion de Chance</div>
-        <div class="text-xs mt-0.5" style="color:var(--text-muted)">Luck ×2 — 30 secondes</div>
+        <div class="text-xs mt-0.5" style="color:var(--text-muted)">Luck ×2 — 30 secondes (achetable plusieurs fois, le temps s'additionne)</div>
         <div id="luckBarWrap" class="hidden mt-2 rounded-full overflow-hidden" style="height:5px;background:var(--border)">
           <div id="luckBar" class="timer-bar" style="width:100%"></div>
         </div>
@@ -160,7 +173,7 @@
       <div class="border-t" style="border-color:var(--border)"></div>
       <div class="rounded-lg p-3" style="background:rgba(14,165,233,.08);border:1px solid rgba(14,165,233,.2)">
         <div class="text-sm font-bold" style="color:#38bdf8">⚡ Potion de Vitesse</div>
-        <div class="text-xs mt-0.5" style="color:var(--text-muted)">Auto-Roll ×3 — 20 secondes</div>
+        <div class="text-xs mt-0.5" style="color:var(--text-muted)">Auto-Roll ×3 — 20 secondes (achetable plusieurs fois, le temps s'additionne)</div>
         <div id="speedBarWrap" class="hidden mt-2 rounded-full overflow-hidden" style="height:5px;background:var(--border)">
           <div id="speedBar" class="timer-bar" style="width:100%"></div>
         </div>
