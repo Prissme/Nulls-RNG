@@ -11,39 +11,49 @@ async function chargerLeaderboard() {
     return;
   }
 
-  // Gestion du pseudonyme du joueur (génère un pseudo par défaut s'il n'existe pas)
-  if (!etat.username) {
-    etat.username = localStorage.getItem('nrng_username') || "Player_" + Math.floor(1000 + Math.random() * 9000);
-    localStorage.setItem('nrng_username', etat.username);
+  // Sécurité pour le pseudonyme du joueur
+  let pseudoJoueur = localStorage.getItem('nrng_username');
+  if (!pseudoJoueur) {
+    if (typeof etat !== 'undefined' && etat.username) {
+      pseudoJoueur = etat.username;
+    } else {
+      pseudoJoueur = "Player_" + Math.floor(1000 + Math.random() * 9000);
+    }
+    localStorage.setItem('nrng_username', pseudoJoueur);
+  }
+  
+  if (typeof etat !== 'undefined') {
+    etat.username = pseudoJoueur;
   }
 
-  const pseudoJoueur = etat.username;
   const cpsActuel = typeof totalCPS === 'function' ? totalCPS() : 0;
 
   try {
-    // 1. Sauvegarde instantanée du CPS de l'utilisateur connecté sur Supabase
-    await supabase
-      .from('leaderboard')
+    // 1. Sauvegarde sur la table dédiée Null's RNG
+    const { error: upsertError } = await supabase
+      .from('nulls_rng_leaderboard') // Ciblage de la nouvelle table isolée
       .upsert(
         { username: pseudoJoueur, cps: cpsActuel, updated_at: new Date() }, 
         { onConflict: 'username' }
       );
 
+    if (upsertError) throw upsertError;
+
     // 2. Récupération des 10 meilleurs scores mondiaux
-    const { data, error } = await supabase
-      .from('leaderboard')
+    const { data, error: selectError } = await supabase
+      .from('nulls_rng_leaderboard') // Ciblage de la nouvelle table isolée
       .select('username, cps')
       .order('cps', { ascending: false })
       .limit(10);
 
-    if (error) throw error;
+    if (selectError) throw selectError;
 
     if (!data || data.length === 0) {
       container.innerHTML = `<div class="text-xs text-center text-slate-500 py-4">Aucun score enregistré dans l'arène.</div>`;
       return;
     }
 
-    // 3. Génération du rendu d'affichage du classement
+    // 3. Rendu HTML du classement
     container.innerHTML = data.map((joueur, index) => {
       let positionHTML = `${index + 1}.`;
       let styleTexte = 'text-slate-300';
@@ -74,7 +84,7 @@ async function chargerLeaderboard() {
     }).join('');
 
   } catch (err) {
-    console.error("Erreur de synchronisation du leaderboard :", err);
+    console.error("Erreur détaillée de synchronisation :", err);
     container.innerHTML = `<div class="text-xs text-center text-red-400 py-4">Erreur de chargement du serveur.</div>`;
   }
 }
