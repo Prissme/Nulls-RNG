@@ -7,7 +7,6 @@ function vendreItem(brawlerId, variante) {
   const k = cle(brawlerId, variante);
   if (!etat.inventaire[k] || etat.inventaire[k] <= 0) return;
 
-  // Impossible de vendre un pet équipé
   const estEquipe = etat.petsEquipes.some(p =>
     p && p.brawler.id === brawlerId && p.variante === variante);
   if (estEquipe) return;
@@ -32,7 +31,7 @@ function filtrerVariante(variante, btn) {
   afficherInventaire();
 }
 
-/* ── Tri : par rareté (probabilité réelle) ou par revenus (CPS) ── */
+/* ── Tri ── */
 function trierInventaire(mode, btn) {
   etat.triInventaire = mode;
   document.querySelectorAll('#sortTabs .tab-btn').forEach(b => b.classList.remove('active'));
@@ -56,7 +55,6 @@ function afficherInventaire() {
       if (etat.triInventaire === 'revenus') {
         return calcCPS(bb, b.variante) - calcCPS(ba, a.variante);
       }
-      // Par défaut : tri par rareté réelle (1/chance), du plus rare au plus commun
       return scoreRarete(bb, b.variante) - scoreRarete(ba, a.variante);
     });
 
@@ -92,6 +90,12 @@ function afficherInventaire() {
         : `<span class="text-xs font-bold" style="color:${color}">${v.emoji} ${v.label}</span>`;
     }
 
+    // Filtre variante appliqué sur l'image (teinte)
+    const imgFilter = variante === 'shiny'   ? 'drop-shadow(0 0 6px #38bdf8) brightness(1.1)'
+                    : variante === 'golden'  ? 'drop-shadow(0 0 6px #fbbf24) sepia(0.4) brightness(1.15)'
+                    : variante === 'rainbow' ? 'drop-shadow(0 0 8px #e879f9) saturate(1.5)'
+                    : '';
+
     const varClass = variante === 'shiny'   ? 'var-shiny'
                    : variante === 'golden'  ? 'var-golden'
                    : variante === 'rainbow' ? 'var-rainbow'
@@ -104,7 +108,7 @@ function afficherInventaire() {
 
     card.innerHTML = `
       <div class="flex items-center justify-between">
-        <span class="text-xl">${b.emoji}</span>
+        ${brawlerImg(b, 'w-10 h-10', `filter:${imgFilter}`)}
         <span class="text-xs font-bold px-1.5 py-0.5 rounded-full"
               style="background:rgba(0,0,0,.35);color:${color}">×${qty}</span>
       </div>
