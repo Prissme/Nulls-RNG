@@ -248,16 +248,20 @@
       <button class="modal-close" onclick="fermerModal('modalCombat')">✕</button>
     </div>
     <div class="modal-body flex flex-col gap-3 items-center text-center">
-      <div class="text-4xl">🚧</div>
-      <div class="text-sm font-bold" style="color:#e2e8f0">Le mode Combat arrive bientôt !</div>
       <div class="text-xs" style="color:var(--text-muted)">
-        Affronte des adversaires en utilisant la puissance de tes 3 pets équipés
+        Affronte un adversaire aléatoire en utilisant la puissance de tes pets équipés
         pour gagner des <span style="color:#fbbf24">pièces</span> et de l'<span style="color:#fbbf24">XP</span>.
       </div>
       <div class="stat-chip mt-2" style="border-color:rgba(124,58,237,.4)">
         ⚔️ <span style="color:var(--text-muted)">Puissance actuelle :</span>
         <span id="combatPower" class="val" style="color:#a855f7">0</span>
       </div>
+      <button onclick="lancerCombat()"
+        class="w-full py-2 rounded-xl font-bold text-sm tracking-wide"
+        style="background:linear-gradient(135deg,#7c3aed,#a855f7);color:#fff;border:none;cursor:pointer;box-shadow:0 0 14px rgba(168,85,247,.35)">
+        ⚔️ Combattre
+      </button>
+      <div id="combatResult" class="w-full"></div>
     </div>
   </div>
 </div>
