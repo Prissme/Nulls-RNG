@@ -20,6 +20,13 @@
       <div class="stat-chip" id="cloudStatusChip" style="display:none;border-color:rgba(148,163,184,.4)">
         <span id="cloudStatusText" style="color:var(--text-muted)">☁️ …</span>
       </div>
+      <!-- Bouton mute son -->
+      <button id="muteBtn" onclick="toggleMute()"
+        class="stat-chip"
+        style="cursor:pointer;border-color:rgba(168,85,247,.4);background:var(--bg-panel);border:1px solid rgba(168,85,247,.4);border-radius:10px;padding:.4rem .85rem;font-size:.85rem"
+        title="Activer/désactiver le son">
+        🔊
+      </button>
       <div class="stat-chip" style="border-color:rgba(245,158,11,.45);flex-direction:column;align-items:stretch;gap:.25rem;min-width:150px">
         <div class="flex items-center justify-between gap-2">
           <span>🏆 <span id="levelLabel" class="val" style="color:#fbbf24">Niv. 1</span></span>
@@ -51,10 +58,9 @@
     </div>
   </header>
 
-  <!-- ══ MAIN — Hub central : Roll + Pets en évidence ══ -->
+  <!-- ══ MAIN ══ -->
   <main class="flex-1 flex flex-col items-center gap-6 p-5 md:p-8">
 
-    <!-- ═══ Zone de Roll (mise en avant) ═══ -->
     <section class="hub-roll card w-full max-w-2xl flex flex-col items-center gap-6 py-10 px-6">
       <div id="resultZone">
         <div id="resultEmoji" class="text-7xl">🎰</div>
@@ -73,10 +79,8 @@
       </div>
     </section>
 
-    <!-- ═══ Historique (bande compacte) ═══ -->
     <div id="historyList" class="history-strip"></div>
 
-    <!-- ═══ Pets équipés (mis en avant) ═══ -->
     <section class="hub-pets card w-full max-w-3xl flex flex-col gap-4 py-6 px-6">
       <div class="flex items-center justify-between flex-wrap gap-2">
         <h2 class="hub-title">🐾 Pets équipés</h2>
@@ -88,7 +92,6 @@
       </div>
     </section>
 
-    <!-- ═══ Barre d'outils → ouvre les popups (boutons en cartes) ═══ -->
     <nav class="toolbar-grid">
       <button class="toolbar-card" onclick="ouvrirModal('modalInventaire')">
         <span class="toolbar-card-icon">🎒</span>
@@ -126,7 +129,6 @@
       <h2>🎒 Inventaire</h2>
       <button class="modal-close" onclick="fermerModal('modalInventaire')">✕</button>
     </div>
-
     <div class="modal-tabs" id="variantTabs">
       <button class="tab-btn active" onclick="filtrerVariante('all', this)">Tous</button>
       <button class="tab-btn" onclick="filtrerVariante('normal', this)">Base</button>
@@ -134,17 +136,14 @@
       <button class="tab-btn" onclick="filtrerVariante('golden', this)"  style="color:var(--golden-col)">G</button>
       <button class="tab-btn" onclick="filtrerVariante('rainbow', this)" style="color:var(--rainbow-col)">R</button>
     </div>
-
     <div class="modal-tabs" id="sortTabs" style="padding-top:.6rem">
       <span class="text-xs flex items-center" style="color:var(--text-muted)">Trier :</span>
       <button class="tab-btn active" onclick="trierInventaire('rarete', this)">✦ Rareté</button>
       <button class="tab-btn" onclick="trierInventaire('revenus', this)">💰 Revenus</button>
     </div>
-
     <div style="padding:.75rem 1.25rem 0">
       <button class="equip-best-btn" onclick="equiperMeilleurs()">⚡ Équiper les meilleurs pets</button>
     </div>
-
     <div id="inventoryGrid" class="modal-body grid grid-cols-2 sm:grid-cols-3 gap-2"></div>
   </div>
 </div>
@@ -244,6 +243,7 @@
 <!-- ══ Scripts ══ -->
 <script src="js/data.js"></script>
 <script src="js/state.js"></script>
+<script src="js/sound.js"></script>
 <script src="js/ui.js"></script>
 <script src="js/roll.js"></script>
 <script src="js/potions.js"></script>
@@ -255,6 +255,13 @@
 <script src="js/modals.js"></script>
 <script src="js/cloudsave.js"></script>
 <script src="js/main.js"></script>
+
+<script>
+  function toggleMute() {
+    const on = Sound.toggle();
+    document.getElementById('muteBtn').textContent = on ? '🔊' : '🔇';
+  }
+</script>
 
 </body>
 </html>
