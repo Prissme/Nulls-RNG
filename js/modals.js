@@ -7,6 +7,7 @@
 function ouvrirModal(id) {
   const modal = document.getElementById(id);
   if (!modal) return;
+  modal.style.display = 'flex';
   modal.classList.add('open');
   document.body.style.overflow = 'hidden';
 }
@@ -15,6 +16,7 @@ function ouvrirModal(id) {
 function fermerModal(id) {
   const modal = document.getElementById(id);
   if (!modal) return;
+  modal.style.display = 'none';
   modal.classList.remove('open');
   if (!document.querySelector('.modal-overlay.open')) {
     document.body.style.overflow = '';
@@ -29,7 +31,10 @@ function fermerModalOverlay(event, id) {
 /* ── Fermer avec la touche Echap ── */
 document.addEventListener('keydown', (e) => {
   if (e.key === 'Escape') {
-    document.querySelectorAll('.modal-overlay.open').forEach(m => m.classList.remove('open'));
+    document.querySelectorAll('.modal-overlay.open').forEach(m => {
+      m.classList.remove('open');
+      m.style.display = 'none';
+    });
     document.body.style.overflow = '';
   }
 });
