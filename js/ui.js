@@ -3,6 +3,11 @@
            table raretés, historique, utilitaires
 ════════════════════════════════════════════════ */
 
+// Fonction utilitaire pour générer l'image de la pièce uniformément
+function coinImg(classes = 'w-5 h-5') {
+  return `<img src="./images/Coins.webp" alt="Coins" class="${classes} object-contain inline-block align-middle" onerror="this.style.display='none'">`;
+}
+
 /* ── Zone résultat après un roll ── */
 function afficherResultat(b, vKey) {
   const v     = VARIANTES[vKey];
@@ -28,7 +33,8 @@ function afficherResultat(b, vKey) {
     name.textContent = vKey !== 'normal' ? `${v.emoji} ${b.nom}` : b.nom;
   }
 
-  sub.textContent = `${vKey !== 'normal' ? v.label + ' • ' : ''}1/${b.div * v.chanceMult}  •  ${calcCPS(b, vKey)} 💰/s`;
+  // Remplacement de 💰/s par l'image personnalisée des pièces
+  sub.innerHTML = `${vKey !== 'normal' ? v.label + ' • ' : ''}1/${b.div * v.chanceMult}  •  ${calcCPS(b, vKey)} ${coinImg('w-4 h-4')}/s`;
 
   const glowColor = couleurVariante(b, vKey);
   zone.style.filter = `drop-shadow(0 0 ${vKey !== 'normal' ? 22 : 10}px ${glowColor})`;
@@ -53,7 +59,7 @@ function afficherPets() {
         <span class="unequip-x" onclick="desequiper(${i})">✕</span>
         ${brawlerImg(pet.brawler, 'w-12 h-12')}
         <span class="text-xs font-bold" style="color:${color}">${pet.brawler.nom}</span>
-        <span class="text-xs" style="color:#fbbf24">+${calcCPS(pet.brawler, pet.variante)}💰/s</span>
+        <span class="text-xs flex items-center justify-center gap-1" style="color:#fbbf24">+${calcCPS(pet.brawler, pet.variante)} ${coinImg('w-3.5 h-3.5')}/s</span>
         ${pet.variante !== 'normal'
           ? `<span class="text-xs" style="color:${color}">${v.emoji} ${v.label}</span>`
           : ''}
@@ -65,6 +71,7 @@ function afficherPets() {
     container.appendChild(slot);
   }
 
+  // Utilisation de textContent car l'image est déjà structurellement écrite dans le HTML
   document.getElementById('totalCPS').textContent = totalCPS();
   document.getElementById('cpsVal').textContent   = totalCPS();
 }
@@ -83,7 +90,7 @@ function mettreAJourCompteurs() {
   const pct      = Math.min(100, (etat.xp / xpRequis) * 100);
   document.getElementById('levelLabel').textContent = `Niv. ${etat.niveau}`;
   document.getElementById('xpLabel').textContent     = `${etat.xp}/${xpRequis} XP`;
-  document.getElementById('xpBar').style.width       = pct + '%';
+  document.getElementById('xpBar').style.width        = pct + '%';
 }
 
 /* ── Notification de passage de niveau ── */
@@ -128,6 +135,7 @@ function afficherTableRarites() {
     const fmt = (n) => {
       const effective = Math.round(n / lm);
       if (effective >= 10000) return `1/${Math.round(effective/1000)}k`;
+      if (effective <= 0) return `1/1`;
       return `1/${effective}`;
     };
 
@@ -174,6 +182,7 @@ function afficherHistorique() {
 /* ── Animation secouement bouton (erreur achat) ── */
 function secouerBouton(id) {
   const btn = document.getElementById(id);
+  if (!btn) return;
   btn.style.animation = 'none';
   void btn.offsetWidth;
   btn.style.animation = 'shake .3s ease';
