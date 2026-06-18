@@ -1,8 +1,5 @@
 /* ════════════════════════════════════════════════
    craft.js — Système de craft (upgrade de variante)
-   10 Normal  → 1 Shiny
-   10 Shiny   → 1 Golden
-   10 Golden  → 1 Rainbow
 ════════════════════════════════════════════════ */
 
 const CRAFT_RECETTES = [
@@ -11,14 +8,11 @@ const CRAFT_RECETTES = [
   { depuis: 'golden',  vers: 'rainbow', qte: 10, label: '10 Golden → 1 Rainbow', couleur: '#e879f9' },
 ];
 
-/* Tente de crafter. brawlerId = id du brawler, recette = objet CRAFT_RECETTES */
 function crafterVariante(brawlerId, recette) {
   const kSrc = cle(brawlerId, recette.depuis);
   const qty  = etat.inventaire[kSrc] || 0;
+  if (qty < recette.qte) return;
 
-  if (qty < recette.qte) return; // pas assez
-
-  // Consommer les sources (en excluant les équipés)
   const equipes = etat.petsEquipes.filter(p =>
     p && p.brawler.id === brawlerId && p.variante === recette.depuis).length;
   const disponibles = qty - equipes;
@@ -27,13 +21,12 @@ function crafterVariante(brawlerId, recette) {
   etat.inventaire[kSrc] -= recette.qte;
   if (etat.inventaire[kSrc] === 0) delete etat.inventaire[kSrc];
 
-  // Produire la variante supérieure
   const kDst = cle(brawlerId, recette.vers);
   etat.inventaire[kDst] = (etat.inventaire[kDst] || 0) + 1;
 
-  // Vérifier progression quêtes craft
   progresserQuete('craft', { variante: recette.vers });
 
+  Sound.craft();
   flashCraft(recette);
   afficherInventaire();
   afficherCraft();
@@ -41,7 +34,6 @@ function crafterVariante(brawlerId, recette) {
   sauvegarderEtatCloud();
 }
 
-/* Flash notification craft réussi */
 function flashCraft(recette) {
   const notif = document.createElement('div');
   notif.className = 'craft-notif';
@@ -58,19 +50,15 @@ function flashCraft(recette) {
   setTimeout(() => notif.remove(), 2200);
 }
 
-/* ── Rendu du panneau craft ── */
 function afficherCraft() {
   const container = document.getElementById('craftList');
   if (!container) return;
   container.innerHTML = '';
 
-  // Grouper les brawlers ayant des items craftables
   for (const recette of CRAFT_RECETTES) {
-    // Trouver les brawlers avec assez de la variante source
     const eligible = BRAWLERS.map(b => {
       const k   = cle(b.id, recette.depuis);
       const qty = etat.inventaire[k] || 0;
-      // Soustraire équipés
       const equipes = etat.petsEquipes.filter(p =>
         p && p.brawler.id === b.id && p.variante === recette.depuis).length;
       return { b, disponible: qty - equipes, total: qty };
@@ -78,7 +66,6 @@ function afficherCraft() {
 
     if (eligible.length === 0) continue;
 
-    // Titre recette
     const titre = document.createElement('div');
     titre.className = 'craft-recipe-title';
     titre.style.cssText = `color:${recette.couleur};font-size:.7rem;font-weight:900;
@@ -102,7 +89,7 @@ function afficherCraft() {
       row.innerHTML = `
         <div style="flex:1;min-width:0">
           <div style="display:flex;align-items:center;gap:.35rem;margin-bottom:.2rem">
-            <span>${b.emoji}</span>
+            ${brawlerImg(b, 'w-5 h-5')}
             <span style="font-size:.78rem;font-weight:700;color:${b.couleur}">${b.nom}</span>
           </div>
           <div style="height:4px;background:var(--border);border-radius:2px;overflow:hidden">
