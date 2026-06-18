@@ -18,6 +18,7 @@ function vendreItem(brawlerId, variante) {
   etat.inventaire[k]--;
   if (etat.inventaire[k] === 0) delete etat.inventaire[k];
 
+  Sound.coin();
   mettreAJourCompteurs();
   afficherInventaire();
   sauvegarderEtatCloud();
@@ -82,7 +83,6 @@ function afficherInventaire() {
     const slotsDispo  = etat.petsEquipes.filter(p => p === null).length;
     const peutEquiper = !estEquipe && slotsDispo > 0;
 
-    // Badge variante
     let badgeHtml = '';
     if (variante !== 'normal') {
       badgeHtml = variante === 'rainbow'
@@ -90,7 +90,6 @@ function afficherInventaire() {
         : `<span class="text-xs font-bold" style="color:${color}">${v.emoji} ${v.label}</span>`;
     }
 
-    // Filtre variante appliqué sur l'image (teinte)
     const imgFilter = variante === 'shiny'   ? 'drop-shadow(0 0 6px #38bdf8) brightness(1.1)'
                     : variante === 'golden'  ? 'drop-shadow(0 0 6px #fbbf24) sepia(0.4) brightness(1.15)'
                     : variante === 'rainbow' ? 'drop-shadow(0 0 8px #e879f9) saturate(1.5)'
