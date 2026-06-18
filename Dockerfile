@@ -5,9 +5,10 @@ FROM nginx:alpine
 RUN apk add --no-cache gettext
 
 # Copier tous les fichiers du jeu
-COPY index.html /usr/share/nginx/html/index.html
-COPY css/       /usr/share/nginx/html/css/
-COPY js/        /usr/share/nginx/html/js/
+COPY index.html          /usr/share/nginx/html/index.html
+COPY css/                /usr/share/nginx/html/css/
+COPY js/                 /usr/share/nginx/html/js/
+COPY BackgroundNRNG.webp /usr/share/nginx/html/BackgroundNRNG.webp
 
 COPY nginx.conf /etc/nginx/conf.d/default.conf
 
