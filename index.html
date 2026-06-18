@@ -32,10 +32,13 @@
           <div id="xpBar" class="timer-bar" style="width:0%;background:linear-gradient(90deg,#f59e0b,#fbbf24)"></div>
         </div>
       </div>
-      <div class="stat-chip" style="position:relative" id="coinChip">
-        💰 <span id="coinsDisplay" class="val">0</span>
+      <div class="stat-chip flex items-center gap-1.5" style="position:relative" id="coinChip">
+        <img src="images/Coins.webp" alt="Coins" class="w-4 h-4 object-contain inline" onerror="this.style.display='none'">
+        <span id="coinsDisplay" class="val">0</span>
         <span style="color:var(--text-muted)">pièces</span>
-        <span id="cpsDisplay" class="text-xs ml-1" style="color:#fbbf24">+<span id="cpsVal">0</span>/s</span>
+        <span id="cpsDisplay" class="text-xs ml-1" style="color:#fbbf24">
+          +<span id="cpsVal">0</span>/s
+        </span>
       </div>
       <div class="stat-chip">
         🎲 <span id="rollsDisplay" class="val">0</span>
@@ -78,11 +81,12 @@
     <section class="hub-pets card w-full max-w-3xl flex flex-col gap-4 py-6 px-6">
       <div class="flex items-center justify-between flex-wrap gap-2">
         <h2 class="hub-title">🐾 Pets équipés</h2>
-        <span class="text-xs" style="color:var(--text-muted)">Max 3 — génèrent des 💰/s</span>
+        <span class="text-xs" style="color:var(--text-muted)">Max 3 — génèrent des pièces/s</span>
       </div>
       <div class="grid grid-cols-3 gap-4" id="petSlots"></div>
-      <div class="text-sm text-center" style="color:var(--text-muted)">
-        Total: <span id="totalCPS" class="font-bold" style="color:#fbbf24">0</span> pièces/s
+      <div class="text-sm text-center flex items-center justify-center gap-1.5" style="color:var(--text-muted)">
+        Total: <span id="totalCPS" class="font-bold" style="color:#fbbf24">0</span> 
+        <img src="images/Coins.webp" alt="Coins" class="w-4 h-4 object-contain inline" onerror="this.style.display='none'">/s
       </div>
     </section>
 
@@ -158,9 +162,9 @@
         <div id="luckCountdown" class="hidden text-xs font-mono font-bold mt-1" style="color:#a855f7"></div>
       </div>
       <button id="buyLuckBtn" onclick="acheterPotion('luck')"
-        class="w-full py-2 rounded-xl font-bold text-sm tracking-wide"
+        class="w-full py-2 rounded-xl font-bold text-sm tracking-wide flex items-center justify-center gap-1.5"
         style="background:linear-gradient(135deg,#7c3aed,#a855f7);color:#fff;border:none;cursor:pointer;box-shadow:0 0 14px rgba(168,85,247,.35)">
-        Acheter — 250 💰
+        Acheter — 250 <img src="images/Coins.webp" alt="Coins" class="w-4 h-4 object-contain inline">
       </button>
       <div class="border-t" style="border-color:var(--border)"></div>
       <div class="rounded-lg p-3" style="background:rgba(14,165,233,.08);border:1px solid rgba(14,165,233,.2)">
@@ -172,9 +176,9 @@
         <div id="speedCountdown" class="hidden text-xs font-mono font-bold mt-1" style="color:#38bdf8"></div>
       </div>
       <button id="buySpeedBtn" onclick="acheterPotion('speed')"
-        class="w-full py-2 rounded-xl font-bold text-sm tracking-wide"
+        class="w-full py-2 rounded-xl font-bold text-sm tracking-wide flex items-center justify-center gap-1.5"
         style="background:linear-gradient(135deg,#0369a1,#0ea5e9);color:#fff;border:none;cursor:pointer;box-shadow:0 0 14px rgba(14,165,233,.35)">
-        Acheter — 400 💰
+        Acheter — 400 <img src="images/Coins.webp" alt="Coins" class="w-4 h-4 object-contain inline">
       </button>
     </div>
   </div>
@@ -242,8 +246,7 @@
         <span id="combatPower" class="val text-purple-400 font-extrabold text-base">0</span>
       </div>
 
-      <div id="enemyArenaCard" class="w-full min-h-[160px] flex items-center justify-center">
-        </div>
+      <div id="enemyArenaCard" class="w-full min-h-[160px] flex items-center justify-center"></div>
 
       <button onclick="lancerCombat()"
         class="w-full py-3 rounded-xl font-black text-sm tracking-wide uppercase transition-all duration-200 hover:brightness-110 active:scale-95"
