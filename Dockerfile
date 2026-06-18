@@ -4,7 +4,7 @@ FROM nginx:alpine
 # gettext fournit envsubst, utilisé pour injecter les variables Koyeb
 RUN apk add --no-cache gettext
 
-# Créer le sous-dossier pour les images du système de combat
+# Créer le sous-dossier pour les images du jeu
 RUN mkdir -p /usr/share/nginx/html/images/
 
 # Copier tous les fichiers de base du jeu
@@ -23,7 +23,8 @@ COPY BullNormal.webp     /usr/share/nginx/html/BullNormal.webp
 COPY PrimoNormal.webp    /usr/share/nginx/html/PrimoNormal.webp
 COPY RosaNormal.webp     /usr/share/nginx/html/RosaNormal.webp
 
-# Nouvelles images des Robots de combat (dans le sous-dossier images/)
+# Images additionnelles (dans le sous-dossier images/)
+COPY Coins.webp          /usr/share/nginx/html/images/Coins.webp
 COPY Robot.webp          /usr/share/nginx/html/images/Robot.webp
 COPY BigRobot.webp       /usr/share/nginx/html/images/BigRobot.webp
 COPY SniperRobot.webp    /usr/share/nginx/html/images/SniperRobot.webp
