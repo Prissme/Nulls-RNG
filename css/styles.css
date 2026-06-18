@@ -360,3 +360,138 @@ body {
 }
 
 .modal-body { padding: 1rem 1.25rem 1.25rem; overflow-y: auto; }
+
+/* ════════════════════════════════════════════════
+   COMBAT TOUR PAR TOUR — styles à ajouter dans css/styles.css
+════════════════════════════════════════════════ */
+
+/* ── Équipe du joueur ── */
+.cb-team {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: .5rem;
+  margin-bottom: .75rem;
+}
+
+.cb-brawler-card {
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  padding: .5rem .4rem;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: .15rem;
+  text-align: center;
+  transition: border-color .3s, background .3s;
+  min-height: 110px;
+  background: var(--bg-panel);
+}
+
+.cb-brawler-card.cb-actif {
+  background: rgba(124, 58, 237, .08);
+  box-shadow: 0 0 12px rgba(124, 58, 237, .25);
+}
+
+.cb-brawler-card.cb-mort {
+  background: rgba(0, 0, 0, .2);
+}
+
+/* ── Rangée robot + log ── */
+.cb-vs-row {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: .75rem;
+  margin-bottom: .75rem;
+  align-items: start;
+}
+
+/* ── Card robot ── */
+.cb-robot-card {
+  border: 1px solid rgba(239, 68, 68, .25);
+  border-radius: 14px;
+  padding: .75rem .5rem;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: .15rem;
+  text-align: center;
+  background: rgba(239, 68, 68, .04);
+  width: 100%;
+}
+
+/* ── Log de combat ── */
+.cb-log {
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  padding: .5rem .6rem;
+  display: flex;
+  flex-direction: column;
+  gap: .25rem;
+  min-height: 140px;
+  max-height: 180px;
+  overflow-y: auto;
+  background: var(--bg-panel);
+}
+
+.cb-log-entry {
+  font-size: .7rem;
+  line-height: 1.45;
+  padding: .2rem .35rem;
+  border-radius: 6px;
+  border-left: 2px solid var(--border);
+  color: #e2e8f0;
+}
+
+.cb-log-joueur { border-left-color: #a855f7; background: rgba(168, 85, 247, .06); }
+.cb-log-robot  { border-left-color: #f97316; background: rgba(249, 115, 22, .06); }
+.cb-log-ko     { border-left-color: #ef4444; background: rgba(239, 68, 68, .08); }
+.cb-log-victoire { border-left-color: #22c55e; background: rgba(34, 197, 94, .08); }
+
+/* ── Zone actions ── */
+.cb-actions {
+  border-top: 1px solid var(--border);
+  padding-top: .6rem;
+}
+
+.cb-btn {
+  border-radius: 10px;
+  font-size: .78rem;
+  font-weight: 800;
+  letter-spacing: .03em;
+  padding: .55rem 1.1rem;
+  cursor: pointer;
+  border: 1px solid;
+  transition: transform .12s, box-shadow .12s, opacity .15s;
+}
+.cb-btn:hover:not(:disabled)  { transform: translateY(-2px); }
+.cb-btn:active:not(:disabled) { transform: scale(.96); }
+.cb-btn:disabled               { opacity: .4; cursor: not-allowed; }
+
+.cb-btn-atk {
+  background: rgba(239, 68, 68, .15);
+  border-color: rgba(239, 68, 68, .5);
+  color: #f87171;
+  box-shadow: 0 0 10px rgba(239, 68, 68, .2);
+}
+.cb-btn-atk:hover:not(:disabled) { box-shadow: 0 0 18px rgba(239, 68, 68, .35); }
+
+.cb-btn-spe {
+  background: rgba(168, 85, 247, .15);
+  border-color: rgba(168, 85, 247, .5);
+  color: #c084fc;
+  box-shadow: 0 0 10px rgba(168, 85, 247, .2);
+}
+.cb-btn-spe:hover:not(:disabled) { box-shadow: 0 0 18px rgba(168, 85, 247, .35); }
+
+.cb-btn-def {
+  background: rgba(56, 189, 248, .12);
+  border-color: rgba(56, 189, 248, .4);
+  color: #38bdf8;
+  box-shadow: 0 0 10px rgba(56, 189, 248, .15);
+}
+.cb-btn-def:hover:not(:disabled) { box-shadow: 0 0 18px rgba(56, 189, 248, .3); }
+
+@media (max-width: 480px) {
+  .cb-vs-row    { grid-template-columns: 1fr; }
+  .cb-team      { grid-template-columns: repeat(3, 1fr); gap: .3rem; }
+}
