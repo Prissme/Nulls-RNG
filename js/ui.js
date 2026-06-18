@@ -15,7 +15,8 @@ function afficherResultat(b, vKey) {
   void zone.offsetWidth;
   zone.classList.add('flash-anim');
 
-  emoji.textContent = b.emoji;
+  // Image au lieu de l'emoji
+  emoji.innerHTML = brawlerImg(b, 'w-24 h-24');
 
   if (vKey === 'rainbow') {
     name.className   = 'rainbow-text';
@@ -24,7 +25,7 @@ function afficherResultat(b, vKey) {
   } else {
     name.className   = '';
     name.style.color = couleurVariante(b, vKey);
-    name.textContent = `${v.emoji} ${b.nom}`.trim();
+    name.textContent = vKey !== 'normal' ? `${v.emoji} ${b.nom}` : b.nom;
   }
 
   sub.textContent = `${vKey !== 'normal' ? v.label + ' • ' : ''}1/${b.div * v.chanceMult}  •  ${calcCPS(b, vKey)} 💰/s`;
@@ -50,7 +51,7 @@ function afficherPets() {
       slot.style.background  = `${color}12`;
       slot.innerHTML = `
         <span class="unequip-x" onclick="desequiper(${i})">✕</span>
-        <span class="text-2xl">${pet.brawler.emoji}</span>
+        ${brawlerImg(pet.brawler, 'w-12 h-12')}
         <span class="text-xs font-bold" style="color:${color}">${pet.brawler.nom}</span>
         <span class="text-xs" style="color:#fbbf24">+${calcCPS(pet.brawler, pet.variante)}💰/s</span>
         ${pet.variante !== 'normal'
@@ -101,12 +102,11 @@ function afficherLevelUp(niveau) {
   setTimeout(() => notif.remove(), 2200);
 }
 
-/* ── Table des raretés (colonne gauche) ── */
+/* ── Table des raretés ── */
 function afficherTableRarites() {
   const tbl = document.getElementById('rarityTable');
   const lm  = etat.luckActive ? 2 : 1;
 
-  // En-tête colonnes variantes
   let html = `
     <div style="display:grid;grid-template-columns:1fr repeat(4,auto);gap:.25rem .5rem;
       font-size:.6rem;font-weight:900;text-transform:uppercase;letter-spacing:.05em;
@@ -134,8 +134,8 @@ function afficherTableRarites() {
     html += `
       <div style="display:grid;grid-template-columns:1fr repeat(4,auto);gap:.25rem .5rem;
         padding:.3rem 0;border-bottom:1px solid rgba(255,255,255,.04);align-items:center">
-        <span style="display:flex;align-items:center;gap:.3rem">
-          <span>${b.emoji}</span>
+        <span style="display:flex;align-items:center;gap:.35rem">
+          ${brawlerImg(b, 'w-5 h-5')}
           <span style="color:${b.couleur};font-weight:700;font-size:.7rem">${b.nom}</span>
         </span>
         <span style="color:#94a3b8;font-size:.65rem">${fmt(norm)}</span>
@@ -164,8 +164,9 @@ function afficherHistorique() {
     const color = couleurVariante(brawler, variante);
     const chip  = document.createElement('span');
     chip.className = 'text-xs font-bold px-2 py-1 rounded-full';
-    chip.style.cssText = `background:rgba(0,0,0,.4);border:1px solid ${color}55;color:${color}`;
-    chip.textContent   = `${brawler.emoji}${v.emoji} ${brawler.nom}`;
+    chip.style.cssText = `background:rgba(0,0,0,.4);border:1px solid ${color}55;color:${color};
+      display:inline-flex;align-items:center;gap:.3rem`;
+    chip.innerHTML = `${brawlerImg(brawler, 'w-5 h-5')}${v.emoji} ${brawler.nom}`;
     list.appendChild(chip);
   }
 }
