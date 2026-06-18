@@ -1,5 +1,5 @@
 /* ════════════════════════════════════════════════
-   inventory.js — Inventaire : vente, filtre, rendu
+   inventory.js — Inventaire : vente, filtre, tri, rendu
 ════════════════════════════════════════════════ */
 
 /* ── Vendre un item ── */
@@ -27,7 +27,15 @@ function vendreItem(brawlerId, variante) {
 /* ── Filtre par variante ── */
 function filtrerVariante(variante, btn) {
   etat.filtreVariante = variante;
-  document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+  document.querySelectorAll('#variantTabs .tab-btn').forEach(b => b.classList.remove('active'));
+  btn.classList.add('active');
+  afficherInventaire();
+}
+
+/* ── Tri : par rareté (probabilité réelle) ou par revenus (CPS) ── */
+function trierInventaire(mode, btn) {
+  etat.triInventaire = mode;
+  document.querySelectorAll('#sortTabs .tab-btn').forEach(b => b.classList.remove('active'));
   btn.classList.add('active');
   afficherInventaire();
 }
@@ -42,10 +50,14 @@ function afficherInventaire() {
     .map(([k]) => parseKey(k))
     .filter(({ variante }) => etat.filtreVariante === 'all' || variante === etat.filtreVariante)
     .sort((a, b) => {
-      const vo = ['rainbow', 'golden', 'shiny', 'normal'];
-      const vd = vo.indexOf(a.variante) - vo.indexOf(b.variante);
-      if (vd !== 0) return vd;
-      return b.brawlerId - a.brawlerId;
+      const ba = BRAWLERS.find(x => x.id === a.brawlerId);
+      const bb = BRAWLERS.find(x => x.id === b.brawlerId);
+
+      if (etat.triInventaire === 'revenus') {
+        return calcCPS(bb, b.variante) - calcCPS(ba, a.variante);
+      }
+      // Par défaut : tri par rareté réelle (1/chance), du plus rare au plus commun
+      return scoreRarete(bb, b.variante) - scoreRarete(ba, a.variante);
     });
 
   if (entries.length === 0) {
