@@ -115,6 +115,10 @@
         <span class="toolbar-card-icon">📊</span>
         <span class="toolbar-card-label">Raretés</span>
       </button>
+      <button class="toolbar-card" onclick="ouvrirModal('modalCombat')">
+        <span class="toolbar-card-icon">⚔️</span>
+        <span class="toolbar-card-label">Combat</span>
+      </button>
     </nav>
 
   </main>
@@ -236,6 +240,28 @@
   </div>
 </div>
 
+<!-- Combat -->
+<div class="modal-overlay" id="modalCombat" onclick="fermerModalOverlay(event,'modalCombat')">
+  <div class="modal-box modal-box-sm">
+    <div class="modal-header">
+      <h2>⚔️ Combat</h2>
+      <button class="modal-close" onclick="fermerModal('modalCombat')">✕</button>
+    </div>
+    <div class="modal-body flex flex-col gap-3 items-center text-center">
+      <div class="text-4xl">🚧</div>
+      <div class="text-sm font-bold" style="color:#e2e8f0">Le mode Combat arrive bientôt !</div>
+      <div class="text-xs" style="color:var(--text-muted)">
+        Affronte des adversaires en utilisant la puissance de tes 3 pets équipés
+        pour gagner des <span style="color:#fbbf24">pièces</span> et de l'<span style="color:#fbbf24">XP</span>.
+      </div>
+      <div class="stat-chip mt-2" style="border-color:rgba(124,58,237,.4)">
+        ⚔️ <span style="color:var(--text-muted)">Puissance actuelle :</span>
+        <span id="combatPower" class="val" style="color:#a855f7">0</span>
+      </div>
+    </div>
+  </div>
+</div>
+
 <!-- ══ Dépendances externes ══ -->
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.js"></script>
 <script src="js/config.js"></script>
@@ -252,6 +278,7 @@
 <script src="js/inventory.js"></script>
 <script src="js/craft.js"></script>
 <script src="js/quetes.js"></script>
+<script src="js/combat.js"></script>
 <script src="js/modals.js"></script>
 <script src="js/cloudsave.js"></script>
 <script src="js/main.js"></script>
