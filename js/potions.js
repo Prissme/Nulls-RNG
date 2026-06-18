@@ -1,30 +1,38 @@
 /* ════════════════════════════════════════════════
    potions.js — Achat, timers et effets des potions
+   Les potions peuvent être achetées plusieurs fois :
+   si une potion du même type est déjà active, le temps
+   restant s'additionne (stack) au lieu de bloquer l'achat.
 ════════════════════════════════════════════════ */
 
 function acheterPotion(type) {
   const potion = POTIONS[type];
-  if (etat.pieces < potion.cout)        { secouerBouton(`buy${type === 'luck' ? 'Luck' : 'Speed'}Btn`); return; }
-  if (type === 'luck'  && etat.luckActive)  return;
-  if (type === 'speed' && etat.speedActive) return;
+  if (etat.pieces < potion.cout) { secouerBouton(`buy${type === 'luck' ? 'Luck' : 'Speed'}Btn`); return; }
 
   etat.pieces -= potion.cout;
   etat.totalPotions++;
 
-  if (type === 'luck') {
-    etat.luckActive = true;
-    etat.luckFin    = Date.now() + potion.duree;
+  const activeProp = `${type}Active`;
+  const finProp     = `${type}Fin`;
+  const dejaActive  = etat[activeProp];
+
+  if (dejaActive) {
+    // Déjà active → on empile la durée sur le temps restant
+    etat[finProp] += potion.duree;
   } else {
-    etat.speedActive = true;
-    etat.speedFin    = Date.now() + potion.duree;
-    redemarrerAutoRoll();
+    etat[activeProp] = true;
+    etat[finProp]    = Date.now() + potion.duree;
+    if (type === 'speed') redemarrerAutoRoll();
   }
 
   // Progression quêtes
   progresserQuete('potion');
   if (type === 'luck') progresserQuete('potionLuck');
 
-  demarrerTimer(type);
+  if (!dejaActive) demarrerTimer(type);
+  // Si déjà active, le setInterval en cours relira automatiquement
+  // la nouvelle valeur de etat[finProp] au prochain tick (250ms).
+
   mettreAJourCompteurs();
   afficherTableRarites();
   sauvegarderEtatCloud();
@@ -33,18 +41,16 @@ function acheterPotion(type) {
 function demarrerTimer(type) {
   const potion  = POTIONS[type];
   const duree   = potion.duree;
-  const capType = type === 'luck' ? 'Luck' : 'Speed';
 
   const barWrap = document.getElementById(`${type}BarWrap`);
   const bar     = document.getElementById(`${type}Bar`);
   const cd      = document.getElementById(`${type}Countdown`);
-  const btn     = document.getElementById(`buy${capType}Btn`);
   const hdr     = document.getElementById(`${type}TimerHdr`);
 
   barWrap.classList.remove('hidden');
   cd.classList.remove('hidden');
-  btn.disabled      = true;
-  btn.style.opacity = '0.4';
+  // Le bouton d'achat reste actif : on peut racheter une potion pour
+  // empiler du temps supplémentaire pendant qu'elle est déjà active.
 
   const prop = `${type}Interval`;
   clearInterval(etat[prop]);
@@ -52,7 +58,9 @@ function demarrerTimer(type) {
   etat[prop] = setInterval(() => {
     const finProp = `${type}Fin`;
     const restant = Math.max(0, etat[finProp] - Date.now());
-    const pct     = (restant / duree) * 100;
+    // La barre peut dépasser 100% temporairement si on vient d'empiler
+    // une potion ; on la cap visuellement à 100% pour rester propre.
+    const pct     = Math.min(100, (restant / duree) * 100);
     const secs    = Math.ceil(restant / 1000);
 
     bar.style.width = pct + '%';
@@ -71,8 +79,6 @@ function demarrerTimer(type) {
       barWrap.classList.add('hidden');
       cd.classList.add('hidden');
       hdr.classList.add('hidden');
-      btn.disabled      = false;
-      btn.style.opacity = '1';
       mettreAJourCompteurs();
       afficherTableRarites();
     }
