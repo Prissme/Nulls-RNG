@@ -87,24 +87,29 @@
       </div>
     </section>
 
-    <!-- ═══ Barre d'outils → ouvre les popups ═══ -->
-    <nav class="toolbar">
-      <button class="toolbar-btn" onclick="ouvrirModal('modalInventaire')">
-        <span class="toolbar-icon">🎒</span> Inventaire
+    <!-- ═══ Barre d'outils → ouvre les popups (boutons en cartes) ═══ -->
+    <nav class="toolbar-grid">
+      <button class="toolbar-card" onclick="ouvrirModal('modalInventaire')">
+        <span class="toolbar-card-icon">🎒</span>
+        <span class="toolbar-card-label">Inventaire</span>
       </button>
-      <button class="toolbar-btn" onclick="ouvrirModal('modalBoutique')">
-        <span class="toolbar-icon">🛒</span> Boutique
+      <button class="toolbar-card" onclick="ouvrirModal('modalBoutique')">
+        <span class="toolbar-card-icon">🛒</span>
+        <span class="toolbar-card-label">Boutique</span>
       </button>
-      <button class="toolbar-btn" onclick="ouvrirModal('modalQuetes')">
-        <span class="toolbar-icon">🎯</span> Quêtes
+      <button class="toolbar-card" onclick="ouvrirModal('modalQuetes')">
+        <span class="toolbar-card-icon">🎯</span>
+        <span class="toolbar-card-label">Quêtes</span>
         <span class="badge-dot hidden" id="quetesBadge"></span>
       </button>
-      <button class="toolbar-btn" onclick="ouvrirModal('modalCraft')">
-        <span class="toolbar-icon">⚗️</span> Craft
+      <button class="toolbar-card" onclick="ouvrirModal('modalCraft')">
+        <span class="toolbar-card-icon">⚗️</span>
+        <span class="toolbar-card-label">Craft</span>
         <span class="badge-dot hidden" id="craftBadge"></span>
       </button>
-      <button class="toolbar-btn" onclick="ouvrirModal('modalRaretes')">
-        <span class="toolbar-icon">📊</span> Raretés
+      <button class="toolbar-card" onclick="ouvrirModal('modalRaretes')">
+        <span class="toolbar-card-icon">📊</span>
+        <span class="toolbar-card-label">Raretés</span>
       </button>
     </nav>
 
