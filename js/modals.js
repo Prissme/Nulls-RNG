@@ -1,6 +1,6 @@
 /* ════════════════════════════════════════════════
    modals.js — Ouverture / fermeture des popups
-   (Inventaire, Boutique, Quêtes, Craft, Raretés)
+   (Inventaire, Boutique, Quêtes, Craft, Raretés, Combat)
 ════════════════════════════════════════════════ */
 
 /* ── Ouvrir une popup ── */
@@ -10,6 +10,8 @@ function ouvrirModal(id) {
   modal.style.display = 'flex';
   modal.classList.add('open');
   document.body.style.overflow = 'hidden';
+
+  if (id === 'modalCombat' && typeof afficherCombat === 'function') afficherCombat();
 }
 
 /* ── Fermer une popup ── */
