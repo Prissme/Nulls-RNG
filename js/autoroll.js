@@ -11,11 +11,13 @@ function toggleAutoRoll() {
     toggle.classList.add('on');
     label.textContent = 'ON';
     label.style.color = '#a855f7';
+    Sound.autoOn();
     redemarrerAutoRoll();
   } else {
     toggle.classList.remove('on');
     label.textContent = 'OFF';
     label.style.color = 'var(--text-muted)';
+    Sound.autoOff();
     clearInterval(etat.autoInterval);
   }
 }
@@ -37,7 +39,6 @@ function demarrerCPS() {
       mettreAJourCompteurs();
       floatCPS(gain);
     }
-    // Vérifier quêtes CPS à chaque tick
     progresserQuete('cps');
   }, 1000);
 }
