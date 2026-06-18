@@ -27,8 +27,9 @@ const etat = {
   speedFin:      0,
   speedInterval: null,
 
-  // Filtre inventaire
+  // Filtre inventaire (par variante) + tri (rareté ou revenus)
   filtreVariante: 'all',
+  triInventaire:  'rarete',  // 'rarete' | 'revenus'
 
   // CPS tick
   cpsInterval: null,
@@ -47,6 +48,9 @@ const parseKey = key => { const [a, b] = key.split('_'); return { brawlerId: +a,
 const calcCPS  = (b, vKey) => b.cpsBase * VARIANTES[vKey].cpsMult;
 const totalCPS = ()        => etat.petsEquipes.reduce((sum, pet) =>
   pet ? sum + calcCPS(pet.brawler, pet.variante) : sum, 0);
+
+/* ── Score de rareté réelle (plus c'est haut, plus c'est rare) ── */
+const scoreRarete = (b, vKey) => b.div * VARIANTES[vKey].chanceMult;
 
 /* ── Couleur effective selon variante ── */
 const couleurVariante = (brawler, variante) => {
