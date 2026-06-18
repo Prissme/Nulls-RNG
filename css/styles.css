@@ -215,3 +215,119 @@ body {
   color: #fbbf24; pointer-events: none;
   animation: cpsFloat .9s ease forwards;
 }
+
+/* ════════════════════════════════════════════════
+   ── HUB CENTRAL — Roll & Pets mis en évidence ──
+════════════════════════════════════════════════ */
+
+.hub-roll {
+  border: 1px solid rgba(168,85,247,.35);
+  background:
+    radial-gradient(circle at 50% -10%, rgba(124,58,237,.18), transparent 60%),
+    var(--bg-card);
+  box-shadow: 0 0 60px rgba(124,58,237,.16), 0 10px 32px rgba(0,0,0,.55);
+}
+
+.hub-pets {
+  border: 1px solid rgba(245,158,11,.22);
+  box-shadow: 0 6px 24px rgba(0,0,0,.4);
+}
+
+.hub-title {
+  font-size: .85rem; font-weight: 900; letter-spacing: .1em;
+  text-transform: uppercase; color: #fbbf24;
+}
+
+/* Slots de pets plus grands dans le hub */
+.hub-pets .pet-slot { min-height: 100px; }
+.hub-pets .pet-slot .text-2xl { font-size: 1.9rem; }
+
+/* ── Bande d'historique compacte ── */
+.history-strip {
+  display: flex; gap: .5rem; flex-wrap: wrap; justify-content: center;
+  min-height: 1.7rem; max-width: 48rem;
+}
+
+/* ════════════════════════════════════════════════
+   ── BARRE D'OUTILS — ouvre les popups ──
+════════════════════════════════════════════════ */
+
+.toolbar {
+  display: flex; gap: .75rem; flex-wrap: wrap;
+  justify-content: center; width: 100%; max-width: 56rem;
+}
+
+.toolbar-btn {
+  display: flex; align-items: center; gap: .5rem;
+  background: var(--bg-card); border: 1px solid var(--border);
+  color: #e2e8f0; font-weight: 700; font-size: .85rem;
+  padding: .65rem 1.3rem; border-radius: 14px; cursor: pointer;
+  position: relative; letter-spacing: .02em;
+  transition: transform .15s, border-color .2s, box-shadow .2s, background .2s;
+}
+.toolbar-btn:hover {
+  transform: translateY(-2px);
+  border-color: var(--accent);
+  background: rgba(124,58,237,.08);
+  box-shadow: 0 6px 20px rgba(124,58,237,.25);
+}
+.toolbar-btn:active { transform: translateY(0) scale(.98); }
+.toolbar-icon { font-size: 1.15rem; }
+
+/* Pastille de notification (quêtes prêtes / craft disponible) */
+.badge-dot {
+  position: absolute; top: -7px; right: -7px;
+  min-width: 19px; height: 19px; padding: 0 4px;
+  background: #f59e0b; color: #1a1305; font-size: .65rem; font-weight: 900;
+  border-radius: 9px; display: flex; align-items: center; justify-content: center;
+  box-shadow: 0 0 10px rgba(245,158,11,.7); border: 2px solid var(--bg-deep);
+}
+
+/* ════════════════════════════════════════════════
+   ── POPUPS / MODALES ──
+════════════════════════════════════════════════ */
+
+.modal-overlay {
+  position: fixed; inset: 0; z-index: 200;
+  background: rgba(5,6,10,.72);
+  display: none; align-items: center; justify-content: center;
+  padding: 1rem;
+}
+.modal-overlay.open { display: flex; }
+
+.modal-box {
+  background: var(--bg-card); border: 1px solid var(--border);
+  border-radius: 18px; width: 100%; max-width: 560px;
+  max-height: 85vh; display: flex; flex-direction: column;
+  box-shadow: 0 24px 70px rgba(0,0,0,.65);
+  animation: modalIn .22s cubic-bezier(.22,.68,0,1.2);
+}
+.modal-box-sm { max-width: 430px; }
+
+@keyframes modalIn {
+  from { opacity: 0; transform: scale(.94) translateY(10px); }
+  to   { opacity: 1; transform: scale(1) translateY(0); }
+}
+
+.modal-header {
+  display: flex; align-items: center; gap: .6rem;
+  padding: 1rem 1.25rem; border-bottom: 1px solid var(--border);
+  flex-shrink: 0;
+}
+.modal-header h2 {
+  flex: 1; font-size: 1rem; font-weight: 900; letter-spacing: .04em;
+  min-width: 0;
+}
+.modal-close {
+  background: transparent; border: 1px solid var(--border); color: var(--text-muted);
+  width: 30px; height: 30px; border-radius: 9px; cursor: pointer;
+  font-size: .9rem; flex-shrink: 0; transition: all .15s;
+}
+.modal-close:hover { color: #f87171; border-color: #f87171; }
+
+.modal-tabs {
+  display: flex; gap: .4rem; padding: .85rem 1.25rem 0; flex-wrap: wrap;
+  flex-shrink: 0;
+}
+
+.modal-body { padding: 1rem 1.25rem 1.25rem; overflow-y: auto; }
