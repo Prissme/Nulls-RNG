@@ -1,6 +1,6 @@
 /* ════════════════════════════════════════════════
    modals.js — Ouverture / fermeture des popups
-   (Inventaire, Boutique, Quêtes, Craft, Raretés, Combat)
+   (Inventaire, Boutique, Quêtes, Craft, Raretés, Combat, Leaderboard)
 ════════════════════════════════════════════════ */
 
 /* ── Ouvrir une popup ── */
@@ -12,6 +12,7 @@ function ouvrirModal(id) {
   document.body.style.overflow = 'hidden';
 
   if (id === 'modalCombat' && typeof afficherCombat === 'function') afficherCombat();
+  if (id === 'modalLeaderboard' && typeof chargerLeaderboard === 'function') chargerLeaderboard();
 }
 
 /* ── Fermer une popup ── */
@@ -41,9 +42,7 @@ document.addEventListener('keydown', (e) => {
   }
 });
 
-/* ── Badges (petites pastilles) sur les boutons Quêtes / Craft ──
-   Mis à jour automatiquement via MutationObserver, dès que le
-   contenu des panneaux change (pas besoin de toucher quetes.js / craft.js) */
+/* ── Badges (petites pastilles) sur les boutons Quêtes / Craft ── */
 function majBadge(id, count) {
   const el = document.getElementById(id);
   if (!el) return;
@@ -56,13 +55,11 @@ function majBadge(id, count) {
 }
 
 function rafraichirBadgeQuetes() {
-  // Un bouton "Réclamer" n'apparaît que pour les quêtes terminées non réclamées
   const n = document.querySelectorAll('#quetesList button').length;
   majBadge('quetesBadge', n);
 }
 
 function rafraichirBadgeCraft() {
-  // Un bouton de craft activable n'a pas l'attribut disabled
   const n = document.querySelectorAll('#craftList button:not([disabled])').length;
   majBadge('craftBadge', n);
 }
