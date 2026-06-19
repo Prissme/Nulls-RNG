@@ -2,8 +2,26 @@
    roll.js — Algorithme de tirage & logique de roll
 ════════════════════════════════════════════════ */
 
+/* Tirage pondéré d'un brawler (plus un brawler est rare — div élevé —
+   moins il a de poids), utilisé quand la Potion de Shiny est active. */
+function tirerBrawlerPondere() {
+  const poids = BRAWLERS.map(b => 1 / b.div);
+  const total = poids.reduce((a, c) => a + c, 0);
+  let r = Math.random() * total;
+  for (let i = 0; i < BRAWLERS.length; i++) {
+    r -= poids[i];
+    if (r <= 0) return BRAWLERS[i];
+  }
+  return BRAWLERS[BRAWLERS.length - 1];
+}
+
 function effectuerTirage() {
-  const luckMult = etat.luckActive ? 2 : 1;
+  // Potion de Shiny active : tous les rolls renvoient un Shiny garanti
+  if (etat.shinyActive) {
+    return { brawler: tirerBrawlerPondere(), variante: 'shiny' };
+  }
+
+  const luckMult = luckMultiplierTotal();
 
   for (const vKey of ORDRE_VARIANTES) {
     const v = VARIANTES[vKey];
