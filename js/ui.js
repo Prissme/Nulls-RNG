@@ -43,9 +43,12 @@ function afficherResultat(b, vKey) {
 /* ── Slots pets équipés ── */
 function afficherPets() {
   const container = document.getElementById('petSlots');
+  const maxSlots   = nbSlotsMax();
   container.innerHTML = '';
+  // Le nombre de slots peut augmenter avec l'amélioration de Prestige "Emplacement Bonus"
+  container.style.gridTemplateColumns = `repeat(${Math.min(maxSlots, 3)}, 1fr)`;
 
-  for (let i = 0; i < 3; i++) {
+  for (let i = 0; i < maxSlots; i++) {
     const pet  = etat.petsEquipes[i];
     const slot = document.createElement('div');
     slot.className = `pet-slot ${pet ? 'filled' : ''}`;
@@ -84,6 +87,9 @@ function mettreAJourCompteurs() {
   document.getElementById('speedLabel').textContent   = etat.speedActive ? 'x3' : 'x1';
   document.getElementById('cpsVal').textContent       = totalCPS();
   document.getElementById('totalCPS').textContent     = totalCPS();
+
+  const cristauxEl = document.getElementById('cristauxDisplay');
+  if (cristauxEl) cristauxEl.textContent = etat.cristaux.toLocaleString('fr-FR');
 
   // Niveau / XP
   const xpRequis = xpRequisPourNiveau(etat.niveau);
