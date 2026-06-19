@@ -230,26 +230,13 @@
 </div>
 
 <div class="modal-overlay" id="modalCombat" onclick="fermerModalOverlay(event,'modalCombat')">
-  <div class="modal-box modal-box-sm">
+  <div class="modal-box" style="max-width:640px">
     <div class="modal-header">
       <h2>⚔️ Arène de Combat</h2>
       <button class="modal-close" onclick="fermerModal('modalCombat')">✕</button>
     </div>
-    <div class="modal-body flex flex-col gap-4 items-center text-center">
-      <div class="text-xs text-slate-400">
-        Mesure tes familiers face aux menaces cybernétiques pour remporter de l'or et de l'expérience.
-      </div>
-      <div class="stat-chip bg-purple-950/40 border border-purple-500/30 px-3 py-1.5 rounded-xl w-full flex justify-between items-center">
-        <span class="text-xs text-slate-300">⚡ Ta puissance (CPS) :</span>
-        <span id="combatPower" class="val text-purple-400 font-extrabold text-base">0</span>
-      </div>
-      <div id="enemyArenaCard" class="w-full min-h-[160px] flex items-center justify-center"></div>
-      <button onclick="lancerCombat()"
-        class="w-full py-3 rounded-xl font-black text-sm tracking-wide uppercase transition-all duration-200 hover:brightness-110 active:scale-95"
-        style="background:linear-gradient(135deg,#7c3aed,#a855f7);color:#fff;border:none;cursor:pointer;box-shadow:0 0 14px rgba(168,85,247,.35)">
-        💥 Engager le Combat
-      </button>
-      <div id="combatResult" class="w-full"></div>
+    <div class="modal-body" style="padding:.75rem 1rem 1rem">
+      <div id="combatZone"></div>
     </div>
   </div>
 </div>
