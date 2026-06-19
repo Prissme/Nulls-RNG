@@ -80,7 +80,7 @@ function afficherPets() {
 function mettreAJourCompteurs() {
   document.getElementById('coinsDisplay').textContent = etat.pieces.toLocaleString('fr-FR');
   document.getElementById('rollsDisplay').textContent = etat.totalRolls.toLocaleString('fr-FR');
-  document.getElementById('luckLabel').textContent    = etat.luckActive  ? 'x2' : 'x1';
+  document.getElementById('luckLabel').textContent    = `x${Number(luckMultiplierTotal().toFixed(2))}`;
   document.getElementById('speedLabel').textContent   = etat.speedActive ? 'x3' : 'x1';
   document.getElementById('cpsVal').textContent       = totalCPS();
   document.getElementById('totalCPS').textContent     = totalCPS();
@@ -112,7 +112,7 @@ function afficherLevelUp(niveau) {
 /* ── Table des raretés ── */
 function afficherTableRarites() {
   const tbl = document.getElementById('rarityTable');
-  const lm  = etat.luckActive ? 2 : 1;
+  const lm  = luckMultiplierTotal();
 
   let html = `
     <div style="display:grid;grid-template-columns:1fr repeat(4,auto);gap:.25rem .5rem;
