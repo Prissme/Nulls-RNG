@@ -13,6 +13,11 @@ const etat = {
   niveau: 1,
   xp:     0,
 
+  /* ── Prestige (Renaissance) : persiste à travers les resets ── */
+  prestige:         0,
+  cristaux:         0,
+  prestigeUpgrades: { luck: 0, cps: 0, vente: 0, slot: 0, vitesse: 0 },
+
   autoRollActif: false,
   autoInterval:  null,
 
@@ -41,18 +46,28 @@ const etat = {
 const cle      = (bId, variante) => `${bId}_${variante}`;
 const parseKey = key => { const [a, b] = key.split('_'); return { brawlerId: +a, variante: b }; };
 
-const calcCPS  = (b, vKey) => b.cpsBase * VARIANTES[vKey].cpsMult;
+/* ── Bonus permanents de Prestige (achetés avec les Cristaux,
+   ils restent acquis même après une Renaissance) ── */
+const niveauUpgradePrestige = (id) => (etat.prestigeUpgrades && etat.prestigeUpgrades[id]) || 0;
+const luckBonusPrestige     = () => 1 + niveauUpgradePrestige('luck')  * 0.05;
+const cpsBonusPrestige      = () => 1 + niveauUpgradePrestige('cps')   * 0.10;
+const venteBonusPrestige    = () => 1 + niveauUpgradePrestige('vente') * 0.10;
+const nbSlotsMax            = () => 3 + niveauUpgradePrestige('slot');
+const vitesseAutoMult       = () => Math.max(0.3, 1 - niveauUpgradePrestige('vitesse') * 0.05);
+
+const calcCPS  = (b, vKey) => b.cpsBase * VARIANTES[vKey].cpsMult * cpsBonusPrestige();
 const totalCPS = ()        => etat.petsEquipes.reduce((sum, pet) =>
   pet ? sum + calcCPS(pet.brawler, pet.variante) : sum, 0);
 
 const scoreRarete = (b, vKey) => b.div * VARIANTES[vKey].chanceMult;
 
-/* Bonus de Luck lié au niveau de compte :
+/* Bonus de Luck lié au niveau de compte (remis à zéro à chaque Renaissance) :
    chaque niveau au-delà du niveau 1 ajoute +2% de luck (cumulatif, pas composé). */
-const luckBonusNiveau     = () => 1 + Math.max(0, etat.niveau - 1) * 0.02;
+const luckBonusNiveau = () => 1 + Math.max(0, etat.niveau - 1) * 0.02;
 
-/* Multiplicateur de luck total = (Potion de Chance ×2 si active) × bonus de niveau */
-const luckMultiplierTotal = () => (etat.luckActive ? POTIONS.luck.luckMult : 1) * luckBonusNiveau();
+/* Multiplicateur de luck total = potion × bonus de niveau (run actuel) × bonus de Prestige (permanent) */
+const luckMultiplierTotal = () =>
+  (etat.luckActive ? POTIONS.luck.luckMult : 1) * luckBonusNiveau() * luckBonusPrestige();
 
 const couleurVariante = (brawler, variante) => {
   if (variante === 'rainbow') return '#e879f9';
