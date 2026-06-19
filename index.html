@@ -184,6 +184,23 @@
         style="background:linear-gradient(135deg,#0369a1,#0ea5e9);color:#fff;border:none;cursor:pointer;box-shadow:0 0 14px rgba(14,165,233,.35)">
         Acheter — 400 <img src="./images/Coins.webp" alt="Coins" class="w-5 h-5 object-contain inline">
       </button>
+      <div class="border-t" style="border-color:var(--border)"></div>
+      <div class="rounded-lg p-3" style="background:rgba(56,189,248,.08);border:1px solid rgba(56,189,248,.25)">
+        <div class="text-sm font-bold" style="color:#38bdf8">✦ Potion de Shiny</div>
+        <div class="text-xs mt-0.5" style="color:var(--text-muted)">
+          Tous les rolls donnent un Shiny garanti — 5 secondes
+          <span id="shinyTimerHdr" class="hidden font-bold" style="color:#38bdf8"></span>
+        </div>
+        <div id="shinyBarWrap" class="hidden mt-2 rounded-full overflow-hidden" style="height:5px;background:var(--border)">
+          <div id="shinyBar" class="timer-bar" style="width:100%"></div>
+        </div>
+        <div id="shinyCountdown" class="hidden text-xs font-mono font-bold mt-1" style="color:#38bdf8"></div>
+      </div>
+      <button id="buyShinyBtn" onclick="acheterPotion('shiny')"
+        class="w-full py-2 rounded-xl font-bold text-sm tracking-wide flex items-center justify-center gap-2"
+        style="background:linear-gradient(135deg,#0284c7,#38bdf8);color:#fff;border:none;cursor:pointer;box-shadow:0 0 14px rgba(56,189,248,.35)">
+        Acheter — 100 000 <img src="./images/Coins.webp" alt="Coins" class="w-5 h-5 object-contain inline">
+      </button>
     </div>
   </div>
 </div>
