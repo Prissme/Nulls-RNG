@@ -22,10 +22,17 @@ function toggleAutoRoll() {
   }
 }
 
+/* Délai de base de l'Auto-Roll (ms), réduit par l'amélioration
+   permanente de Prestige "Vélocité" (-5%/niveau, plancher à ×0.3) */
+function delaiAutoRollBase() {
+  return Math.max(80, Math.round(1000 * vitesseAutoMult()));
+}
+
 function redemarrerAutoRoll() {
   if (!etat.autoRollActif) return;
   clearInterval(etat.autoInterval);
-  const delai = etat.speedActive ? Math.round(1000 / 3) : 1000;
+  const base  = delaiAutoRollBase();
+  const delai = etat.speedActive ? Math.round(base / 3) : base;
   etat.autoInterval = setInterval(effectuerRoll, delai);
   document.getElementById('autoSpeedBadge').classList.toggle('hidden', !etat.speedActive);
 }
