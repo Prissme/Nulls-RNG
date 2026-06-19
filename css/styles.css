@@ -171,6 +171,7 @@ body {
 .timer-bar { height: 5px; border-radius: 3px; transition: width .9s linear; }
 #luckBar   { background: linear-gradient(90deg,#a855f7,#ec4899); }
 #speedBar  { background: linear-gradient(90deg,#0ea5e9,#22d3ee); }
+#shinyBar  { background: linear-gradient(90deg,#0284c7,#38bdf8); }
 
 /* ── Logo header ── */
 .logo-text {
