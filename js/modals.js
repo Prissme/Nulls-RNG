@@ -1,6 +1,6 @@
 /* ════════════════════════════════════════════════
    modals.js — Ouverture / fermeture des popups
-   (Inventaire, Boutique, Quêtes, Craft, Raretés, Combat, Leaderboard)
+   (Inventaire, Boutique, Quêtes, Craft, Raretés, Combat, Leaderboard, Prestige)
 ════════════════════════════════════════════════ */
 
 /* ── Ouvrir une popup ── */
@@ -13,6 +13,7 @@ function ouvrirModal(id) {
 
   if (id === 'modalCombat' && typeof afficherCombat === 'function') afficherCombat();
   if (id === 'modalLeaderboard' && typeof chargerLeaderboard === 'function') chargerLeaderboard();
+  if (id === 'modalPrestige' && typeof afficherPrestige === 'function') afficherPrestige();
 }
 
 /* ── Fermer une popup ── */
