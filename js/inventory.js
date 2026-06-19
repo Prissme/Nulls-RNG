@@ -13,7 +13,7 @@ function vendreItem(brawlerId, variante) {
 
   const b       = BRAWLERS.find(b => b.id === brawlerId);
   const v       = VARIANTES[variante];
-  const prix    = Math.round(b.sellValue * v.sellMult);
+  const prix    = Math.round(b.sellValue * v.sellMult * venteBonusPrestige());
   etat.pieces  += prix;
   etat.inventaire[k]--;
   if (etat.inventaire[k] === 0) delete etat.inventaire[k];
@@ -75,7 +75,7 @@ function afficherInventaire() {
 
     const b     = BRAWLERS.find(b => b.id === brawlerId);
     const v     = VARIANTES[variante];
-    const prix  = Math.round(b.sellValue * v.sellMult);
+    const prix  = Math.round(b.sellValue * v.sellMult * venteBonusPrestige());
     const cps   = calcCPS(b, variante);
     const color = couleurVariante(b, variante);
 
