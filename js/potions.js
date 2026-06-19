@@ -5,7 +5,7 @@
 function acheterPotion(type) {
   const potion = POTIONS[type];
   if (etat.pieces < potion.cout) {
-    secouerBouton(`buy${type === 'luck' ? 'Luck' : 'Speed'}Btn`);
+    secouerBouton(`buy${type.charAt(0).toUpperCase()}${type.slice(1)}Btn`);
     Sound.error();
     return;
   }
@@ -59,20 +59,20 @@ function demarrerTimer(type) {
 
     bar.style.width = pct + '%';
     cd.textContent  = `⏳ ${secs}s`;
-    hdr.textContent = `${secs}s`;
-    hdr.classList.remove('hidden');
+    if (hdr) {
+      hdr.textContent = `${secs}s`;
+      hdr.classList.remove('hidden');
+    }
 
     if (restant <= 0) {
       clearInterval(etat[prop]);
-      if (type === 'luck') {
-        etat.luckActive = false;
-      } else {
-        etat.speedActive = false;
-        redemarrerAutoRoll();
-      }
+      etat[`${type}Active`] = false;
+      if (type === 'speed') redemarrerAutoRoll();
+
       barWrap.classList.add('hidden');
       cd.classList.add('hidden');
-      hdr.classList.add('hidden');
+      if (hdr) hdr.classList.add('hidden');
+
       mettreAJourCompteurs();
       afficherTableRarites();
     }
