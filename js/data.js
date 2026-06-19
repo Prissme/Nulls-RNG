@@ -44,6 +44,13 @@ const POTIONS = {
     color:     "#38bdf8",
     barId:     "speedBar",
   },
+  shiny: {
+    cout:  100_000,
+    duree: 5_000,
+    label: "Potion de Shiny",
+    color: "#38bdf8",
+    barId: "shinyBar",
+  },
 };
 
 /* ── Helper : génère le HTML d'image d'un brawler ──
