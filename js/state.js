@@ -24,6 +24,10 @@ const etat = {
   speedFin:      0,
   speedInterval: null,
 
+  shinyActive:   false,
+  shinyFin:      0,
+  shinyInterval: null,
+
   filtreVariante: 'all',
   triInventaire:  'rarete',
 
@@ -42,6 +46,13 @@ const totalCPS = ()        => etat.petsEquipes.reduce((sum, pet) =>
   pet ? sum + calcCPS(pet.brawler, pet.variante) : sum, 0);
 
 const scoreRarete = (b, vKey) => b.div * VARIANTES[vKey].chanceMult;
+
+/* Bonus de Luck lié au niveau de compte :
+   chaque niveau au-delà du niveau 1 ajoute +2% de luck (cumulatif, pas composé). */
+const luckBonusNiveau     = () => 1 + Math.max(0, etat.niveau - 1) * 0.02;
+
+/* Multiplicateur de luck total = (Potion de Chance ×2 si active) × bonus de niveau */
+const luckMultiplierTotal = () => (etat.luckActive ? POTIONS.luck.luckMult : 1) * luckBonusNiveau();
 
 const couleurVariante = (brawler, variante) => {
   if (variante === 'rainbow') return '#e879f9';
