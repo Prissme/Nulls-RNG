@@ -299,7 +299,7 @@ body {
 }
 .toolbar-card:active { transform: translateY(0) scale(.97); }
 
-/* Pastille de notification (quêtes prêtes / craft disponible) */
+/* Pastille de notification (quêtes prêtes / craft disponible / renaissance dispo) */
 .badge-dot {
   position: absolute; top: -7px; right: -7px;
   min-width: 19px; height: 19px; padding: 0 4px;
@@ -495,4 +495,19 @@ body {
 @media (max-width: 480px) {
   .cb-vs-row    { grid-template-columns: 1fr; }
   .cb-team      { grid-template-columns: repeat(3, 1fr); gap: .3rem; }
+}
+
+/* ════════════════════════════════════════════════
+   PRESTIGE (Renaissance) — bouton et feedback visuel
+════════════════════════════════════════════════ */
+
+.prestige-btn {
+  transition: transform .15s, box-shadow .15s, opacity .15s;
+}
+.prestige-btn:hover:not(:disabled) {
+  transform: translateY(-1px);
+  box-shadow: 0 0 22px rgba(232,121,249,.5);
+}
+.prestige-btn:active:not(:disabled) {
+  transform: translateY(0) scale(.98);
 }
