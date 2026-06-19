@@ -60,15 +60,18 @@ async function initCloudSave() {
    pas l'objet brawler complet) ── */
 function serialiserEtat() {
   return {
-    pieces:           etat.pieces,
-    totalRolls:       etat.totalRolls,
-    totalPotions:     etat.totalPotions,
-    inventaire:       etat.inventaire,
-    petsEquipes:      etat.petsEquipes.map(p => p ? { brawlerId: p.brawler.id, variante: p.variante } : null),
-    niveau:           etat.niveau,
-    xp:               etat.xp,
-    quetes:           etat.quetes,
-    quetesRefreshFin: etat.quetesRefreshFin,
+    pieces:            etat.pieces,
+    totalRolls:        etat.totalRolls,
+    totalPotions:      etat.totalPotions,
+    inventaire:        etat.inventaire,
+    petsEquipes:       etat.petsEquipes.map(p => p ? { brawlerId: p.brawler.id, variante: p.variante } : null),
+    niveau:            etat.niveau,
+    xp:                etat.xp,
+    quetes:            etat.quetes,
+    quetesRefreshFin:  etat.quetesRefreshFin,
+    prestige:          etat.prestige,
+    cristaux:          etat.cristaux,
+    prestigeUpgrades:  etat.prestigeUpgrades,
   };
 }
 
@@ -85,12 +88,26 @@ function appliquerEtatSauvegarde(saved) {
   if (Array.isArray(saved.quetes)) etat.quetes = saved.quetes;
   if (typeof saved.quetesRefreshFin === 'number') etat.quetesRefreshFin = saved.quetesRefreshFin;
 
+  if (typeof saved.prestige === 'number') etat.prestige = saved.prestige;
+  if (typeof saved.cristaux === 'number') etat.cristaux = saved.cristaux;
+  if (saved.prestigeUpgrades && typeof saved.prestigeUpgrades === 'object') {
+    etat.prestigeUpgrades = Object.assign(
+      { luck: 0, cps: 0, vente: 0, slot: 0, vitesse: 0 },
+      saved.prestigeUpgrades
+    );
+  }
+
+  // Le nombre de slots dépend de prestigeUpgrades.slot : on l'ajuste avant/après
+  // avoir remplacé le tableau de pets équipés.
+  ajusterSlotsPets();
+
   if (Array.isArray(saved.petsEquipes)) {
     etat.petsEquipes = saved.petsEquipes.map(p => {
       if (!p) return null;
       const b = BRAWLERS.find(b => b.id === p.brawlerId);
       return b ? { brawler: b, variante: p.variante } : null;
     });
+    ajusterSlotsPets();
   }
 }
 
@@ -116,7 +133,9 @@ async function chargerEtatCloud() {
   afficherPets();
   afficherCraft();
   afficherQuetes();
+  afficherPrestige();
   mettreAJourCompteurs();
+  redemarrerAutoRoll();
 }
 
 /* ── Sauvegarder l'état vers Supabase ── */
