@@ -20,11 +20,13 @@
   `;
   document.head.appendChild(style);
 
+  ajusterSlotsPets();
   afficherInventaire();
   afficherHistorique();
   afficherTableRarites();
   afficherPets();
   afficherCraft();
+  afficherPrestige();
   mettreAJourCompteurs();
   demarrerCPS();
   initialiserQuetes();
