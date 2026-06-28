@@ -40,7 +40,7 @@ function afficherResultat(b, vKey) {
       ${rarityHtml}
       ${vKey !== 'normal' ? `<span style="font-size:.7rem;color:${couleurVariante(b, vKey)}">${v.label}</span>` : ''}
     </span>
-    1/${b.div * v.chanceMult} &nbsp;•&nbsp; ${Math.round(calcCPS(b, vKey) * 10) / 10} ${coinImg('w-4 h-4')}/s
+    1/${b.div * v.chanceMult} &nbsp;•&nbsp; ${Math.round(calcCPS(b, vKey) * 10) / 10} ${coinImg('w-5 h-5')}/s
   `;
 
   const glowColor = couleurVariante(b, vKey);
@@ -69,7 +69,7 @@ function afficherPets() {
         ${brawlerImg(pet.brawler, 'w-12 h-12')}
         <span class="text-xs font-bold" style="color:${color}">${pet.brawler.nom}</span>
         <span style="margin-top:.1rem">${rarityBadge(pet.brawler.rarity)}</span>
-        <span class="text-xs flex items-center justify-center gap-1" style="color:#fbbf24">+${Math.round(calcCPS(pet.brawler, pet.variante) * 10) / 10} ${coinImg('w-3.5 h-3.5')}/s</span>
+        <span class="text-xs flex items-center justify-center gap-1" style="color:#fbbf24">+${Math.round(calcCPS(pet.brawler, pet.variante) * 10) / 10} ${coinImg('w-5 h-5')}/s</span>
         ${pet.variante !== 'normal'
           ? `<span class="text-xs" style="color:${color}">${v.emoji} ${v.label}</span>`
           : ''}

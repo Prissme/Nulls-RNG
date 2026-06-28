@@ -111,9 +111,9 @@ function afficherInventaire() {
         <span class="text-xs font-bold px-1.5 py-0.5 rounded-full"
               style="background:rgba(0,0,0,.35);color:${color}">×${qty}</span>
       </div>
+      <div class="font-black" style="font-size:.85rem;color:#5eead4;letter-spacing:.01em">🎲 1/${b.div * v.chanceMult}</div>
       <div class="font-bold text-sm leading-tight" style="color:${color}">${b.nom}</div>
       ${badgeHtml}
-      <div class="text-xs" style="color:var(--text-muted)">1/${b.div * v.chanceMult}</div>
       <div class="text-xs" style="color:#fbbf24">+${Number.isInteger(cps) ? cps : cps.toFixed(1)}💰/s</div>
       <div class="flex gap-1 mt-1">
         <button class="equip-btn ${estEquipe ? 'equipped' : ''}"

@@ -187,7 +187,7 @@ async function chargerLeaderboard() {
           </div>
           <div class="font-mono font-black text-amber-400 flex items-center gap-1 shrink-0">
             ${Number(joueur.cps).toLocaleString('fr-FR')}
-            <img src="./images/Coins.webp" alt="Coins" class="w-4 h-4 object-contain inline-block align-middle">/s
+            <img src="./images/Coins.webp" alt="Coins" class="w-5 h-5 object-contain inline-block align-middle">/s
           </div>
         </div>
       `;
@@ -205,7 +205,7 @@ async function chargerLeaderboard() {
           </div>
           <div class="font-mono font-black text-amber-400 flex items-center gap-1 shrink-0">
             ${Number(maPosition.cps).toLocaleString('fr-FR')}
-            <img src="./images/Coins.webp" alt="Coins" class="w-4 h-4 object-contain inline-block align-middle">/s
+            <img src="./images/Coins.webp" alt="Coins" class="w-5 h-5 object-contain inline-block align-middle">/s
           </div>
         </div>
       `;
