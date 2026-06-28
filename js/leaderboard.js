@@ -65,7 +65,7 @@ async function mettreAJourScoreLeaderboard() {
   if (!client || !userId) return;
 
   const pseudo    = _getPseudo();
-  const cpsActuel = typeof totalCPS === 'function' ? totalCPS() : 0;
+  const cpsActuel = Math.round(typeof totalCPS === 'function' ? totalCPS() : 0);
 
   // Récupérer le JWT de la session active
   let jwt = typeof getCloudJWT === 'function' && getCloudJWT()
