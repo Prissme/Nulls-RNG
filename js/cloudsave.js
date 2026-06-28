@@ -224,3 +224,33 @@ function _sauvegarderBeaconFetch() {
     // Silencieux — on est en train de quitter la page
   }
 }
+
+/* ── Affiche l'UUID dans la zone de transfert ── */
+function afficherTransferId() {
+  const el = document.getElementById('transferId');
+  if (!el) return;
+  if (cloudUserId) {
+    el.textContent = cloudUserId;
+  } else {
+    el.textContent = 'Non connecté au cloud';
+  }
+}
+
+/* ── Copie l'UUID dans le presse-papier ── */
+function copierTransferId() {
+  if (!cloudUserId) return;
+  navigator.clipboard.writeText(cloudUserId).then(() => {
+    const btn = document.getElementById('copyTransferBtn');
+    if (!btn) return;
+    btn.textContent = '✓ Copié !';
+    btn.style.background = 'rgba(34,197,94,.2)';
+    btn.style.borderColor = 'rgba(34,197,94,.5)';
+    btn.style.color = '#22c55e';
+    setTimeout(() => {
+      btn.textContent = '📋 Copier';
+      btn.style.background = 'rgba(59,130,246,.15)';
+      btn.style.borderColor = 'rgba(59,130,246,.4)';
+      btn.style.color = '#3b82f6';
+    }, 2000);
+  });
+}
