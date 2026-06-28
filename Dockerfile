@@ -92,6 +92,7 @@ COPY CarlNormal.webp     /usr/share/nginx/html/CarlNormal.webp
 COPY DarrylNormal.webp   /usr/share/nginx/html/DarrylNormal.webp
 
 # Images additionnelles (dans le sous-dossier images/)
+COPY HugeWished.webp     /usr/share/nginx/html/HugeWished.webp
 COPY Coins.webp          /usr/share/nginx/html/images/Coins.webp
 COPY Robot.webp          /usr/share/nginx/html/images/Robot.webp
 COPY BigRobot.webp       /usr/share/nginx/html/images/BigRobot.webp

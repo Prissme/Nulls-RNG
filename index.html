@@ -691,6 +691,11 @@
         <span class="toolbar-icon-text">IDX</span>
         <span class="toolbar-card-label">Index</span>
       </button>
+      <button class="toolbar-card" data-color="gold" onclick="ouvrirModal('modalAchievements');afficherAchievements()">
+        <span class="toolbar-icon-text">🏆</span>
+        <span class="toolbar-card-label">Succès</span>
+        <span class="badge-dot hidden" id="achievementsBadge"></span>
+      </button>
     </nav>
 
   </main>
@@ -933,6 +938,19 @@
   </div>
 </div>
 
+<!-- ACHIEVEMENTS -->
+<div class="modal-overlay" id="modalAchievements" onclick="fermerModalOverlay(event,'modalAchievements')">
+  <div class="modal-box modal-box-sm">
+    <div class="modal-header">
+      <h2>🏆 Succès</h2>
+      <button class="modal-close" onclick="fermerModal('modalAchievements')">✕</button>
+    </div>
+    <div class="modal-body">
+      <div id="achievementsList"></div>
+    </div>
+  </div>
+</div>
+
 <!-- SCRIPTS (unchanged) -->
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.js"></script>
 <script src="js/config.js"></script>
@@ -955,6 +973,7 @@
 <script src="js/cloudsave.js"></script>
 <script src="js/hugewished.js"></script>
 <script src="js/index.js"></script>
+<script src="js/achievements.js"></script>
 <script src="js/main.js"></script>
 <script>
   function toggleMute() {
