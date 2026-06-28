@@ -3,15 +3,37 @@
    Brawlers + Variantes
 ════════════════════════════════════════════════ */
 
+/*
+  rarity : 'common' | 'rare' | 'super-rare'
+  Commun     → Shelly
+  Rare       → Rosa, Poco, El Primo, Brock, Colt, Nita, Bull, Barley
+  Super Rare → Jessie, Rico, Dyna
+*/
+
+const RARITIES = {
+  'common':     { label: 'Commun',     couleur: '#94a3b8', bgCss: 'rgba(148,163,184,.12)', borderCss: 'rgba(148,163,184,.35)' },
+  'rare':       { label: 'Rare',       couleur: '#22c55e', bgCss: 'rgba(34,197,94,.12)',   borderCss: 'rgba(34,197,94,.40)'   },
+  'super-rare': { label: 'Super Rare', couleur: '#3b82f6', bgCss: 'rgba(59,130,246,.14)',  borderCss: 'rgba(59,130,246,.45)'  },
+};
+
 const BRAWLERS = [
-  { id:1, nom:"Shelly",   div:5,   couleur:"#94a3b8", emoji:"🔫", img:"ShellyNormal.webp",  cpsBase:1,  sellValue:1,  bgClass:"rarity-bg-1" },
-  { id:2, nom:"Colt",     div:12,  couleur:"#22c55e", emoji:"🤠", img:"ColtNormal.webp",    cpsBase:2,  sellValue:2,  bgClass:"rarity-bg-2" },
-  { id:3, nom:"Nita",     div:25,  couleur:"#3b82f6", emoji:"🐻", img:"NitaNormal.webp",    cpsBase:3,  sellValue:3,  bgClass:"rarity-bg-3" },
-  { id:4, nom:"Poco",     div:50,  couleur:"#06b6d4", emoji:"🎸", img:"PocoNormal.webp",    cpsBase:5,  sellValue:5,  bgClass:"rarity-bg-4" },
-  { id:5, nom:"Barley",   div:100, couleur:"#f59e0b", emoji:"🍾", img:"BarleyNormal.webp",  cpsBase:8,  sellValue:7,  bgClass:"rarity-bg-5" },
-  { id:6, nom:"Bull",     div:200, couleur:"#f97316", emoji:"🐂", img:"BullNormal.webp",    cpsBase:12, sellValue:10, bgClass:"rarity-bg-6" },
-  { id:7, nom:"El Primo", div:400, couleur:"#ec4899", emoji:"🥊", img:"PrimoNormal.webp",   cpsBase:18, sellValue:12, bgClass:"rarity-bg-7" },
-  { id:8, nom:"Rosa",     div:800, couleur:"#c026d3", emoji:"🌹", img:"RosaNormal.webp",    cpsBase:25, sellValue:15, bgClass:"rarity-bg-8" },
+  /* ── Commun ── */
+  { id:1,  nom:"Shelly",   div:5,    couleur:"#94a3b8", emoji:"🔫", img:"ShellyNormal.webp",  cpsBase:1,  sellValue:1,  bgClass:"rarity-bg-common",      rarity:"common"     },
+
+  /* ── Rare ── */
+  { id:2,  nom:"Colt",     div:12,   couleur:"#22c55e", emoji:"🤠", img:"ColtNormal.webp",    cpsBase:2,  sellValue:2,  bgClass:"rarity-bg-rare",        rarity:"rare"       },
+  { id:3,  nom:"Nita",     div:25,   couleur:"#22c55e", emoji:"🐻", img:"NitaNormal.webp",    cpsBase:3,  sellValue:3,  bgClass:"rarity-bg-rare",        rarity:"rare"       },
+  { id:4,  nom:"Brock",    div:40,   couleur:"#22c55e", emoji:"🚀", img:"BrockNormal.webp",   cpsBase:4,  sellValue:4,  bgClass:"rarity-bg-rare",        rarity:"rare"       },
+  { id:5,  nom:"Poco",     div:50,   couleur:"#22c55e", emoji:"🎸", img:"PocoNormal.webp",    cpsBase:5,  sellValue:5,  bgClass:"rarity-bg-rare",        rarity:"rare"       },
+  { id:6,  nom:"Barley",   div:100,  couleur:"#22c55e", emoji:"🍾", img:"BarleyNormal.webp",  cpsBase:8,  sellValue:7,  bgClass:"rarity-bg-rare",        rarity:"rare"       },
+  { id:7,  nom:"Bull",     div:150,  couleur:"#22c55e", emoji:"🐂", img:"BullNormal.webp",    cpsBase:10, sellValue:9,  bgClass:"rarity-bg-rare",        rarity:"rare"       },
+  { id:8,  nom:"El Primo", div:200,  couleur:"#22c55e", emoji:"🥊", img:"PrimoNormal.webp",   cpsBase:13, sellValue:11, bgClass:"rarity-bg-rare",        rarity:"rare"       },
+  { id:9,  nom:"Rosa",     div:300,  couleur:"#22c55e", emoji:"🌹", img:"RosaNormal.webp",    cpsBase:17, sellValue:14, bgClass:"rarity-bg-rare",        rarity:"rare"       },
+
+  /* ── Super Rare ── */
+  { id:10, nom:"Jessie",   div:500,  couleur:"#3b82f6", emoji:"⚡", img:"JessieNormal.webp",  cpsBase:22, sellValue:18, bgClass:"rarity-bg-super-rare",  rarity:"super-rare" },
+  { id:11, nom:"Rico",     div:800,  couleur:"#3b82f6", emoji:"🎯", img:"RicoNormal.webp",    cpsBase:28, sellValue:22, bgClass:"rarity-bg-super-rare",  rarity:"super-rare" },
+  { id:12, nom:"Dyna",     div:1200, couleur:"#3b82f6", emoji:"💣", img:"DynaNormal.webp",    cpsBase:35, sellValue:28, bgClass:"rarity-bg-super-rare",  rarity:"super-rare" },
 ];
 
 /* chanceMult : diviseur supplémentaire sur la chance de base
@@ -61,4 +83,15 @@ function brawlerImg(brawler, size = 'w-10 h-10', extra = '') {
     class="${size} object-contain"
     style="image-rendering:auto;${extra}"
     onerror="this.style.display='none';this.insertAdjacentText('afterend','${brawler.emoji}')" />`;
+}
+
+/* ── Helper : badge HTML de rareté ── */
+function rarityBadge(rarity) {
+  const r = RARITIES[rarity];
+  if (!r) return '';
+  return `<span style="
+    font-size:.55rem;font-weight:900;text-transform:uppercase;letter-spacing:.07em;
+    padding:.1rem .45rem;border-radius:4px;
+    background:${r.bgCss};border:1px solid ${r.borderCss};color:${r.couleur};
+    white-space:nowrap;">${r.label}</span>`;
 }
