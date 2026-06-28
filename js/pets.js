@@ -16,15 +16,22 @@ function ajusterSlotsPets() {
 }
 
 function equiper(brawlerId, variante) {
-  const k = cle(brawlerId, variante);
-  if (!etat.inventaire[k] || etat.inventaire[k] <= 0) return;
+  const k   = cle(brawlerId, variante);
+  const qty = etat.inventaire[k] || 0;
+  if (qty <= 0) return;
 
-  // Déjà équipé → déséquiper
-  const dejaSlot = etat.petsEquipes.findIndex(p =>
-    p && p.brawler.id === brawlerId && p.variante === variante);
-  if (dejaSlot !== -1) { desequiper(dejaSlot); return; }
+  // Slots qui contiennent déjà une copie de ce brawler+variante
+  const slotsOccupesParCetItem = etat.petsEquipes
+    .map((p, i) => (p && p.brawler.id === brawlerId && p.variante === variante) ? i : -1)
+    .filter(i => i !== -1);
 
-  // Trouver un slot libre
+  // Toutes les copies possédées sont déjà équipées → on en retire une (toggle off)
+  if (slotsOccupesParCetItem.length >= qty) {
+    desequiper(slotsOccupesParCetItem[slotsOccupesParCetItem.length - 1]);
+    return;
+  }
+
+  // Sinon : on équipe une copie supplémentaire (si copies dispo ET slot libre)
   const slot = etat.petsEquipes.indexOf(null);
   if (slot === -1) return; // tous les slots sont pleins
 
