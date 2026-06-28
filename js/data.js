@@ -31,9 +31,16 @@ const BRAWLERS = [
   { id:9,  nom:"Brock",    div:300,  couleur:"#22c55e", emoji:"🚀", img:"BrockNormal.webp",   cpsBase:14, sellValue:11, bgClass:"rarity-bg-rare",        rarity:"rare"       },
 
   /* ── Super Rare ── */
-  { id:10, nom:"Jessie",   div:500,  couleur:"#3b82f6", emoji:"⚡", img:"JessieNormal.webp",  cpsBase:22, sellValue:18, bgClass:"rarity-bg-super-rare",  rarity:"super-rare" },
-  { id:11, nom:"Rico",     div:800,  couleur:"#3b82f6", emoji:"🎯", img:"RicoNormal.webp",    cpsBase:28, sellValue:22, bgClass:"rarity-bg-super-rare",  rarity:"super-rare" },
+  { id:10, nom:"Jessie",   div:900,  couleur:"#3b82f6", emoji:"⚡", img:"JessieNormal.webp",  cpsBase:22, sellValue:18, bgClass:"rarity-bg-super-rare",  rarity:"super-rare" },
+  { id:11, nom:"Rico",     div:1000, couleur:"#3b82f6", emoji:"🎯", img:"RicoNormal.webp",    cpsBase:28, sellValue:22, bgClass:"rarity-bg-super-rare",  rarity:"super-rare" },
   { id:12, nom:"Dyna",     div:1200, couleur:"#3b82f6", emoji:"💣", img:"DynaNormal.webp",    cpsBase:35, sellValue:28, bgClass:"rarity-bg-super-rare",  rarity:"super-rare" },
+  { id:13, nom:"Gus",      div:1400, couleur:"#3b82f6", emoji:"👻", img:"GusNormal.webp",     cpsBase:26, sellValue:20, bgClass:"rarity-bg-super-rare",  rarity:"super-rare" },
+  { id:16, nom:"Penny",    div:1500, couleur:"#3b82f6", emoji:"🏴‍☠️", img:"PennyNormal.webp",  cpsBase:24, sellValue:19, bgClass:"rarity-bg-super-rare",  rarity:"super-rare" },
+  { id:18, nom:"Carl",     div:1700, couleur:"#3b82f6", emoji:"🪃", img:"CarlNormal.webp",    cpsBase:29, sellValue:23, bgClass:"rarity-bg-super-rare",  rarity:"super-rare" },
+  { id:14, nom:"Jacky",    div:1900, couleur:"#3b82f6", emoji:"⛏️", img:"JackyNormal.webp",   cpsBase:30, sellValue:24, bgClass:"rarity-bg-super-rare",  rarity:"super-rare" },
+  { id:19, nom:"Darryl",   div:2200, couleur:"#3b82f6", emoji:"🛢️", img:"DarrylNormal.webp",  cpsBase:31, sellValue:24, bgClass:"rarity-bg-super-rare",  rarity:"super-rare" },
+  { id:17, nom:"Tick",     div:2600, couleur:"#3b82f6", emoji:"💥", img:"TickNormal.webp",    cpsBase:33, sellValue:26, bgClass:"rarity-bg-super-rare",  rarity:"super-rare" },
+  { id:15, nom:"Arkad",    div:3200, couleur:"#3b82f6", emoji:"🕹️", img:"8bitNormal.webp",    cpsBase:32, sellValue:25, bgClass:"rarity-bg-super-rare",  rarity:"super-rare" },
 ];
 
 /* chanceMult : diviseur supplémentaire sur la chance de base

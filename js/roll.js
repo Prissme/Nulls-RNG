@@ -64,6 +64,12 @@ function effectuerRoll() {
   afficherHistorique();
   afficherCraft();
 
+  // Rafraîchir l'index si ouvert
+  if (document.getElementById('modalIndex') &&
+      document.getElementById('modalIndex').classList.contains('open')) {
+    afficherIndex();
+  }
+
   // ── Lucky Pull : animation + notification Discord
   gererLuckyPull(brawler, variante, inventaireAvant);
 }

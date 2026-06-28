@@ -66,7 +66,7 @@ const scoreRarete = (b, vKey) => b.div * VARIANTES[vKey].chanceMult;
 const luckBonusNiveau = () => 1 + Math.max(0, etat.niveau - 1) * 0.02;
 
 /* Multiplicateur de luck total = potion × bonus de niveau (run actuel) × bonus de Prestige (permanent) */
-const luckMultiplierTotal = () =>
+let luckMultiplierTotal = () =>
   (etat.luckActive ? POTIONS.luck.luckMult : 1) * luckBonusNiveau() * luckBonusPrestige();
 
 const couleurVariante = (brawler, variante) => {
