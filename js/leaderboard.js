@@ -1,30 +1,8 @@
 /* ════════════════════════════════════════════════
    leaderboard.js — Système de Classement Mondial (CPS)
+   Identifiant unique : user_id (uuid Supabase anonyme)
+   username = champ d'affichage libre, modifiable
 ════════════════════════════════════════════════ */
-
-/* ── Pseudo ── */
-function sauvegarderPseudo() {
-  const input = document.getElementById('pseudoInput');
-  if (!input) return;
-  const valeur = input.value.trim().replace(/[<>"']/g, '').slice(0, 20);
-  if (!valeur) { input.style.borderColor = '#f87171'; return; }
-
-  localStorage.setItem('nrng_username', valeur);
-  if (typeof etat !== 'undefined') etat.username = valeur;
-
-  input.style.borderColor = '#34d399';
-  setTimeout(() => { input.style.borderColor = 'var(--border)'; }, 1200);
-
-  // Envoyer le score tout de suite avec le nouveau pseudo
-  mettreAJourScoreLeaderboard().then(() => chargerLeaderboard());
-}
-
-function ouvrirLeaderboard() {
-  const pseudo = localStorage.getItem('nrng_username') || (typeof etat !== 'undefined' && etat.username) || '';
-  const input  = document.getElementById('pseudoInput');
-  if (input && pseudo) input.value = pseudo;
-  chargerLeaderboard();
-}
 
 /* ── Récupère le client Supabase déjà initialisé dans cloudsave.js ── */
 function _getSupabaseClient() {
@@ -37,7 +15,13 @@ function _getSupabaseClient() {
   return null;
 }
 
-/* ── Pseudo résolu : localStorage > etat.username > génère un Player_XXXX ── */
+/* ── user_id stable : celui de la session Supabase anonyme ── */
+function _getUserId() {
+  if (typeof getCloudUserId === 'function') return getCloudUserId();
+  return null;
+}
+
+/* ── Pseudo affiché : localStorage en priorité ── */
 function _getPseudo() {
   let pseudo = localStorage.getItem('nrng_username');
   if (!pseudo && typeof etat !== 'undefined' && etat.username) pseudo = etat.username;
@@ -49,25 +33,56 @@ function _getPseudo() {
   return pseudo;
 }
 
-/* ── Met à jour le score en arrière-plan (appelé après chargement cloud + toutes les 15s) ── */
+/* ── Changement de pseudo ── */
+async function sauvegarderPseudo() {
+  const input = document.getElementById('pseudoInput');
+  if (!input) return;
+  const valeur = input.value.trim().replace(/[<>"']/g, '').slice(0, 20);
+  if (!valeur) { input.style.borderColor = '#f87171'; return; }
+
+  localStorage.setItem('nrng_username', valeur);
+  if (typeof etat !== 'undefined') etat.username = valeur;
+
+  input.style.borderColor = '#34d399';
+  setTimeout(() => { input.style.borderColor = 'var(--border)'; }, 1200);
+
+  // Upsert sur user_id → met à jour uniquement le username + score, pas de doublon
+  await mettreAJourScoreLeaderboard();
+  chargerLeaderboard();
+}
+
+function ouvrirLeaderboard() {
+  const pseudo = _getPseudo();
+  const input  = document.getElementById('pseudoInput');
+  if (input) input.value = pseudo;
+  chargerLeaderboard();
+}
+
+/* ── Upsert score : clé = user_id, username = champ libre ── */
 async function mettreAJourScoreLeaderboard() {
   const client = _getSupabaseClient();
-  if (!client) return;
+  const userId = _getUserId();
+  if (!client || !userId) return;
 
-  const pseudo     = _getPseudo();
-  const cpsActuel  = typeof totalCPS === 'function' ? totalCPS() : 0;
+  const pseudo    = _getPseudo();
+  const cpsActuel = typeof totalCPS === 'function' ? totalCPS() : 0;
 
-  // Ne pas écraser un bon score par 0 au démarrage :
-  // on ne met à jour que si le CPS est > 0 OU si la ligne n'existe pas encore
+  // Protection : ne jamais écraser un score positif existant par 0
   if (cpsActuel === 0) {
-    // Vérifier si une ligne existe déjà avec un score > 0
     try {
       const { data } = await client
         .from('nulls_rng_leaderboard')
         .select('cps')
-        .eq('username', pseudo)
+        .eq('user_id', userId)
         .maybeSingle();
-      if (data && data.cps > 0) return; // garder l'ancien score, pas écraser par 0
+      if (data && data.cps > 0) {
+        // Mettre à jour uniquement le username si besoin, garder le cps
+        await client
+          .from('nulls_rng_leaderboard')
+          .update({ username: pseudo, updated_at: new Date().toISOString() })
+          .eq('user_id', userId);
+        return;
+      }
     } catch (_) {}
   }
 
@@ -75,72 +90,72 @@ async function mettreAJourScoreLeaderboard() {
     await client
       .from('nulls_rng_leaderboard')
       .upsert(
-        { username: pseudo, cps: cpsActuel, updated_at: new Date().toISOString() },
-        { onConflict: 'username' }
+        { user_id: userId, username: pseudo, cps: cpsActuel, updated_at: new Date().toISOString() },
+        { onConflict: 'user_id' }
       );
   } catch (e) {
     console.warn('[leaderboard] Mise à jour échouée :', e);
   }
 }
 
+/* ── Affichage du classement ── */
 async function chargerLeaderboard() {
   const container = document.getElementById('leaderboardList');
   if (!container) return;
 
   container.innerHTML = `<div class="text-xs text-center text-slate-400 py-4">Connexion au serveur...</div>`;
 
-  const clientSupabase = _getSupabaseClient();
-  if (!clientSupabase) {
+  const client = _getSupabaseClient();
+  const userId = _getUserId();
+  if (!client) {
     container.innerHTML = `<div class="text-xs text-center text-amber-400 py-4">⚠️ Cloud non configuré.</div>`;
     return;
   }
 
   const pseudoJoueur = _getPseudo();
-  const cpsActuel    = typeof totalCPS === 'function' ? totalCPS() : 0;
 
   try {
-    // Upsert du score actuel (protégé contre l'écrasement par 0)
+    // Mettre à jour le score avant d'afficher
     await mettreAJourScoreLeaderboard();
 
     // Top 10
-    const { data, error } = await clientSupabase
+    const { data, error } = await client
       .from('nulls_rng_leaderboard')
-      .select('username, cps')
+      .select('user_id, username, cps')
       .order('cps', { ascending: false })
       .limit(10);
 
     if (error) throw error;
-
     if (!data || data.length === 0) {
       container.innerHTML = `<div class="text-xs text-center text-slate-500 py-4">Aucun score enregistré.</div>`;
       return;
     }
 
-    // Vérifier si le joueur est dans le top 10
-    const estDansTop = data.some(j => j.username === pseudoJoueur);
+    // Identifier "moi" par user_id, pas par username
+    const estDansTop = userId && data.some(j => j.user_id === userId);
 
-    // Si pas dans le top 10, récupérer sa position réelle
+    // Si hors top 10, chercher ma position exacte
     let maPosition = null;
-    if (!estDansTop) {
-      const { data: tous } = await clientSupabase
+    if (!estDansTop && userId) {
+      const { data: tous } = await client
         .from('nulls_rng_leaderboard')
-        .select('username, cps')
+        .select('user_id, username, cps')
         .order('cps', { ascending: false });
       if (tous) {
-        const idx = tous.findIndex(j => j.username === pseudoJoueur);
-        if (idx !== -1) maPosition = { rang: idx + 1, cps: tous[idx].cps };
+        const idx = tous.findIndex(j => j.user_id === userId);
+        if (idx !== -1) maPosition = { rang: idx + 1, username: tous[idx].username, cps: tous[idx].cps };
       }
     }
 
     // Rendu Top 10
     container.innerHTML = data.map((joueur, index) => {
-      let positionHTML = `${index + 1}.`;
-      let styleTexte   = 'text-slate-300';
-      if (index === 0) { positionHTML = '🥇'; styleTexte = 'text-amber-400 font-black text-sm'; }
-      if (index === 1) { positionHTML = '🥈'; styleTexte = 'text-slate-200 font-bold'; }
-      if (index === 2) { positionHTML = '🥉'; styleTexte = 'text-orange-400 font-bold'; }
+      let posHTML    = `${index + 1}.`;
+      let styleTexte = 'text-slate-300';
+      if (index === 0) { posHTML = '🥇'; styleTexte = 'text-amber-400 font-black text-sm'; }
+      if (index === 1) { posHTML = '🥈'; styleTexte = 'text-slate-200 font-bold'; }
+      if (index === 2) { posHTML = '🥉'; styleTexte = 'text-orange-400 font-bold'; }
 
-      const estMoi = joueur.username === pseudoJoueur;
+      const estMoi = userId && joueur.user_id === userId;
       const styleConteneur = estMoi
         ? 'background:rgba(168,85,247,0.18);border-color:rgba(168,85,247,0.5);font-weight:bold;'
         : 'background:rgba(255,255,255,0.02);border-color:rgba(255,255,255,0.06);';
@@ -148,7 +163,7 @@ async function chargerLeaderboard() {
       return `
         <div class="flex items-center justify-between p-2 rounded-xl border text-xs" style="${styleConteneur}">
           <div class="flex items-center gap-2 overflow-hidden mr-2">
-            <span class="w-6 text-center shrink-0">${positionHTML}</span>
+            <span class="w-6 text-center shrink-0">${posHTML}</span>
             <span class="${styleTexte} truncate ${estMoi ? 'underline' : ''}">
               ${joueur.username}${estMoi ? ' (Toi)' : ''}
             </span>
@@ -169,7 +184,7 @@ async function chargerLeaderboard() {
           style="background:rgba(168,85,247,0.18);border-color:rgba(168,85,247,0.5);font-weight:bold;">
           <div class="flex items-center gap-2 overflow-hidden mr-2">
             <span class="w-6 text-center shrink-0">${maPosition.rang}.</span>
-            <span class="text-purple-300 truncate underline">${pseudoJoueur} (Toi)</span>
+            <span class="text-purple-300 truncate underline">${maPosition.username} (Toi)</span>
           </div>
           <div class="font-mono font-black text-amber-400 flex items-center gap-1 shrink-0">
             ${Number(maPosition.cps).toLocaleString('fr-FR')}
