@@ -1,218 +1,129 @@
 /* ════════════════════════════════════════════════
-   ui.js — Rendu UI : résultat, pets, compteurs,
-           table raretés, historique, utilitaires
+   leaderboard.js — Système de Classement Mondial (CPS)
 ════════════════════════════════════════════════ */
 
-// Fonction utilitaire pour générer l'image de la pièce uniformément
-function coinImg(classes = 'w-5 h-5') {
-  return `<img src="./images/Coins.webp" alt="Coins" class="${classes} object-contain inline-block align-middle" onerror="this.style.display='none'">`;
+/* ── Sauvegarde du pseudo depuis l'input ── */
+function sauvegarderPseudo() {
+  const input = document.getElementById('pseudoInput');
+  if (!input) return;
+  const valeur = input.value.trim().replace(/[<>"']/g, '').slice(0, 20);
+  if (!valeur) { input.style.borderColor = '#f87171'; return; }
+
+  localStorage.setItem('nrng_username', valeur);
+  if (typeof etat !== 'undefined') etat.username = valeur;
+
+  input.style.borderColor = '#34d399';
+  setTimeout(() => { input.style.borderColor = 'var(--border)'; }, 1200);
+
+  // Recharger le classement avec le nouveau pseudo
+  chargerLeaderboard();
 }
 
-/* ── Zone résultat après un roll ── */
-function afficherResultat(b, vKey) {
-  const v     = VARIANTES[vKey];
-  const zone  = document.getElementById('resultZone');
-  const emoji = document.getElementById('resultEmoji');
-  const name  = document.getElementById('resultName');
-  const sub   = document.getElementById('resultSub');
-
-  zone.classList.remove('flash-anim');
-  void zone.offsetWidth;
-  zone.classList.add('flash-anim');
-
-  // Image au lieu de l'emoji
-  emoji.innerHTML = brawlerImg(b, 'w-24 h-24');
-
-  if (vKey === 'rainbow') {
-    name.className   = 'rainbow-text';
-    name.style.color = '';
-    name.textContent = `🌈 ${b.nom}`;
-  } else {
-    name.className   = '';
-    name.style.color = couleurVariante(b, vKey);
-    name.textContent = vKey !== 'normal' ? `${v.emoji} ${b.nom}` : b.nom;
-  }
-
-  // Badge de rareté + stats
-  const rarityHtml = rarityBadge(b.rarity);
-  sub.innerHTML = `
-    <span style="display:flex;align-items:center;justify-content:center;gap:.4rem;flex-wrap:wrap;margin-bottom:.25rem">
-      ${rarityHtml}
-      ${vKey !== 'normal' ? `<span style="font-size:.7rem;color:${couleurVariante(b, vKey)}">${v.label}</span>` : ''}
-    </span>
-    1/${b.div * v.chanceMult} &nbsp;•&nbsp; ${Math.round(calcCPS(b, vKey) * 10) / 10} ${coinImg('w-4 h-4')}/s
-  `;
-
-  const glowColor = couleurVariante(b, vKey);
-  zone.style.filter = `drop-shadow(0 0 ${vKey !== 'normal' ? 22 : 10}px ${glowColor})`;
+/* ── Préremplir l'input pseudo à l'ouverture ── */
+function ouvrirLeaderboard() {
+  const pseudo = localStorage.getItem('nrng_username') || (typeof etat !== 'undefined' && etat.username) || '';
+  const input  = document.getElementById('pseudoInput');
+  if (input && pseudo) input.value = pseudo;
+  chargerLeaderboard();
 }
 
-/* ── Slots pets équipés ── */
-function afficherPets() {
-  const container = document.getElementById('petSlots');
-  const maxSlots   = nbSlotsMax();
-  container.innerHTML = '';
-  container.style.gridTemplateColumns = `repeat(${Math.min(maxSlots, 3)}, 1fr)`;
+async function chargerLeaderboard() {
+  const container = document.getElementById('leaderboardList');
+  if (!container) return;
 
-  for (let i = 0; i < maxSlots; i++) {
-    const pet  = etat.petsEquipes[i];
-    const slot = document.createElement('div');
-    slot.className = `pet-slot ${pet ? 'filled' : ''}`;
+  container.innerHTML = `<div class="text-xs text-center text-slate-400 py-4">Connexion au serveur...</div>`;
 
-    if (pet) {
-      const v     = VARIANTES[pet.variante];
-      const color = couleurVariante(pet.brawler, pet.variante);
-      slot.style.borderColor = color;
-      slot.style.background  = `${color}12`;
-      slot.innerHTML = `
-        <span class="unequip-x" onclick="desequiper(${i})">✕</span>
-        ${brawlerImg(pet.brawler, 'w-12 h-12')}
-        <span class="text-xs font-bold" style="color:${color}">${pet.brawler.nom}</span>
-        <span style="margin-top:.1rem">${rarityBadge(pet.brawler.rarity)}</span>
-        <span class="text-xs flex items-center justify-center gap-1" style="color:#fbbf24">+${Math.round(calcCPS(pet.brawler, pet.variante) * 10) / 10} ${coinImg('w-3.5 h-3.5')}/s</span>
-        ${pet.variante !== 'normal'
-          ? `<span class="text-xs" style="color:${color}">${v.emoji} ${v.label}</span>`
-          : ''}
-      `;
-    } else {
-      slot.innerHTML = `<span class="text-xs" style="color:var(--text-muted)">Slot ${i + 1}<br>vide</span>`;
+  // 🛠️ FIX INITIALISATION : Récupération ou création du client Supabase v2
+  let clientSupabase = null;
+
+  if (typeof supabase !== 'undefined' && supabase && typeof supabase.from === 'function') {
+    // Si un client valide global existe déjà (ex: initialisé dans cloudsave.js)
+    clientSupabase = supabase;
+  } else if (typeof supabase !== 'undefined' && supabase && typeof supabase.createClient === 'function') {
+    // Si l'outil Supabase est chargé mais pas encore instancié, on le crée avec tes variables window
+    const url = window.SUPABASE_URL || "";
+    const key = window.SUPABASE_ANON_KEY || "";
+    
+    if (!url || !key) {
+      container.innerHTML = `<div class="text-xs text-center text-amber-400 py-4">⚠️ Sauvegarde cloud non configurée (Variables vides).</div>`;
+      return;
     }
-
-    container.appendChild(slot);
+    clientSupabase = supabase.createClient(url, key);
   }
 
-  document.getElementById('totalCPS').textContent = totalCPS();
-  document.getElementById('cpsVal').textContent   = totalCPS();
-}
-
-/* ── Compteurs header ── */
-function mettreAJourCompteurs() {
-  document.getElementById('coinsDisplay').textContent = etat.pieces.toLocaleString('fr-FR');
-  document.getElementById('rollsDisplay').textContent = etat.totalRolls.toLocaleString('fr-FR');
-  document.getElementById('luckLabel').textContent    = `x${Number(luckMultiplierTotal().toFixed(2))}`;
-  document.getElementById('speedLabel').textContent   = etat.speedActive ? 'x3' : 'x1';
-  document.getElementById('cpsVal').textContent       = totalCPS();
-  document.getElementById('totalCPS').textContent     = totalCPS();
-
-  const cristauxEl = document.getElementById('cristauxDisplay');
-  if (cristauxEl) cristauxEl.textContent = etat.cristaux.toLocaleString('fr-FR');
-
-  const xpRequis = xpRequisPourNiveau(etat.niveau);
-  const pct      = Math.min(100, (etat.xp / xpRequis) * 100);
-  document.getElementById('levelLabel').textContent = `Niv. ${etat.niveau}`;
-  document.getElementById('xpLabel').textContent     = `${etat.xp}/${xpRequis} XP`;
-  document.getElementById('xpBar').style.width        = pct + '%';
-}
-
-/* ── Notification de passage de niveau ── */
-function afficherLevelUp(niveau) {
-  const notif = document.createElement('div');
-  notif.style.cssText = `
-    position:fixed; top:140px; left:50%; transform:translateX(-50%);
-    background:var(--bg-card); border:1px solid #fbbf24;
-    color:#fbbf24; font-weight:900; font-size:1rem;
-    padding:.7rem 1.6rem; border-radius:14px; z-index:999;
-    box-shadow:0 0 24px rgba(251,191,36,.5);
-    animation: craftIn .4s cubic-bezier(.22,.68,0,1.2) forwards;
-  `;
-  notif.textContent = `🏆 Niveau ${niveau} atteint !`;
-  document.body.appendChild(notif);
-  setTimeout(() => notif.remove(), 2200);
-}
-
-/* ── Table des raretés ── */
-function afficherTableRarites() {
-  const tbl = document.getElementById('rarityTable');
-  const lm  = luckMultiplierTotal();
-
-  // Grouper les brawlers par rareté (ordre affiché : super-rare → rare → common)
-  const groupOrder = ['super-rare', 'rare', 'common'];
-
-  const fmt = (n) => {
-    const effective = Math.round(n / lm);
-    if (effective >= 10000) return `1/${Math.round(effective / 1000)}k`;
-    if (effective <= 0) return `1/1`;
-    return `1/${effective}`;
-  };
-
-  let html = `
-    <div style="display:grid;grid-template-columns:1fr repeat(4,auto);gap:.25rem .5rem;
-      font-size:.6rem;font-weight:900;text-transform:uppercase;letter-spacing:.05em;
-      color:var(--text-muted);padding-bottom:.3rem;border-bottom:1px solid var(--border);margin-bottom:.4rem">
-      <span>Brawler</span>
-      <span style="color:#94a3b8">Nor.</span>
-      <span style="color:#38bdf8">Shi.</span>
-      <span style="color:#fbbf24">Gol.</span>
-      <span style="color:#e879f9">Rain.</span>
-    </div>
-  `;
-
-  for (const rarityKey of groupOrder) {
-    const r        = RARITIES[rarityKey];
-    const group    = [...BRAWLERS].filter(b => b.rarity === rarityKey).reverse();
-    if (!group.length) continue;
-
-    // Séparateur de groupe
-    html += `
-      <div style="display:flex;align-items:center;gap:.4rem;padding:.35rem 0 .2rem;
-        border-bottom:1px solid ${r.borderCss};margin-bottom:.15rem">
-        <span style="font-size:.6rem;font-weight:900;text-transform:uppercase;
-          letter-spacing:.07em;color:${r.couleur}">${r.label}</span>
-      </div>
-    `;
-
-    for (const b of group) {
-      const norm    = b.div;
-      const shiny   = b.div * VARIANTES.shiny.chanceMult;
-      const golden  = b.div * VARIANTES.golden.chanceMult;
-      const rainbow = b.div * VARIANTES.rainbow.chanceMult;
-
-      html += `
-        <div style="display:grid;grid-template-columns:1fr repeat(4,auto);gap:.25rem .5rem;
-          padding:.3rem 0;border-bottom:1px solid rgba(255,255,255,.04);align-items:center">
-          <span style="display:flex;align-items:center;gap:.35rem">
-            ${brawlerImg(b, 'w-5 h-5')}
-            <span style="color:${r.couleur};font-weight:700;font-size:.7rem">${b.nom}</span>
-          </span>
-          <span style="color:#94a3b8;font-size:.65rem">${fmt(norm)}</span>
-          <span style="color:#38bdf8;font-size:.65rem">${fmt(shiny)}</span>
-          <span style="color:#fbbf24;font-size:.65rem">${fmt(golden)}</span>
-          <span style="color:#e879f9;font-size:.65rem">${fmt(rainbow)}</span>
-        </div>
-      `;
-    }
-  }
-
-  tbl.innerHTML = html;
-}
-
-/* ── Historique des derniers rolls ── */
-function afficherHistorique() {
-  const list = document.getElementById('historyList');
-  list.innerHTML = '';
-
-  if (!etat.historique.length) {
-    list.innerHTML = `<span class="text-xs" style="color:var(--text-muted)">Aucun roll pour l'instant.</span>`;
+  if (!clientSupabase) {
+    container.innerHTML = `<div class="text-xs text-center text-red-400 py-4">Erreur : Supabase introuvable ou non initialisé.</div>`;
     return;
   }
 
-  for (const { brawler, variante } of etat.historique) {
-    const v     = VARIANTES[variante];
-    const color = couleurVariante(brawler, variante);
-    const chip  = document.createElement('span');
-    chip.className = 'text-xs font-bold px-2 py-1 rounded-full';
-    chip.style.cssText = `background:rgba(0,0,0,.4);border:1px solid ${color}55;color:${color};
-      display:inline-flex;align-items:center;gap:.3rem`;
-    chip.innerHTML = `${brawlerImg(brawler, 'w-5 h-5')}${v.emoji} ${brawler.nom}`;
-    list.appendChild(chip);
+  // Gestion du pseudonyme du joueur
+  let pseudoJoueur = localStorage.getItem('nrng_username');
+  if (!pseudoJoueur) {
+    pseudoJoueur = (typeof etat !== 'undefined' && etat.username) ? etat.username : "Player_" + Math.floor(1000 + Math.random() * 9000);
+    localStorage.setItem('nrng_username', pseudoJoueur);
   }
-}
+  if (typeof etat !== 'undefined') etat.username = pseudoJoueur;
+  
+  const cpsActuel = typeof totalCPS === 'function' ? totalCPS() : 0;
 
-/* ── Animation secouement bouton (erreur achat) ── */
-function secouerBouton(id) {
-  const btn = document.getElementById(id);
-  if (!btn) return;
-  btn.style.animation = 'none';
-  void btn.offsetWidth;
-  btn.style.animation = 'shake .3s ease';
+  try {
+    // 1. Sauvegarde du score actuel du joueur
+    await clientSupabase
+      .from('nulls_rng_leaderboard')
+      .upsert(
+        { username: pseudoJoueur, cps: cpsActuel, updated_at: new Date() }, 
+        { onConflict: 'username' }
+      );
+
+    // 2. Récupération des 10 meilleurs scores mondiaux
+    const { data, error } = await clientSupabase
+      .from('nulls_rng_leaderboard')
+      .select('username, cps')
+      .order('cps', { ascending: false })
+      .limit(10);
+
+    if (error) throw error;
+
+    if (!data || data.length === 0) {
+      container.innerHTML = `<div class="text-xs text-center text-slate-500 py-4">Aucun score enregistré dans la table.</div>`;
+      return;
+    }
+
+    // 3. Rendu HTML propre du classement
+    container.innerHTML = data.map((joueur, index) => {
+      let positionHTML = `${index + 1}.`;
+      let styleTexte = 'text-slate-300';
+      if (index === 0) { positionHTML = '🥇'; styleTexte = 'text-amber-400 font-black text-sm'; }
+      if (index === 1) { positionHTML = '🥈'; styleTexte = 'text-slate-200 font-bold'; }
+      if (index === 2) { positionHTML = '🥉'; styleTexte = 'text-orange-400 font-bold'; }
+
+      const estMoi = joueur.username === pseudoJoueur;
+      const styleConteneur = estMoi 
+        ? 'background: rgba(168,85,247,0.18); border-color: rgba(168,85,247,0.5); font-weight: bold;' 
+        : 'background: rgba(255,255,255,0.02); border-color: rgba(255,255,255,0.06);';
+
+      return `
+        <div class="flex items-center justify-between p-2 rounded-xl border text-xs" style="${styleConteneur}">
+          <div class="flex items-center gap-2 overflow-hidden mr-2">
+            <span class="w-6 text-center shrink-0">${positionHTML}</span>
+            <span class="${styleTexte} truncate ${estMoi ? 'underline' : ''}">
+              ${joueur.username} ${estMoi ? ' (Toi)' : ''}
+            </span>
+          </div>
+          <div class="font-mono font-black text-amber-400 flex items-center gap-1 shrink-0">
+            ${joueur.cps.toLocaleString('fr-FR')}
+            <img src="./images/Coins.webp" alt="Coins" class="w-4 h-4 object-contain inline-block align-middle">/s
+          </div>
+        </div>
+      `;
+    }).join('');
+
+  } catch (err) {
+    console.error("Erreur Leaderboard :", err);
+    container.innerHTML = `
+      <div class="p-2 bg-red-950/30 border border-red-500/30 rounded-xl text-center text-red-400 text-xs font-mono">
+        ❌ Erreur serveur : ${err.message || err}
+      </div>
+    `;
+  }
 }
