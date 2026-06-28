@@ -40,6 +40,12 @@ async function initCloudSave() {
     cloudUserId = session.user.id;
     _cloudJWT   = session.access_token;
 
+    // Garde le JWT à jour si Supabase rafraîchit la session en arrière-plan
+    // (sinon la sauvegarde à la fermeture de l'onglet utiliserait un token expiré/invalide)
+    sb.auth.onAuthStateChange((_event, newSession) => {
+      if (newSession && newSession.access_token) _cloudJWT = newSession.access_token;
+    });
+
     afficherTransferId(); // FIX: afficher l'UUID dès qu'il est disponible
     await chargerEtatCloud();
     setCloudStatus('☁️ Cloud actif', '#22c55e');
@@ -237,7 +243,7 @@ function demarrerAutoSaveCloud() {
 
 /* ── Sauvegarde via fetch keepalive (fonctionne pendant beforeunload) ── */
 function _sauvegarderBeaconFetch() {
-  if (!cloudUserId || !window.SUPABASE_URL || !window.SUPABASE_ANON_KEY) return;
+  if (!cloudUserId || !_cloudJWT || !window.SUPABASE_URL || !window.SUPABASE_ANON_KEY) return;
 
   const body = JSON.stringify([{ user_id: cloudUserId, state: serialiserEtat() }]);
   const url  = `${window.SUPABASE_URL}/rest/v1/game_saves?on_conflict=user_id`;
@@ -248,7 +254,12 @@ function _sauvegarderBeaconFetch() {
       headers: {
         'Content-Type':  'application/json',
         'apikey':        window.SUPABASE_ANON_KEY,
-        'Authorization': `Bearer ${window.SUPABASE_ANON_KEY}`,
+        // FIX : il faut le JWT de SESSION (utilisateur) ici, pas la clé anon.
+        // Avec la clé anon comme Bearer, auth.uid() vaut NULL côté Supabase et la
+        // policy RLS (auth.uid() = user_id) rejette l'upsert → la sauvegarde à la
+        // fermeture/changement d'onglet échouait silencieusement (fetch keepalive,
+        // pas de vérification du status), d'où la perte de progression au retour.
+        'Authorization': `Bearer ${_cloudJWT}`,
         'Prefer':        'resolution=merge-duplicates',
       },
       body:    body,
