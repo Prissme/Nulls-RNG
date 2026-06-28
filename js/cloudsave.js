@@ -81,6 +81,7 @@ function serialiserEtat() {
     achievements:      etat.achievements,
     shellyStreak:      etat.shellyStreak,
     robotsBattus:      etat.robotsBattus,
+    indexUnlocks:      etat.indexUnlocks,
   };
 }
 
@@ -109,6 +110,7 @@ function appliquerEtatSauvegarde(saved) {
   if (saved.achievements && typeof saved.achievements === 'object') etat.achievements = saved.achievements;
   if (typeof saved.shellyStreak === 'number') etat.shellyStreak = saved.shellyStreak;
   if (saved.robotsBattus && typeof saved.robotsBattus === 'object') etat.robotsBattus = saved.robotsBattus;
+  if (saved.indexUnlocks && typeof saved.indexUnlocks === 'object') etat.indexUnlocks = saved.indexUnlocks;
 
   ajusterSlotsPets();
 

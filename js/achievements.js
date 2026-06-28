@@ -8,7 +8,7 @@ const ACHIEVEMENTS_DEF = [
     id: 'shelly_streak_10',
     icone: '🔫',
     nom: 'Lucky Shelly',
-    desc: 'Obtenir 10 Shelly d\'affilée',
+    desc: 'Obtenir 20 Shelly d\'affilée',
     couleur: '#94a3b8',
     rewardXP: 500,
   },
@@ -107,8 +107,9 @@ function checkAchievementsRoll(brawlerId, variante) {
   } else {
     etat.shellyStreak = 0;
   }
-  if (etat.shellyStreak >= 10) {
+  if (etat.shellyStreak >= 20) {
     debloquerAchievement('shelly_streak_10');
+    etat.shellyStreak = 0; // reset après déclenchement
   }
 
   // Index complet : tous les brawlers × toutes variantes

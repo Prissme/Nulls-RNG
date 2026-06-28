@@ -80,6 +80,21 @@ const POTIONS = {
     color: "#38bdf8",
     barId: "shinyBar",
   },
+  wished: {
+    cout:      670_000,
+    duree:     67_000,
+    speedMult: 6.7,
+    label:     "Potion Wished",
+    color:     "#f59e0b",
+    barId:     "wishedBar",
+  },
+  golden: {
+    cout:  5_000_000,
+    duree: 10_000,
+    label: "Potion Golden",
+    color: "#fbbf24",
+    barId: "goldenBar",
+  },
 };
 
 /* ── Helper : génère le HTML d'image d'un brawler ──

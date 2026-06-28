@@ -2,7 +2,7 @@
    inventory.js — Inventaire : vente, filtre, tri, rendu
 ════════════════════════════════════════════════ */
 
-const ITEMS_PAR_PAGE = 8;
+const ITEMS_PAR_PAGE = 12;
 let inventairePage = 1;
 
 /* ── Vendre un item ── */
@@ -48,6 +48,9 @@ function trierInventaire(mode, btn) {
 /* ── Rendu de la grille inventaire ── */
 function afficherInventaire() {
   const grid = document.getElementById('inventoryGrid');
+  grid.style.display = 'grid';
+  grid.style.gridTemplateColumns = 'repeat(3, 1fr)';
+  grid.style.gap = '.4rem';
   grid.innerHTML = '';
 
   const entries = Object.entries(etat.inventaire)
@@ -64,7 +67,8 @@ function afficherInventaire() {
     });
 
   if (entries.length === 0) {
-    grid.innerHTML = `<p class="col-span-2 text-center text-xs py-6" style="color:var(--text-muted)">
+    grid.style.gridTemplateColumns = '1fr';
+    grid.innerHTML = `<p class="text-center text-xs py-6" style="color:var(--text-muted)">
       ${etat.filtreVariante !== 'all'
         ? 'Aucun item dans cette catégorie.'
         : 'Lance un Roll pour obtenir des brawlers !'}
@@ -88,6 +92,9 @@ function afficherInventaire() {
     const cps   = Math.round(calcCPS(b, variante) * 10) / 10;
     const color = couleurVariante(b, variante);
     const proba = (b.div * v.chanceMult).toLocaleString('fr-FR');
+    const prixFmt = prix >= 1000000 ? (prix/1000000).toFixed(1)+'M'
+                  : prix >= 1000    ? (prix/1000).toFixed(prix%1000===0?0:1)+'k'
+                  : prix;
 
     const estEquipe   = etat.petsEquipes.some(p => p && p.brawler.id === brawlerId && p.variante === variante);
     const slotsDispo  = etat.petsEquipes.filter(p => p === null).length;
@@ -98,71 +105,64 @@ function afficherInventaire() {
                     : variante === 'rainbow' ? 'drop-shadow(0 0 10px #e879f9) saturate(1.6)'
                     : `drop-shadow(0 0 4px ${color}66)`;
 
-    const varClass = variante === 'shiny'   ? 'var-shiny'
-                   : variante === 'golden'  ? 'var-golden'
-                   : variante === 'rainbow' ? 'var-rainbow'
-                   : '';
-
-    // Badge variante
-    let varianteBadge = '';
+    let varBadge = '';
     if (variante === 'rainbow') {
-      varianteBadge = `<span style="font-size:.58rem;font-weight:900;letter-spacing:.05em;
+      varBadge = `<span style="font-size:.48rem;font-weight:900;
         background:linear-gradient(90deg,#f472b6,#818cf8,#34d399,#fbbf24);
-        -webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text">
-        🌈 RAINBOW</span>`;
+        -webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text">🌈 RAINBOW</span>`;
     } else if (variante !== 'normal') {
-      varianteBadge = `<span style="font-size:.62rem;font-weight:800;color:${color}">${v.emoji} ${v.label}</span>`;
+      varBadge = `<span style="font-size:.52rem;font-weight:800;color:${color}">${v.emoji} ${v.label}</span>`;
     }
 
     const card = document.createElement('div');
-    card.className = `inv-item ${b.bgClass} ${varClass}`;
-    if (variante === 'golden') card.style.borderColor = '#fbbf24';
-    if (variante === 'shiny')  card.style.borderColor = '#38bdf8';
+    card.style.cssText = `
+      display:flex;flex-direction:column;align-items:center;text-align:center;
+      border-radius:11px;border:1px solid ${color}50;
+      background:${RARITIES[b.rarity].bgCss};
+      padding:.5rem .3rem .4rem;gap:.22rem;
+      position:relative;min-width:0;
+    `;
 
     card.innerHTML = `
-      <!-- Header : image + qty -->
-      <div style="display:flex;align-items:center;justify-content:space-between;gap:.4rem;margin-bottom:.1rem">
-        <div style="display:flex;align-items:center;gap:.5rem;min-width:0">
-          <div style="flex-shrink:0;width:44px;height:44px;display:flex;align-items:center;justify-content:center;
-            border-radius:10px;background:rgba(0,0,0,.3);border:1px solid ${color}33">
-            ${brawlerImg(b, 'w-9 h-9', `filter:${imgFilter}`)}
-          </div>
-          <div style="min-width:0">
-            <div style="font-weight:800;font-size:.82rem;color:${color};
-              overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${b.nom}</div>
-            <div style="display:flex;align-items:center;gap:.3rem;flex-wrap:wrap">
-              ${rarityBadge(b.rarity)}
-              ${varianteBadge}
-            </div>
-          </div>
-        </div>
-        <span style="flex-shrink:0;font-family:var(--font-mono);font-size:.78rem;font-weight:900;
-          padding:.2rem .55rem;border-radius:999px;
-          background:rgba(0,0,0,.4);border:1px solid ${color}44;color:${color}">×${qty}</span>
+      ${qty > 1 ? `<span style="
+        position:absolute;top:.28rem;right:.28rem;
+        font-family:var(--font-mono);font-size:.55rem;font-weight:900;line-height:1;
+        padding:.1rem .28rem;border-radius:999px;
+        background:rgba(0,0,0,.6);border:1px solid ${color}40;color:${color}">×${qty}</span>` : ''}
+
+      <div style="width:50px;height:50px;display:flex;align-items:center;justify-content:center;
+        border-radius:10px;background:rgba(0,0,0,.3);border:1px solid ${color}30">
+        ${brawlerImg(b, 'w-10 h-10', `filter:${imgFilter}`)}
       </div>
 
-      <!-- Proba + CPS -->
-      <div style="display:flex;align-items:center;justify-content:space-between;
-        padding:.3rem .45rem;border-radius:7px;background:rgba(0,0,0,.25);margin:.1rem 0">
-        <span style="font-family:var(--font-mono);font-size:.65rem;font-weight:700;color:#5eead4">
-          🎲 1/${proba}
-        </span>
-        <span style="font-size:.65rem;font-weight:700;color:#fbbf24">
-          +${Number.isInteger(cps) ? cps : cps.toFixed(1)} 💰/s
-        </span>
+      <div style="line-height:1.15;min-width:0;width:100%">
+        <div style="font-weight:800;font-size:.65rem;color:${color};
+          white-space:nowrap;overflow:hidden;text-overflow:ellipsis;padding:0 .1rem">${b.nom}</div>
+        ${varBadge ? `<div style="margin-top:.05rem">${varBadge}</div>` : ''}
       </div>
 
-      <!-- Boutons -->
-      <div style="display:flex;gap:.4rem;margin-top:.1rem">
+      <div style="font-family:var(--font-mono);font-size:.56rem;font-weight:700;color:#5eead4;
+        background:rgba(0,0,0,.3);border-radius:5px;padding:.1rem .25rem;width:100%">
+        1/${proba}
+      </div>
+
+      <div style="font-size:.58rem;font-weight:700;color:#fbbf24;
+        display:flex;align-items:center;justify-content:center;gap:.15rem">
+        ${coinImg('w-3 h-3')}${Number.isInteger(cps) ? cps : cps.toFixed(1)}/s
+      </div>
+
+      <div style="display:flex;gap:.22rem;width:100%;margin-top:.05rem">
         <button class="equip-btn ${estEquipe ? 'equipped' : ''}"
-                style="flex:1"
-                onclick="equiper(${brawlerId},'${variante}')"
-                ${!peutEquiper && !estEquipe ? 'disabled' : ''}>
-          ${estEquipe ? '✓ Équipé' : 'Équiper'}
+          style="flex:1;font-size:.58rem;padding:.18rem 0"
+          onclick="equiper(${brawlerId},'${variante}')"
+          ${!peutEquiper && !estEquipe ? 'disabled' : ''}>
+          ${estEquipe ? '✓' : 'Pet'}
         </button>
-        <button class="sell-btn" onclick="vendreItem(${brawlerId},'${variante}')"
-                ${estEquipe ? 'disabled style="opacity:.35;cursor:not-allowed"' : ''}>
-          ${prix} 💰
+        <button class="sell-btn"
+          style="flex:1;font-size:.56rem;padding:.18rem 0"
+          onclick="vendreItem(${brawlerId},'${variante}')"
+          ${estEquipe ? 'disabled' : ''}>
+          ${prixFmt}💰
         </button>
       </div>
     `;
@@ -172,8 +172,7 @@ function afficherInventaire() {
   // Pagination
   if (totalPages > 1) {
     const nav = document.createElement('div');
-    nav.style.cssText = `display:flex;align-items:center;justify-content:center;gap:.5rem;
-      padding:.75rem 0 .25rem;`;
+    nav.style.cssText = `grid-column:1/-1;display:flex;align-items:center;justify-content:center;gap:.5rem;padding:.6rem 0 .1rem;`;
 
     const btnPrev = document.createElement('button');
     btnPrev.textContent = '← Préc.';

@@ -23,7 +23,7 @@ function acheterPotion(type) {
   } else {
     etat[activeProp] = true;
     etat[finProp]    = Date.now() + potion.duree;
-    if (type === 'speed') redemarrerAutoRoll();
+    if (type === 'speed' || type === 'wished') redemarrerAutoRoll();
   }
 
   progresserQuete('potion');
@@ -67,7 +67,7 @@ function demarrerTimer(type) {
     if (restant <= 0) {
       clearInterval(etat[prop]);
       etat[`${type}Active`] = false;
-      if (type === 'speed') redemarrerAutoRoll();
+      if (type === 'speed' || type === 'wished') redemarrerAutoRoll();
 
       barWrap.classList.add('hidden');
       cd.classList.add('hidden');

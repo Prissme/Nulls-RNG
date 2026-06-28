@@ -21,6 +21,11 @@ function effectuerTirage() {
     return { brawler: tirerBrawlerPondere(), variante: 'shiny' };
   }
 
+  // Potion Golden active : tous les rolls renvoient un Golden garanti
+  if (etat.goldenActive) {
+    return { brawler: tirerBrawlerPondere(), variante: 'golden' };
+  }
+
   const luckMult = luckMultiplierTotal();
 
   for (const vKey of ORDRE_VARIANTES) {

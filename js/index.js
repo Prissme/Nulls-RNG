@@ -28,15 +28,31 @@ function getRarityGroups() {
   return groups;
 }
 
+/* Clé de stockage d'un unlock d'index */
+function indexKey(rarityKey, variante) { return `${rarityKey}_${variante}`; }
+
 /* Vérifie si le joueur a au moins 1 exemplaire de chaque brawler
-   d'une rareté donnée, dans une variante donnée */
-function isRarityComplete(rarityKey, variante) {
+   d'une rareté donnée, dans une variante donnée (inventaire actuel) */
+function isRarityCompleteNow(rarityKey, variante) {
   const group = BRAWLERS.filter(b => b.rarity === rarityKey);
   return group.every(b => (etat.inventaire[cle(b.id, variante)] || 0) >= 1);
 }
 
-/* Calcule le bonus de luck total de l'index (somme de tous les sets complets) */
+/* Retourne true si ce set est débloqué (inventaire OU déjà persisté) */
+function isRarityComplete(rarityKey, variante) {
+  if (!etat.indexUnlocks) etat.indexUnlocks = {};
+  const k = indexKey(rarityKey, variante);
+  if (etat.indexUnlocks[k]) return true;
+  if (isRarityCompleteNow(rarityKey, variante)) {
+    etat.indexUnlocks[k] = true; // mémorise définitivement
+    return true;
+  }
+  return false;
+}
+
+/* Calcule le bonus de luck total de l'index (somme de tous les sets débloqués) */
 function luckBonusIndex() {
+  if (!etat.indexUnlocks) etat.indexUnlocks = {};
   let bonus = 0;
   const rarityKeys = [...new Set(BRAWLERS.map(b => b.rarity))];
   for (const rarityKey of rarityKeys) {

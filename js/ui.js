@@ -129,62 +129,72 @@ function afficherTableRarites() {
   const tbl = document.getElementById('rarityTable');
   const lm  = luckMultiplierTotal();
 
-  // Grouper les brawlers par rareté (ordre affiché : super-rare → rare → common)
   const groupOrder = ['super-rare', 'rare', 'common'];
 
-  const fmt = (n) => {
-    const effective = Math.round(n / lm);
+  const fmtProba = (div, chanceMult) => {
+    const effective = Math.round((div * chanceMult) / lm);
     if (effective >= 10000) return `1/${Math.round(effective / 1000)}k`;
-    if (effective <= 0) return `1/1`;
+    if (effective <= 0) return '1/1';
     return `1/${effective}`;
   };
 
-  let html = `
-    <div style="display:grid;grid-template-columns:1fr repeat(4,auto);gap:.25rem .5rem;
-      font-size:.6rem;font-weight:900;text-transform:uppercase;letter-spacing:.05em;
-      color:var(--text-muted);padding-bottom:.3rem;border-bottom:1px solid var(--border);margin-bottom:.4rem">
-      <span>Brawler</span>
-      <span style="color:#94a3b8">Nor.</span>
-      <span style="color:#38bdf8">Shi.</span>
-      <span style="color:#fbbf24">Gol.</span>
-      <span style="color:#e879f9">Rain.</span>
-    </div>
-  `;
+  const VAR_CFG = [
+    { key: 'normal',  label: 'Normal',  color: '#94a3b8' },
+    { key: 'shiny',   label: 'Shiny',   color: '#38bdf8' },
+    { key: 'golden',  label: 'Golden',  color: '#fbbf24' },
+    { key: 'rainbow', label: 'Rainbow', color: '#e879f9' },
+  ];
+
+  let html = '';
 
   for (const rarityKey of groupOrder) {
-    const r        = RARITIES[rarityKey];
-    const group    = [...BRAWLERS].filter(b => b.rarity === rarityKey).reverse();
+    const r     = RARITIES[rarityKey];
+    const group = [...BRAWLERS].filter(b => b.rarity === rarityKey).reverse();
     if (!group.length) continue;
 
-    // Séparateur de groupe
     html += `
-      <div style="display:flex;align-items:center;gap:.4rem;padding:.35rem 0 .2rem;
-        border-bottom:1px solid ${r.borderCss};margin-bottom:.15rem">
-        <span style="font-size:.6rem;font-weight:900;text-transform:uppercase;
-          letter-spacing:.07em;color:${r.couleur}">${r.label}</span>
-      </div>
+      <div style="margin-bottom:.75rem">
+        <div style="font-size:.62rem;font-weight:900;text-transform:uppercase;letter-spacing:.08em;
+          color:${r.couleur};padding:.2rem 0 .4rem;border-bottom:1px solid ${r.borderCss};margin-bottom:.4rem">
+          ${r.label}
+        </div>
+        <div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(72px,1fr));gap:.4rem">
     `;
 
     for (const b of group) {
-      const norm    = b.div;
-      const shiny   = b.div * VARIANTES.shiny.chanceMult;
-      const golden  = b.div * VARIANTES.golden.chanceMult;
-      const rainbow = b.div * VARIANTES.rainbow.chanceMult;
+      const cpsN = Math.round(calcCPS(b, 'normal') * 10) / 10;
+      // Trouver la meilleure variante possédée pour highlight
+      const bestVar = VAR_CFG.slice().reverse().find(vc =>
+        (etat.inventaire[cle(b.id, vc.key)] || 0) >= 1
+      );
+      const borderCol = bestVar ? bestVar.color : r.borderCss;
 
       html += `
-        <div style="display:grid;grid-template-columns:1fr repeat(4,auto);gap:.25rem .5rem;
-          padding:.3rem 0;border-bottom:1px solid rgba(255,255,255,.04);align-items:center">
-          <span style="display:flex;align-items:center;gap:.35rem">
-            ${brawlerImg(b, 'w-5 h-5')}
-            <span style="color:${r.couleur};font-weight:700;font-size:.7rem">${b.nom}</span>
-          </span>
-          <span style="color:#94a3b8;font-size:.65rem">${fmt(norm)}</span>
-          <span style="color:#38bdf8;font-size:.65rem">${fmt(shiny)}</span>
-          <span style="color:#fbbf24;font-size:.65rem">${fmt(golden)}</span>
-          <span style="color:#e879f9;font-size:.65rem">${fmt(rainbow)}</span>
-        </div>
+        <div style="border-radius:10px;border:1px solid ${borderCol}55;
+          background:${r.bgCss};padding:.4rem .35rem;
+          display:flex;flex-direction:column;align-items:center;gap:.2rem;text-align:center">
+          ${brawlerImg(b, 'w-9 h-9')}
+          <span style="font-size:.6rem;font-weight:800;color:${r.couleur};line-height:1.2">${b.nom}</span>
+          <div style="display:flex;flex-direction:column;gap:.1rem;width:100%">
       `;
+
+      for (const vc of VAR_CFG) {
+        const v   = VARIANTES[vc.key];
+        const cps = Math.round(calcCPS(b, vc.key) * 10) / 10;
+        html += `
+          <div style="display:flex;justify-content:space-between;align-items:center;
+            padding:.08rem .25rem;border-radius:4px;background:rgba(0,0,0,.25)">
+            <span style="font-size:.52rem;font-weight:700;color:${vc.color}">${vc.label[0]}</span>
+            <span style="font-size:.52rem;font-family:var(--font-mono);color:#94a3b8">${fmtProba(b.div, v.chanceMult)}</span>
+            <span style="font-size:.5rem;color:#fbbf24">${cps}/s</span>
+          </div>
+        `;
+      }
+
+      html += `</div></div>`;
     }
+
+    html += `</div></div>`;
   }
 
   tbl.innerHTML = html;

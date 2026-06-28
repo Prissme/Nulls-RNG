@@ -18,6 +18,9 @@ const etat = {
   cristaux:         0,
   prestigeUpgrades: { luck: 0, cps: 0, vente: 0, slot: 0, vitesse: 0 },
 
+  /* ── Index : bonus de luck débloqués, persistants après Renaissance ── */
+  indexUnlocks: {},  // clé: "rarityKey_variante" → true
+
   autoRollActif: false,
   autoInterval:  null,
 
@@ -32,6 +35,14 @@ const etat = {
   shinyActive:   false,
   shinyFin:      0,
   shinyInterval: null,
+
+  wishedActive:   false,
+  wishedFin:      0,
+  wishedInterval: null,
+
+  goldenActive:   false,
+  goldenFin:      0,
+  goldenInterval: null,
 
   filtreVariante: 'all',
   triInventaire:  'rarete',

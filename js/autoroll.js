@@ -37,14 +37,23 @@ function redemarrerAutoRoll() {
   }
   clearInterval(etat.autoInterval);
   const base  = delaiAutoRollBase();
-  const delai = etat.speedActive ? Math.round(base / 3) : base;
+  // Wished (×6.7) > Speed (×3) ; on prend le meilleur actif
+  let delai = base;
+  let badgeText = '';
+  if (etat.wishedActive) {
+    delai = Math.max(30, Math.round(base / POTIONS.wished.speedMult));
+    badgeText = `×${POTIONS.wished.speedMult}`;
+  } else if (etat.speedActive) {
+    delai = Math.round(base / 3);
+    badgeText = 'x3';
+  }
   etat.autoInterval = setInterval(effectuerRoll, delai);
   const badge = document.getElementById('autoSpeedBadge');
   if (badge) {
-    badge.textContent = 'x3';
-    badge.style.background = 'rgba(56,189,248,.12)';
-    badge.style.color = 'var(--accent-sky)';
-    badge.classList.toggle('hidden', !etat.speedActive);
+    badge.textContent = badgeText;
+    badge.style.background = etat.wishedActive ? 'rgba(245,158,11,.18)' : 'rgba(56,189,248,.12)';
+    badge.style.color = etat.wishedActive ? '#f59e0b' : 'var(--accent-sky)';
+    badge.classList.toggle('hidden', !etat.speedActive && !etat.wishedActive);
   }
 }
 
