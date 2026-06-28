@@ -38,6 +38,7 @@ async function initCloudSave() {
       session = data.session;
     }
     cloudUserId = session.user.id;
+    _cloudJWT   = session.access_token;
 
     await chargerEtatCloud();
     setCloudStatus('☁️ Cloud actif', '#22c55e');
@@ -54,6 +55,11 @@ function getCloudClient() {
 }
 function getCloudUserId() {
   return cloudUserId;
+}
+
+let _cloudJWT = null;
+function getCloudJWT() {
+  return _cloudJWT;
 }
 
 /* ── Sérialisation ── */
