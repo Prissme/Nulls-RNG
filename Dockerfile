@@ -83,6 +83,13 @@ COPY BrockNormal.webp    /usr/share/nginx/html/BrockNormal.webp
 COPY JessieNormal.webp   /usr/share/nginx/html/JessieNormal.webp
 COPY RicoNormal.webp     /usr/share/nginx/html/RicoNormal.webp
 COPY DynaNormal.webp     /usr/share/nginx/html/DynaNormal.webp
+COPY GusNormal.webp      /usr/share/nginx/html/GusNormal.webp
+COPY JackyNormal.webp    /usr/share/nginx/html/JackyNormal.webp
+COPY 8bitNormal.webp     /usr/share/nginx/html/8bitNormal.webp
+COPY PennyNormal.webp    /usr/share/nginx/html/PennyNormal.webp
+COPY TickNormal.webp     /usr/share/nginx/html/TickNormal.webp
+COPY CarlNormal.webp     /usr/share/nginx/html/CarlNormal.webp
+COPY DarrylNormal.webp   /usr/share/nginx/html/DarrylNormal.webp
 
 # Images additionnelles (dans le sous-dossier images/)
 COPY Coins.webp          /usr/share/nginx/html/images/Coins.webp
