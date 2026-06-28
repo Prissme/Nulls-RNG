@@ -1,8 +1,8 @@
 # ── Null's RNG — Image de production ──────────────────────────────────────
 FROM nginx:alpine
 
-# gettext fournit envsubst, utilisé pour injecter les variables Koyeb
-RUN apk add --no-cache gettext
+# gettext = envsubst, nodejs = proxy Discord
+RUN apk add --no-cache gettext nodejs
 
 # Créer le sous-dossier pour les images du jeu
 RUN mkdir -p /usr/share/nginx/html/images/
@@ -33,6 +33,10 @@ COPY Robot.webp          /usr/share/nginx/html/images/Robot.webp
 COPY BigRobot.webp       /usr/share/nginx/html/images/BigRobot.webp
 COPY SniperRobot.webp    /usr/share/nginx/html/images/SniperRobot.webp
 COPY BoxerRobot.webp     /usr/share/nginx/html/images/BoxerRobot.webp
+
+# Proxy Discord (Node.js — pas de dépendances npm, stdlib seulement)
+COPY server.js    /app/server.js
+COPY package.json /app/package.json
 
 COPY nginx.conf /etc/nginx/conf.d/default.conf
 
