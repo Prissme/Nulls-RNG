@@ -12,7 +12,7 @@ function ouvrirModal(id) {
   document.body.style.overflow = 'hidden';
 
   if (id === 'modalCombat' && typeof afficherCombat === 'function') afficherCombat();
-  if (id === 'modalLeaderboard' && typeof chargerLeaderboard === 'function') chargerLeaderboard();
+  if (id === 'modalLeaderboard' && typeof ouvrirLeaderboard === 'function') ouvrirLeaderboard();
   if (id === 'modalPrestige' && typeof afficherPrestige === 'function') afficherPrestige();
 }
 
