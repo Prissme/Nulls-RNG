@@ -132,6 +132,9 @@ async function chargerEtatCloud() {
   afficherPrestige();
   mettreAJourCompteurs();
   redemarrerAutoRoll();
+  
+  // FIX leaderboard : envoyer le vrai CPS après restauration des pets
+  if (typeof mettreAJourScoreLeaderboard === 'function') mettreAJourScoreLeaderboard();
 }
 
 /* ── Sauvegarder l'état vers Supabase ── */
