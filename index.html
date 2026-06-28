@@ -589,6 +589,13 @@
         <span class="lbl">cristaux</span>
       </div>
 
+      <!-- points de pouvoir -->
+      <div class="stat-chip" style="border-color:rgba(168,85,247,.4);cursor:pointer"
+           onclick="ouvrirModal('modalSkillTree');afficherSkillTree()">
+        <span class="val" id="ppDisplay" style="color:#a855f7">0</span>
+        <span class="lbl">⚡ PP</span>
+      </div>
+
       <!-- rolls -->
       <div class="stat-chip">
         <span class="val" id="rollsDisplay">0</span>
@@ -677,6 +684,11 @@
       <button class="toolbar-card" data-color="pink" onclick="ouvrirModal('modalCombat')">
         <span class="toolbar-icon-text">ARENA</span>
         <span class="toolbar-card-label">Combat</span>
+      </button>
+      <button class="toolbar-card" data-color="sky" onclick="ouvrirModal('modalSkillTree');afficherSkillTree()">
+        <span class="toolbar-icon-text">⚡</span>
+        <span class="toolbar-card-label">Pouvoirs</span>
+        <span class="badge-dot hidden" id="skillTreeBadge"></span>
       </button>
       <button class="toolbar-card" data-color="gold" onclick="ouvrirModal('modalLeaderboard');afficherTransferId();chargerLeaderboard()">
         <span class="toolbar-icon-text">TOP</span>
@@ -886,6 +898,19 @@
   </div>
 </div>
 
+<!-- SKILL TREE -->
+<div class="modal-overlay" id="modalSkillTree" onclick="fermerModalOverlay(event,'modalSkillTree')">
+  <div class="modal-box" style="max-width:680px">
+    <div class="modal-header">
+      <h2>⚡ Arbre de Compétences</h2>
+      <button class="modal-close" onclick="fermerModal('modalSkillTree')">✕</button>
+    </div>
+    <div class="modal-body" style="padding:.75rem 1rem 1rem">
+      <div id="skillTreeZone"></div>
+    </div>
+  </div>
+</div>
+
 <!-- LEADERBOARD -->
 <div class="modal-overlay" id="modalLeaderboard" onclick="fermerModalOverlay(event,'modalLeaderboard')">
   <div class="modal-box modal-box-sm">
@@ -1006,6 +1031,7 @@
 <script src="js/prestige.js"></script>
 <script src="js/quetes.js"></script>
 <script src="js/combat.js"></script>
+  <script src="js/skilltree.js"></script>
 <script src="js/leaderboard.js"></script>
 <script src="js/modals.js"></script>
 <script src="js/cloudsave.js"></script>
