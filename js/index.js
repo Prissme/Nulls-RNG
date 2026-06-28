@@ -49,17 +49,6 @@ function luckBonusIndex() {
   return bonus;
 }
 
-/* Override luckMultiplierTotal pour inclure le bonus index */
-const _origLuckMultiplierTotal = luckMultiplierTotal;
-// On réécrit la fonction dans state.js via une closure :
-// (on utilise un patch post-chargement)
-function luckMultiplierTotalAvecIndex() {
-  return _origLuckMultiplierTotal() * (1 + luckBonusIndex());
-}
-
-/* Patch : remplacer luckMultiplierTotal globalement */
-window.luckMultiplierTotal = luckMultiplierTotalAvecIndex;
-
 /* ── Rendu de la modal Index ── */
 function afficherIndex() {
   const zone = document.getElementById('indexZone');

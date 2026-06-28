@@ -35,12 +35,15 @@ function afficherResultat(b, vKey) {
 
   // Badge de rareté + stats
   const rarityHtml = rarityBadge(b.rarity);
+  const probaVal   = (b.div * v.chanceMult).toLocaleString('fr-FR');
   sub.innerHTML = `
     <span style="display:flex;align-items:center;justify-content:center;gap:.4rem;flex-wrap:wrap;margin-bottom:.25rem">
       ${rarityHtml}
       ${vKey !== 'normal' ? `<span style="font-size:.7rem;color:${couleurVariante(b, vKey)}">${v.label}</span>` : ''}
     </span>
-    1/${b.div * v.chanceMult} &nbsp;•&nbsp; ${Math.round(calcCPS(b, vKey) * 10) / 10} ${coinImg('w-5 h-5')}/s
+    <span style="font-family:var(--font-mono);font-weight:700;color:#5eead4;font-size:.78rem">🎲 1/${probaVal}</span>
+    &nbsp;•&nbsp;
+    <span style="color:#fbbf24;font-size:.75rem">${Math.round(calcCPS(b, vKey) * 10) / 10} ${coinImg('w-5 h-5')}/s</span>
   `;
 
   const glowColor = couleurVariante(b, vKey);
@@ -69,6 +72,7 @@ function afficherPets() {
         ${brawlerImg(pet.brawler, 'w-12 h-12')}
         <span class="text-xs font-bold" style="color:${color}">${pet.brawler.nom}</span>
         <span style="margin-top:.1rem">${rarityBadge(pet.brawler.rarity)}</span>
+        <span style="font-family:var(--font-mono);font-size:.58rem;font-weight:700;color:#5eead4">🎲 1/${(pet.brawler.div * VARIANTES[pet.variante].chanceMult).toLocaleString('fr-FR')}</span>
         <span class="text-xs flex items-center justify-center gap-1" style="color:#fbbf24">+${Math.round(calcCPS(pet.brawler, pet.variante) * 10) / 10} ${coinImg('w-5 h-5')}/s</span>
         ${pet.variante !== 'normal'
           ? `<span class="text-xs" style="color:${color}">${v.emoji} ${v.label}</span>`

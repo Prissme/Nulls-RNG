@@ -129,7 +129,12 @@ function afficherAnimationLuckyPull(brawler, variante) {
       <div id="lpSub">
         ${rarityBadge(brawler.rarity)}
         ${variante !== 'normal' ? `<br><span style="color:${color}">${v.label}</span>` : ''}
-        <br>Probabilité : 1/${(brawler.div * v.chanceMult).toLocaleString('fr-FR')}
+        <br>
+        <span style="font-family:monospace;font-weight:900;font-size:.9rem;color:#5eead4;
+          background:rgba(0,0,0,.35);padding:.2rem .6rem;border-radius:6px;
+          border:1px solid #5eead433;display:inline-block;margin-top:.3rem">
+          🎲 1 / ${(brawler.div * v.chanceMult).toLocaleString('fr-FR')}
+        </span>
       </div>
       <div id="lpClose">Appuie n'importe où pour fermer</div>
     </div>

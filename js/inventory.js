@@ -52,7 +52,6 @@ function afficherInventaire() {
     .sort((a, b) => {
       const ba = BRAWLERS.find(x => x.id === a.brawlerId);
       const bb = BRAWLERS.find(x => x.id === b.brawlerId);
-
       if (etat.triInventaire === 'revenus') {
         return calcCPS(bb, b.variante) - calcCPS(ba, a.variante);
       }
@@ -78,27 +77,32 @@ function afficherInventaire() {
     const prix  = Math.round(b.sellValue * v.sellMult * venteBonusPrestige());
     const cps   = Math.round(calcCPS(b, variante) * 10) / 10;
     const color = couleurVariante(b, variante);
+    const proba = (b.div * v.chanceMult).toLocaleString('fr-FR');
 
     const estEquipe   = etat.petsEquipes.some(p => p && p.brawler.id === brawlerId && p.variante === variante);
     const slotsDispo  = etat.petsEquipes.filter(p => p === null).length;
     const peutEquiper = !estEquipe && slotsDispo > 0;
 
-    let badgeHtml = '';
-    if (variante !== 'normal') {
-      badgeHtml = variante === 'rainbow'
-        ? `<span style="font-size:.6rem;font-weight:900;background:linear-gradient(90deg,#f472b6,#818cf8,#34d399,#fbbf24);-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text">🌈 RAINBOW</span>`
-        : `<span class="text-xs font-bold" style="color:${color}">${v.emoji} ${v.label}</span>`;
-    }
-
-    const imgFilter = variante === 'shiny'   ? 'drop-shadow(0 0 6px #38bdf8) brightness(1.1)'
-                    : variante === 'golden'  ? 'drop-shadow(0 0 6px #fbbf24) sepia(0.4) brightness(1.15)'
-                    : variante === 'rainbow' ? 'drop-shadow(0 0 8px #e879f9) saturate(1.5)'
-                    : '';
+    const imgFilter = variante === 'shiny'   ? 'drop-shadow(0 0 8px #38bdf8) brightness(1.15)'
+                    : variante === 'golden'  ? 'drop-shadow(0 0 8px #fbbf24) sepia(0.4) brightness(1.2)'
+                    : variante === 'rainbow' ? 'drop-shadow(0 0 10px #e879f9) saturate(1.6)'
+                    : `drop-shadow(0 0 4px ${color}66)`;
 
     const varClass = variante === 'shiny'   ? 'var-shiny'
                    : variante === 'golden'  ? 'var-golden'
                    : variante === 'rainbow' ? 'var-rainbow'
                    : '';
+
+    // Badge variante
+    let varianteBadge = '';
+    if (variante === 'rainbow') {
+      varianteBadge = `<span style="font-size:.58rem;font-weight:900;letter-spacing:.05em;
+        background:linear-gradient(90deg,#f472b6,#818cf8,#34d399,#fbbf24);
+        -webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text">
+        🌈 RAINBOW</span>`;
+    } else if (variante !== 'normal') {
+      varianteBadge = `<span style="font-size:.62rem;font-weight:800;color:${color}">${v.emoji} ${v.label}</span>`;
+    }
 
     const card = document.createElement('div');
     card.className = `inv-item ${b.bgClass} ${varClass}`;
@@ -106,24 +110,49 @@ function afficherInventaire() {
     if (variante === 'shiny')  card.style.borderColor = '#38bdf8';
 
     card.innerHTML = `
-      <div class="flex items-center justify-between">
-        ${brawlerImg(b, 'w-10 h-10', `filter:${imgFilter}`)}
-        <span class="text-xs font-bold px-1.5 py-0.5 rounded-full"
-              style="background:rgba(0,0,0,.35);color:${color}">×${qty}</span>
+      <!-- Header : image + qty -->
+      <div style="display:flex;align-items:center;justify-content:space-between;gap:.4rem;margin-bottom:.1rem">
+        <div style="display:flex;align-items:center;gap:.5rem;min-width:0">
+          <div style="flex-shrink:0;width:44px;height:44px;display:flex;align-items:center;justify-content:center;
+            border-radius:10px;background:rgba(0,0,0,.3);border:1px solid ${color}33">
+            ${brawlerImg(b, 'w-9 h-9', `filter:${imgFilter}`)}
+          </div>
+          <div style="min-width:0">
+            <div style="font-weight:800;font-size:.82rem;color:${color};
+              overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${b.nom}</div>
+            <div style="display:flex;align-items:center;gap:.3rem;flex-wrap:wrap">
+              ${rarityBadge(b.rarity)}
+              ${varianteBadge}
+            </div>
+          </div>
+        </div>
+        <span style="flex-shrink:0;font-family:var(--font-mono);font-size:.78rem;font-weight:900;
+          padding:.2rem .55rem;border-radius:999px;
+          background:rgba(0,0,0,.4);border:1px solid ${color}44;color:${color}">×${qty}</span>
       </div>
-      <div class="font-black" style="font-size:.85rem;color:#5eead4;letter-spacing:.01em">🎲 1/${b.div * v.chanceMult}</div>
-      <div class="font-bold text-sm leading-tight" style="color:${color}">${b.nom}</div>
-      ${badgeHtml}
-      <div class="text-xs" style="color:#fbbf24">+${Number.isInteger(cps) ? cps : cps.toFixed(1)}💰/s</div>
-      <div class="flex gap-1 mt-1">
+
+      <!-- Proba + CPS -->
+      <div style="display:flex;align-items:center;justify-content:space-between;
+        padding:.3rem .45rem;border-radius:7px;background:rgba(0,0,0,.25);margin:.1rem 0">
+        <span style="font-family:var(--font-mono);font-size:.65rem;font-weight:700;color:#5eead4">
+          🎲 1/${proba}
+        </span>
+        <span style="font-size:.65rem;font-weight:700;color:#fbbf24">
+          +${Number.isInteger(cps) ? cps : cps.toFixed(1)} 💰/s
+        </span>
+      </div>
+
+      <!-- Boutons -->
+      <div style="display:flex;gap:.4rem;margin-top:.1rem">
         <button class="equip-btn ${estEquipe ? 'equipped' : ''}"
+                style="flex:1"
                 onclick="equiper(${brawlerId},'${variante}')"
                 ${!peutEquiper && !estEquipe ? 'disabled' : ''}>
           ${estEquipe ? '✓ Équipé' : 'Équiper'}
         </button>
         <button class="sell-btn" onclick="vendreItem(${brawlerId},'${variante}')"
                 ${estEquipe ? 'disabled style="opacity:.35;cursor:not-allowed"' : ''}>
-          ${prix}💰
+          ${prix} 💰
         </button>
       </div>
     `;

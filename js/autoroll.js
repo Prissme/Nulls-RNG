@@ -30,11 +30,22 @@ function delaiAutoRollBase() {
 
 function redemarrerAutoRoll() {
   if (!etat.autoRollActif) return;
+  // Si le boost HugeWished est actif, déléguer à sa propre fonction
+  if (typeof hwBoostActif !== 'undefined' && hwBoostActif) {
+    redemarrerAutoRollHW();
+    return;
+  }
   clearInterval(etat.autoInterval);
   const base  = delaiAutoRollBase();
   const delai = etat.speedActive ? Math.round(base / 3) : base;
   etat.autoInterval = setInterval(effectuerRoll, delai);
-  document.getElementById('autoSpeedBadge').classList.toggle('hidden', !etat.speedActive);
+  const badge = document.getElementById('autoSpeedBadge');
+  if (badge) {
+    badge.textContent = 'x3';
+    badge.style.background = 'rgba(56,189,248,.12)';
+    badge.style.color = 'var(--accent-sky)';
+    badge.classList.toggle('hidden', !etat.speedActive);
+  }
 }
 
 function demarrerCPS() {

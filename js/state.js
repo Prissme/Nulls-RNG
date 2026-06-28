@@ -65,9 +65,9 @@ const scoreRarete = (b, vKey) => b.div * VARIANTES[vKey].chanceMult;
    chaque niveau au-delà du niveau 1 ajoute +2% de luck (cumulatif, pas composé). */
 const luckBonusNiveau = () => 1 + Math.max(0, etat.niveau - 1) * 0.02;
 
-/* Multiplicateur de luck total = potion × bonus de niveau (run actuel) × bonus de Prestige (permanent) */
+/* Multiplicateur de luck total = potion × bonus de niveau (run actuel) × bonus de Prestige (permanent) × bonus Index */
 let luckMultiplierTotal = () =>
-  (etat.luckActive ? POTIONS.luck.luckMult : 1) * luckBonusNiveau() * luckBonusPrestige();
+  (etat.luckActive ? POTIONS.luck.luckMult : 1) * luckBonusNiveau() * luckBonusPrestige() * (1 + (typeof luckBonusIndex === 'function' ? luckBonusIndex() : 0));
 
 const couleurVariante = (brawler, variante) => {
   if (variante === 'rainbow') return '#e879f9';

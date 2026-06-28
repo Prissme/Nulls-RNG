@@ -31,4 +31,5 @@
   demarrerCPS();
   initialiserQuetes();
   initCloudSave();
+  demarrerHugeWished();
 })();
