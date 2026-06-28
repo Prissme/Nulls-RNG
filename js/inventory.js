@@ -1,129 +1,132 @@
 /* ════════════════════════════════════════════════
-   leaderboard.js — Système de Classement Mondial (CPS)
+   inventory.js — Inventaire : vente, filtre, tri, rendu
 ════════════════════════════════════════════════ */
 
-/* ── Sauvegarde du pseudo depuis l'input ── */
-function sauvegarderPseudo() {
-  const input = document.getElementById('pseudoInput');
-  if (!input) return;
-  const valeur = input.value.trim().replace(/[<>"']/g, '').slice(0, 20);
-  if (!valeur) { input.style.borderColor = '#f87171'; return; }
+/* ── Vendre un item ── */
+function vendreItem(brawlerId, variante) {
+  const k = cle(brawlerId, variante);
+  if (!etat.inventaire[k] || etat.inventaire[k] <= 0) return;
 
-  localStorage.setItem('nrng_username', valeur);
-  if (typeof etat !== 'undefined') etat.username = valeur;
+  const estEquipe = etat.petsEquipes.some(p =>
+    p && p.brawler.id === brawlerId && p.variante === variante);
+  if (estEquipe) return;
 
-  input.style.borderColor = '#34d399';
-  setTimeout(() => { input.style.borderColor = 'var(--border)'; }, 1200);
+  const b       = BRAWLERS.find(b => b.id === brawlerId);
+  const v       = VARIANTES[variante];
+  const prix    = Math.round(b.sellValue * v.sellMult * venteBonusPrestige());
+  etat.pieces  += prix;
+  etat.inventaire[k]--;
+  if (etat.inventaire[k] === 0) delete etat.inventaire[k];
 
-  // Recharger le classement avec le nouveau pseudo
-  chargerLeaderboard();
+  Sound.coin();
+  mettreAJourCompteurs();
+  afficherInventaire();
+  sauvegarderEtatCloud();
 }
 
-/* ── Préremplir l'input pseudo à l'ouverture ── */
-function ouvrirLeaderboard() {
-  const pseudo = localStorage.getItem('nrng_username') || (typeof etat !== 'undefined' && etat.username) || '';
-  const input  = document.getElementById('pseudoInput');
-  if (input && pseudo) input.value = pseudo;
-  chargerLeaderboard();
+/* ── Filtre par variante ── */
+function filtrerVariante(variante, btn) {
+  etat.filtreVariante = variante;
+  document.querySelectorAll('#variantTabs .tab-btn').forEach(b => b.classList.remove('active'));
+  btn.classList.add('active');
+  afficherInventaire();
 }
 
-async function chargerLeaderboard() {
-  const container = document.getElementById('leaderboardList');
-  if (!container) return;
+/* ── Tri ── */
+function trierInventaire(mode, btn) {
+  etat.triInventaire = mode;
+  document.querySelectorAll('#sortTabs .tab-btn').forEach(b => b.classList.remove('active'));
+  btn.classList.add('active');
+  afficherInventaire();
+}
 
-  container.innerHTML = `<div class="text-xs text-center text-slate-400 py-4">Connexion au serveur...</div>`;
+/* ── Rendu de la grille inventaire ── */
+function afficherInventaire() {
+  const grid = document.getElementById('inventoryGrid');
+  grid.innerHTML = '';
 
-  // 🛠️ FIX INITIALISATION : Récupération ou création du client Supabase v2
-  let clientSupabase = null;
+  const entries = Object.entries(etat.inventaire)
+    .filter(([k, qty]) => qty > 0)
+    .map(([k]) => parseKey(k))
+    .filter(({ variante }) => etat.filtreVariante === 'all' || variante === etat.filtreVariante)
+    .sort((a, b) => {
+      const ba = BRAWLERS.find(x => x.id === a.brawlerId);
+      const bb = BRAWLERS.find(x => x.id === b.brawlerId);
 
-  if (typeof supabase !== 'undefined' && supabase && typeof supabase.from === 'function') {
-    // Si un client valide global existe déjà (ex: initialisé dans cloudsave.js)
-    clientSupabase = supabase;
-  } else if (typeof supabase !== 'undefined' && supabase && typeof supabase.createClient === 'function') {
-    // Si l'outil Supabase est chargé mais pas encore instancié, on le crée avec tes variables window
-    const url = window.SUPABASE_URL || "";
-    const key = window.SUPABASE_ANON_KEY || "";
-    
-    if (!url || !key) {
-      container.innerHTML = `<div class="text-xs text-center text-amber-400 py-4">⚠️ Sauvegarde cloud non configurée (Variables vides).</div>`;
-      return;
-    }
-    clientSupabase = supabase.createClient(url, key);
-  }
+      if (etat.triInventaire === 'revenus') {
+        return calcCPS(bb, b.variante) - calcCPS(ba, a.variante);
+      }
+      return scoreRarete(bb, b.variante) - scoreRarete(ba, a.variante);
+    });
 
-  if (!clientSupabase) {
-    container.innerHTML = `<div class="text-xs text-center text-red-400 py-4">Erreur : Supabase introuvable ou non initialisé.</div>`;
+  if (entries.length === 0) {
+    grid.innerHTML = `<p class="col-span-2 text-center text-xs py-6" style="color:var(--text-muted)">
+      ${etat.filtreVariante !== 'all'
+        ? 'Aucun item dans cette catégorie.'
+        : 'Lance un Roll pour obtenir des brawlers !'}
+    </p>`;
     return;
   }
 
-  // Gestion du pseudonyme du joueur
-  let pseudoJoueur = localStorage.getItem('nrng_username');
-  if (!pseudoJoueur) {
-    pseudoJoueur = (typeof etat !== 'undefined' && etat.username) ? etat.username : "Player_" + Math.floor(1000 + Math.random() * 9000);
-    localStorage.setItem('nrng_username', pseudoJoueur);
-  }
-  if (typeof etat !== 'undefined') etat.username = pseudoJoueur;
-  
-  const cpsActuel = typeof totalCPS === 'function' ? totalCPS() : 0;
+  for (const { brawlerId, variante } of entries) {
+    const k   = cle(brawlerId, variante);
+    const qty = etat.inventaire[k] || 0;
+    if (qty === 0) continue;
 
-  try {
-    // 1. Sauvegarde du score actuel du joueur
-    await clientSupabase
-      .from('nulls_rng_leaderboard')
-      .upsert(
-        { username: pseudoJoueur, cps: cpsActuel, updated_at: new Date() }, 
-        { onConflict: 'username' }
-      );
+    const b     = BRAWLERS.find(b => b.id === brawlerId);
+    const v     = VARIANTES[variante];
+    const prix  = Math.round(b.sellValue * v.sellMult * venteBonusPrestige());
+    const cps   = Math.round(calcCPS(b, variante) * 10) / 10;
+    const color = couleurVariante(b, variante);
 
-    // 2. Récupération des 10 meilleurs scores mondiaux
-    const { data, error } = await clientSupabase
-      .from('nulls_rng_leaderboard')
-      .select('username, cps')
-      .order('cps', { ascending: false })
-      .limit(10);
+    const estEquipe   = etat.petsEquipes.some(p => p && p.brawler.id === brawlerId && p.variante === variante);
+    const slotsDispo  = etat.petsEquipes.filter(p => p === null).length;
+    const peutEquiper = !estEquipe && slotsDispo > 0;
 
-    if (error) throw error;
-
-    if (!data || data.length === 0) {
-      container.innerHTML = `<div class="text-xs text-center text-slate-500 py-4">Aucun score enregistré dans la table.</div>`;
-      return;
+    let badgeHtml = '';
+    if (variante !== 'normal') {
+      badgeHtml = variante === 'rainbow'
+        ? `<span style="font-size:.6rem;font-weight:900;background:linear-gradient(90deg,#f472b6,#818cf8,#34d399,#fbbf24);-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text">🌈 RAINBOW</span>`
+        : `<span class="text-xs font-bold" style="color:${color}">${v.emoji} ${v.label}</span>`;
     }
 
-    // 3. Rendu HTML propre du classement
-    container.innerHTML = data.map((joueur, index) => {
-      let positionHTML = `${index + 1}.`;
-      let styleTexte = 'text-slate-300';
-      if (index === 0) { positionHTML = '🥇'; styleTexte = 'text-amber-400 font-black text-sm'; }
-      if (index === 1) { positionHTML = '🥈'; styleTexte = 'text-slate-200 font-bold'; }
-      if (index === 2) { positionHTML = '🥉'; styleTexte = 'text-orange-400 font-bold'; }
+    const imgFilter = variante === 'shiny'   ? 'drop-shadow(0 0 6px #38bdf8) brightness(1.1)'
+                    : variante === 'golden'  ? 'drop-shadow(0 0 6px #fbbf24) sepia(0.4) brightness(1.15)'
+                    : variante === 'rainbow' ? 'drop-shadow(0 0 8px #e879f9) saturate(1.5)'
+                    : '';
 
-      const estMoi = joueur.username === pseudoJoueur;
-      const styleConteneur = estMoi 
-        ? 'background: rgba(168,85,247,0.18); border-color: rgba(168,85,247,0.5); font-weight: bold;' 
-        : 'background: rgba(255,255,255,0.02); border-color: rgba(255,255,255,0.06);';
+    const varClass = variante === 'shiny'   ? 'var-shiny'
+                   : variante === 'golden'  ? 'var-golden'
+                   : variante === 'rainbow' ? 'var-rainbow'
+                   : '';
 
-      return `
-        <div class="flex items-center justify-between p-2 rounded-xl border text-xs" style="${styleConteneur}">
-          <div class="flex items-center gap-2 overflow-hidden mr-2">
-            <span class="w-6 text-center shrink-0">${positionHTML}</span>
-            <span class="${styleTexte} truncate ${estMoi ? 'underline' : ''}">
-              ${joueur.username} ${estMoi ? ' (Toi)' : ''}
-            </span>
-          </div>
-          <div class="font-mono font-black text-amber-400 flex items-center gap-1 shrink-0">
-            ${joueur.cps.toLocaleString('fr-FR')}
-            <img src="./images/Coins.webp" alt="Coins" class="w-4 h-4 object-contain inline-block align-middle">/s
-          </div>
-        </div>
-      `;
-    }).join('');
+    const card = document.createElement('div');
+    card.className = `inv-item ${b.bgClass} ${varClass}`;
+    if (variante === 'golden') card.style.borderColor = '#fbbf24';
+    if (variante === 'shiny')  card.style.borderColor = '#38bdf8';
 
-  } catch (err) {
-    console.error("Erreur Leaderboard :", err);
-    container.innerHTML = `
-      <div class="p-2 bg-red-950/30 border border-red-500/30 rounded-xl text-center text-red-400 text-xs font-mono">
-        ❌ Erreur serveur : ${err.message || err}
+    card.innerHTML = `
+      <div class="flex items-center justify-between">
+        ${brawlerImg(b, 'w-10 h-10', `filter:${imgFilter}`)}
+        <span class="text-xs font-bold px-1.5 py-0.5 rounded-full"
+              style="background:rgba(0,0,0,.35);color:${color}">×${qty}</span>
+      </div>
+      <div class="font-bold text-sm leading-tight" style="color:${color}">${b.nom}</div>
+      ${badgeHtml}
+      <div class="text-xs" style="color:var(--text-muted)">1/${b.div * v.chanceMult}</div>
+      <div class="text-xs" style="color:#fbbf24">+${Number.isInteger(cps) ? cps : cps.toFixed(1)}💰/s</div>
+      <div class="flex gap-1 mt-1">
+        <button class="equip-btn ${estEquipe ? 'equipped' : ''}"
+                onclick="equiper(${brawlerId},'${variante}')"
+                ${!peutEquiper && !estEquipe ? 'disabled' : ''}>
+          ${estEquipe ? '✓ Équipé' : 'Équiper'}
+        </button>
+        <button class="sell-btn" onclick="vendreItem(${brawlerId},'${variante}')"
+                ${estEquipe ? 'disabled style="opacity:.35;cursor:not-allowed"' : ''}>
+          ${prix}💰
+        </button>
       </div>
     `;
+    grid.appendChild(card);
   }
 }
