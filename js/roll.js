@@ -58,6 +58,9 @@ function effectuerRoll() {
   // Progression quêtes
   progresserQuete('roll', { brawlerId: brawler.id, variante });
 
+  // Progression succès
+  if (typeof checkAchievementsRoll === 'function') checkAchievementsRoll(brawler.id, variante);
+
   afficherResultat(brawler, variante);
   mettreAJourCompteurs();
   afficherInventaire();

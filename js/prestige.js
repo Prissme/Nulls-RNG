@@ -75,6 +75,7 @@ function acheterUpgradePrestige(id) {
   afficherPets();
   afficherInventaire();
   mettreAJourCompteurs();
+  if (typeof checkAchievementsCristaux === 'function') checkAchievementsCristaux();
   sauvegarderEtatCloud();
 }
 

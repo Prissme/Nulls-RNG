@@ -40,6 +40,7 @@ async function initCloudSave() {
     cloudUserId = session.user.id;
     _cloudJWT   = session.access_token;
 
+    afficherTransferId(); // FIX: afficher l'UUID dès qu'il est disponible
     await chargerEtatCloud();
     setCloudStatus('☁️ Cloud actif', '#22c55e');
     demarrerAutoSaveCloud();
@@ -77,6 +78,9 @@ function serialiserEtat() {
     prestige:          etat.prestige,
     cristaux:          etat.cristaux,
     prestigeUpgrades:  etat.prestigeUpgrades,
+    achievements:      etat.achievements,
+    shellyStreak:      etat.shellyStreak,
+    robotsBattus:      etat.robotsBattus,
   };
 }
 
@@ -101,6 +105,10 @@ function appliquerEtatSauvegarde(saved) {
       saved.prestigeUpgrades
     );
   }
+
+  if (saved.achievements && typeof saved.achievements === 'object') etat.achievements = saved.achievements;
+  if (typeof saved.shellyStreak === 'number') etat.shellyStreak = saved.shellyStreak;
+  if (saved.robotsBattus && typeof saved.robotsBattus === 'object') etat.robotsBattus = saved.robotsBattus;
 
   ajusterSlotsPets();
 
@@ -136,6 +144,7 @@ async function chargerEtatCloud() {
   afficherCraft();
   afficherQuetes();
   afficherPrestige();
+  if (typeof afficherAchievements === 'function') afficherAchievements();
   mettreAJourCompteurs();
   redemarrerAutoRoll();
   
@@ -231,9 +240,13 @@ function afficherTransferId() {
   if (!el) return;
   if (cloudUserId) {
     el.textContent = cloudUserId;
-  } else {
-    el.textContent = 'Non connecté au cloud';
+    el.style.color = '#5eead4';
+  } else if (!cloudConfigure()) {
+    el.textContent = 'Cloud non configuré';
+    el.style.color = 'var(--text-muted)';
   }
+  // Si cloud configuré mais pas encore connecté, on garde "Chargement…"
+  // jusqu'à ce que initCloudSave() appelle afficherTransferId()
 }
 
 /* ── Copie l'UUID dans le presse-papier ── */

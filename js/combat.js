@@ -303,6 +303,7 @@ async function actionCombat(action) {
     if (typeof mettreAJourCompteurs === 'function') mettreAJourCompteurs();
     if (typeof sauvegarderEtatCloud === 'function') sauvegarderEtatCloud();
     logCombat(`🏆 <b style="color:#22c55e">Victoire !</b> Robot vaincu.`, 'cb-log-victoire');
+    if (typeof checkAchievementsVictoire === 'function') checkAchievementsVictoire(combat.robot.id);
     combat.phase = 'fin';
     combat.en_cours = false;
     rendreRobot();

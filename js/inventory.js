@@ -2,6 +2,9 @@
    inventory.js — Inventaire : vente, filtre, tri, rendu
 ════════════════════════════════════════════════ */
 
+const ITEMS_PAR_PAGE = 8;
+let inventairePage = 1;
+
 /* ── Vendre un item ── */
 function vendreItem(brawlerId, variante) {
   const k = cle(brawlerId, variante);
@@ -27,6 +30,7 @@ function vendreItem(brawlerId, variante) {
 /* ── Filtre par variante ── */
 function filtrerVariante(variante, btn) {
   etat.filtreVariante = variante;
+  inventairePage = 1;
   document.querySelectorAll('#variantTabs .tab-btn').forEach(b => b.classList.remove('active'));
   btn.classList.add('active');
   afficherInventaire();
@@ -35,6 +39,7 @@ function filtrerVariante(variante, btn) {
 /* ── Tri ── */
 function trierInventaire(mode, btn) {
   etat.triInventaire = mode;
+  inventairePage = 1;
   document.querySelectorAll('#sortTabs .tab-btn').forEach(b => b.classList.remove('active'));
   btn.classList.add('active');
   afficherInventaire();
@@ -67,7 +72,12 @@ function afficherInventaire() {
     return;
   }
 
-  for (const { brawlerId, variante } of entries) {
+  const totalPages  = Math.ceil(entries.length / ITEMS_PAR_PAGE);
+  inventairePage    = Math.min(inventairePage, totalPages);
+  const debut       = (inventairePage - 1) * ITEMS_PAR_PAGE;
+  const pageEntries = entries.slice(debut, debut + ITEMS_PAR_PAGE);
+
+  for (const { brawlerId, variante } of pageEntries) {
     const k   = cle(brawlerId, variante);
     const qty = etat.inventaire[k] || 0;
     if (qty === 0) continue;
@@ -157,5 +167,35 @@ function afficherInventaire() {
       </div>
     `;
     grid.appendChild(card);
+  }
+
+  // Pagination
+  if (totalPages > 1) {
+    const nav = document.createElement('div');
+    nav.style.cssText = `display:flex;align-items:center;justify-content:center;gap:.5rem;
+      padding:.75rem 0 .25rem;`;
+
+    const btnPrev = document.createElement('button');
+    btnPrev.textContent = '← Préc.';
+    btnPrev.style.cssText = `padding:.3rem .75rem;border-radius:8px;font-size:.72rem;font-weight:700;
+      background:rgba(255,255,255,.06);border:1px solid var(--border);color:var(--text-muted);cursor:pointer;
+      ${inventairePage <= 1 ? 'opacity:.3;pointer-events:none;' : ''}`;
+    btnPrev.onclick = () => { inventairePage--; afficherInventaire(); };
+
+    const info = document.createElement('span');
+    info.textContent = `${inventairePage} / ${totalPages}`;
+    info.style.cssText = `font-size:.72rem;font-weight:800;color:var(--text-dim);min-width:3.5rem;text-align:center;`;
+
+    const btnNext = document.createElement('button');
+    btnNext.textContent = 'Suiv. →';
+    btnNext.style.cssText = `padding:.3rem .75rem;border-radius:8px;font-size:.72rem;font-weight:700;
+      background:rgba(255,255,255,.06);border:1px solid var(--border);color:var(--text-muted);cursor:pointer;
+      ${inventairePage >= totalPages ? 'opacity:.3;pointer-events:none;' : ''}`;
+    btnNext.onclick = () => { inventairePage++; afficherInventaire(); };
+
+    nav.appendChild(btnPrev);
+    nav.appendChild(info);
+    nav.appendChild(btnNext);
+    grid.appendChild(nav);
   }
 }

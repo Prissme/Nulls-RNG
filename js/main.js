@@ -21,6 +21,7 @@
   document.head.appendChild(style);
 
   ajusterSlotsPets();
+  initAchievements();
   afficherInventaire();
   afficherHistorique();
   afficherTableRarites();
