@@ -2,6 +2,31 @@
    leaderboard.js — Système de Classement Mondial (CPS)
 ════════════════════════════════════════════════ */
 
+/* ── Sauvegarde du pseudo depuis l'input ── */
+function sauvegarderPseudo() {
+  const input = document.getElementById('pseudoInput');
+  if (!input) return;
+  const valeur = input.value.trim().replace(/[<>"']/g, '').slice(0, 20);
+  if (!valeur) { input.style.borderColor = '#f87171'; return; }
+
+  localStorage.setItem('nrng_username', valeur);
+  if (typeof etat !== 'undefined') etat.username = valeur;
+
+  input.style.borderColor = '#34d399';
+  setTimeout(() => { input.style.borderColor = 'var(--border)'; }, 1200);
+
+  // Recharger le classement avec le nouveau pseudo
+  chargerLeaderboard();
+}
+
+/* ── Préremplir l'input pseudo à l'ouverture ── */
+function ouvrirLeaderboard() {
+  const pseudo = localStorage.getItem('nrng_username') || (typeof etat !== 'undefined' && etat.username) || '';
+  const input  = document.getElementById('pseudoInput');
+  if (input && pseudo) input.value = pseudo;
+  chargerLeaderboard();
+}
+
 async function chargerLeaderboard() {
   const container = document.getElementById('leaderboardList');
   if (!container) return;
