@@ -87,12 +87,21 @@ async function mettreAJourScoreLeaderboard() {
   }
 
   try {
-    await client
-      .from('nulls_rng_leaderboard')
-      .upsert(
-        { user_id: userId, username: pseudo, cps: cpsActuel, updated_at: new Date().toISOString() },
-        { onConflict: 'user_id' }
-      );
+    await fetch(`${window.SUPABASE_URL}/rest/v1/nulls_rng_leaderboard?on_conflict=user_id`, {
+      method: 'POST',
+      headers: {
+        'Content-Type':  'application/json',
+        'apikey':        window.SUPABASE_ANON_KEY,
+        'Authorization': `Bearer ${window.SUPABASE_ANON_KEY}`,
+        'Prefer':        'resolution=merge-duplicates,return=minimal',
+      },
+      body: JSON.stringify({
+        user_id:    userId,
+        username:   pseudo,
+        cps:        cpsActuel,
+        updated_at: new Date().toISOString(),
+      }),
+    });
   } catch (e) {
     console.warn('[leaderboard] Mise à jour échouée :', e);
   }
