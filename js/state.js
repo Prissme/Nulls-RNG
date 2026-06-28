@@ -56,8 +56,8 @@ const nbSlotsMax            = () => 3 + niveauUpgradePrestige('slot');
 const vitesseAutoMult       = () => Math.max(0.3, 1 - niveauUpgradePrestige('vitesse') * 0.05);
 
 const calcCPS  = (b, vKey) => b.cpsBase * VARIANTES[vKey].cpsMult * cpsBonusPrestige();
-const totalCPS = ()        => etat.petsEquipes.reduce((sum, pet) =>
-  pet ? sum + calcCPS(pet.brawler, pet.variante) : sum, 0);
+const totalCPS = ()        => Math.round(etat.petsEquipes.reduce((sum, pet) =>
+  pet ? sum + calcCPS(pet.brawler, pet.variante) : sum, 0) * 10) / 10;
 
 const scoreRarete = (b, vKey) => b.div * VARIANTES[vKey].chanceMult;
 
