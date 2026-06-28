@@ -40,6 +40,9 @@ function effectuerRoll() {
   const { brawler, variante } = effectuerTirage();
   etat.totalRolls++;
 
+  // ── Snapshot inventaire AVANT d'incrémenter (pour détecter les lucky pulls)
+  const inventaireAvant = Object.assign({}, etat.inventaire);
+
   const k = cle(brawler.id, variante);
   etat.inventaire[k] = (etat.inventaire[k] || 0) + 1;
 
@@ -60,4 +63,7 @@ function effectuerRoll() {
   afficherInventaire();
   afficherHistorique();
   afficherCraft();
+
+  // ── Lucky Pull : animation + notification Discord
+  gererLuckyPull(brawler, variante, inventaireAvant);
 }
