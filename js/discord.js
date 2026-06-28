@@ -201,8 +201,8 @@ function gererLuckyPull(brawler, variante, inventaireAvant) {
 
   afficherAnimationLuckyPull(brawler, variante);
 
-  const username = (typeof etat !== 'undefined' && etat.username)
-    || localStorage.getItem('nrng_username')
+  const username = localStorage.getItem('nrng_username')
+    || (typeof etat !== 'undefined' && etat.username)
     || null;
 
   envoyerNotifDiscord(brawler, variante, username || null);
