@@ -124,7 +124,10 @@ body {
   border: 1px solid; border-radius: 12px; padding: .65rem;
   display: flex; flex-direction: column; gap: .3rem;
   transition: transform .15s;
+  min-width: 0; overflow: hidden; word-break: break-word;
 }
+.inv-item * { min-width: 0; }
+.inv-item .font-bold { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 .inv-item:hover { transform: translateY(-2px); }
 
 .sell-btn {
@@ -500,6 +503,15 @@ body {
 @media (max-width: 480px) {
   .cb-vs-row    { grid-template-columns: 1fr; }
   .cb-team      { grid-template-columns: repeat(3, 1fr); gap: .3rem; }
+}
+
+@media (max-width: 400px) {
+  #inventoryGrid { gap: .4rem; }
+  .inv-item { padding: .45rem; gap: .2rem; }
+  .inv-item .sell-btn,
+  .inv-item .equip-btn {
+    font-size: .58rem; padding: .2rem .35rem;
+  }
 }
 
 /* ════════════════════════════════════════════════
