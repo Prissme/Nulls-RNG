@@ -22,6 +22,10 @@ COPY BarleyNormal.webp   /usr/share/nginx/html/BarleyNormal.webp
 COPY BullNormal.webp     /usr/share/nginx/html/BullNormal.webp
 COPY PrimoNormal.webp    /usr/share/nginx/html/PrimoNormal.webp
 COPY RosaNormal.webp     /usr/share/nginx/html/RosaNormal.webp
+COPY BrockNormal.webp    /usr/share/nginx/html/BrockNormal.webp
+COPY JessieNormal.webp   /usr/share/nginx/html/JessieNormal.webp
+COPY RicoNormal.webp     /usr/share/nginx/html/RicoNormal.webp
+COPY DynaNormal.webp     /usr/share/nginx/html/DynaNormal.webp
 
 # Images additionnelles (dans le sous-dossier images/)
 COPY Coins.webp          /usr/share/nginx/html/images/Coins.webp
