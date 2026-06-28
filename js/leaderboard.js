@@ -67,7 +67,12 @@ async function mettreAJourScoreLeaderboard() {
   const pseudo    = _getPseudo();
   const cpsActuel = typeof totalCPS === 'function' ? totalCPS() : 0;
 
-  // Protection : ne jamais écraser un score positif existant par 0
+  // Récupérer le JWT de la session active
+  let jwt = typeof getCloudJWT === 'function' && getCloudJWT()
+    ? getCloudJWT()
+    : window.SUPABASE_ANON_KEY;
+
+  // Protection : ne jamais écraser un score positif par 0
   if (cpsActuel === 0) {
     try {
       const { data } = await client
@@ -76,7 +81,6 @@ async function mettreAJourScoreLeaderboard() {
         .eq('user_id', userId)
         .maybeSingle();
       if (data && data.cps > 0) {
-        // Mettre à jour uniquement le username si besoin, garder le cps
         await client
           .from('nulls_rng_leaderboard')
           .update({ username: pseudo, updated_at: new Date().toISOString() })
@@ -87,12 +91,12 @@ async function mettreAJourScoreLeaderboard() {
   }
 
   try {
-    await fetch(`${window.SUPABASE_URL}/rest/v1/nulls_rng_leaderboard?on_conflict=user_id`, {
+    const res = await fetch(`${window.SUPABASE_URL}/rest/v1/nulls_rng_leaderboard?on_conflict=user_id`, {
       method: 'POST',
       headers: {
         'Content-Type':  'application/json',
         'apikey':        window.SUPABASE_ANON_KEY,
-        'Authorization': `Bearer ${window.SUPABASE_ANON_KEY}`,
+        'Authorization': `Bearer ${jwt}`,
         'Prefer':        'resolution=merge-duplicates,return=minimal',
       },
       body: JSON.stringify({
@@ -102,6 +106,10 @@ async function mettreAJourScoreLeaderboard() {
         updated_at: new Date().toISOString(),
       }),
     });
+    if (!res.ok) {
+      const txt = await res.text();
+      console.warn('[leaderboard] Erreur upsert :', res.status, txt);
+    }
   } catch (e) {
     console.warn('[leaderboard] Mise à jour échouée :', e);
   }
