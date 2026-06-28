@@ -23,12 +23,12 @@ const BRAWLERS = [
   /* ── Rare ── */
   { id:2,  nom:"Colt",     div:12,   couleur:"#22c55e", emoji:"🤠", img:"ColtNormal.webp",    cpsBase:2,  sellValue:2,  bgClass:"rarity-bg-rare",        rarity:"rare"       },
   { id:3,  nom:"Nita",     div:25,   couleur:"#22c55e", emoji:"🐻", img:"NitaNormal.webp",    cpsBase:3,  sellValue:3,  bgClass:"rarity-bg-rare",        rarity:"rare"       },
-  { id:4,  nom:"Brock",    div:40,   couleur:"#22c55e", emoji:"🚀", img:"BrockNormal.webp",   cpsBase:4,  sellValue:4,  bgClass:"rarity-bg-rare",        rarity:"rare"       },
-  { id:5,  nom:"Poco",     div:50,   couleur:"#22c55e", emoji:"🎸", img:"PocoNormal.webp",    cpsBase:5,  sellValue:5,  bgClass:"rarity-bg-rare",        rarity:"rare"       },
-  { id:6,  nom:"Barley",   div:100,  couleur:"#22c55e", emoji:"🍾", img:"BarleyNormal.webp",  cpsBase:8,  sellValue:7,  bgClass:"rarity-bg-rare",        rarity:"rare"       },
-  { id:7,  nom:"Bull",     div:150,  couleur:"#22c55e", emoji:"🐂", img:"BullNormal.webp",    cpsBase:10, sellValue:9,  bgClass:"rarity-bg-rare",        rarity:"rare"       },
-  { id:8,  nom:"El Primo", div:200,  couleur:"#22c55e", emoji:"🥊", img:"PrimoNormal.webp",   cpsBase:13, sellValue:11, bgClass:"rarity-bg-rare",        rarity:"rare"       },
-  { id:9,  nom:"Rosa",     div:300,  couleur:"#22c55e", emoji:"🌹", img:"RosaNormal.webp",    cpsBase:17, sellValue:14, bgClass:"rarity-bg-rare",        rarity:"rare"       },
+  { id:4,  nom:"Poco",     div:50,   couleur:"#22c55e", emoji:"🎸", img:"PocoNormal.webp",    cpsBase:5,  sellValue:5,  bgClass:"rarity-bg-rare",        rarity:"rare"       },
+  { id:5,  nom:"Barley",   div:100,  couleur:"#22c55e", emoji:"🍾", img:"BarleyNormal.webp",  cpsBase:8,  sellValue:7,  bgClass:"rarity-bg-rare",        rarity:"rare"       },
+  { id:6,  nom:"Bull",     div:200,  couleur:"#22c55e", emoji:"🐂", img:"BullNormal.webp",    cpsBase:12, sellValue:10, bgClass:"rarity-bg-rare",        rarity:"rare"       },
+  { id:7,  nom:"El Primo", div:400,  couleur:"#22c55e", emoji:"🥊", img:"PrimoNormal.webp",   cpsBase:18, sellValue:12, bgClass:"rarity-bg-rare",        rarity:"rare"       },
+  { id:8,  nom:"Rosa",     div:800,  couleur:"#22c55e", emoji:"🌹", img:"RosaNormal.webp",    cpsBase:25, sellValue:15, bgClass:"rarity-bg-rare",        rarity:"rare"       },
+  { id:9,  nom:"Brock",    div:300,  couleur:"#22c55e", emoji:"🚀", img:"BrockNormal.webp",   cpsBase:14, sellValue:11, bgClass:"rarity-bg-rare",        rarity:"rare"       },
 
   /* ── Super Rare ── */
   { id:10, nom:"Jessie",   div:500,  couleur:"#3b82f6", emoji:"⚡", img:"JessieNormal.webp",  cpsBase:22, sellValue:18, bgClass:"rarity-bg-super-rare",  rarity:"super-rare" },
