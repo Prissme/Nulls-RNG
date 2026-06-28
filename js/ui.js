@@ -33,8 +33,15 @@ function afficherResultat(b, vKey) {
     name.textContent = vKey !== 'normal' ? `${v.emoji} ${b.nom}` : b.nom;
   }
 
-  // Remplacement de 💰/s par l'image personnalisée des pièces
-  sub.innerHTML = `${vKey !== 'normal' ? v.label + ' • ' : ''}1/${b.div * v.chanceMult}  •  ${calcCPS(b, vKey)} ${coinImg('w-4 h-4')}/s`;
+  // Badge de rareté + stats
+  const rarityHtml = rarityBadge(b.rarity);
+  sub.innerHTML = `
+    <span style="display:flex;align-items:center;justify-content:center;gap:.4rem;flex-wrap:wrap;margin-bottom:.25rem">
+      ${rarityHtml}
+      ${vKey !== 'normal' ? `<span style="font-size:.7rem;color:${couleurVariante(b, vKey)}">${v.label}</span>` : ''}
+    </span>
+    1/${b.div * v.chanceMult} &nbsp;•&nbsp; ${calcCPS(b, vKey)} ${coinImg('w-4 h-4')}/s
+  `;
 
   const glowColor = couleurVariante(b, vKey);
   zone.style.filter = `drop-shadow(0 0 ${vKey !== 'normal' ? 22 : 10}px ${glowColor})`;
@@ -45,7 +52,6 @@ function afficherPets() {
   const container = document.getElementById('petSlots');
   const maxSlots   = nbSlotsMax();
   container.innerHTML = '';
-  // Le nombre de slots peut augmenter avec l'amélioration de Prestige "Emplacement Bonus"
   container.style.gridTemplateColumns = `repeat(${Math.min(maxSlots, 3)}, 1fr)`;
 
   for (let i = 0; i < maxSlots; i++) {
@@ -62,6 +68,7 @@ function afficherPets() {
         <span class="unequip-x" onclick="desequiper(${i})">✕</span>
         ${brawlerImg(pet.brawler, 'w-12 h-12')}
         <span class="text-xs font-bold" style="color:${color}">${pet.brawler.nom}</span>
+        <span style="margin-top:.1rem">${rarityBadge(pet.brawler.rarity)}</span>
         <span class="text-xs flex items-center justify-center gap-1" style="color:#fbbf24">+${calcCPS(pet.brawler, pet.variante)} ${coinImg('w-3.5 h-3.5')}/s</span>
         ${pet.variante !== 'normal'
           ? `<span class="text-xs" style="color:${color}">${v.emoji} ${v.label}</span>`
@@ -74,7 +81,6 @@ function afficherPets() {
     container.appendChild(slot);
   }
 
-  // Utilisation de textContent car l'image est déjà structurellement écrite dans le HTML
   document.getElementById('totalCPS').textContent = totalCPS();
   document.getElementById('cpsVal').textContent   = totalCPS();
 }
@@ -91,7 +97,6 @@ function mettreAJourCompteurs() {
   const cristauxEl = document.getElementById('cristauxDisplay');
   if (cristauxEl) cristauxEl.textContent = etat.cristaux.toLocaleString('fr-FR');
 
-  // Niveau / XP
   const xpRequis = xpRequisPourNiveau(etat.niveau);
   const pct      = Math.min(100, (etat.xp / xpRequis) * 100);
   document.getElementById('levelLabel').textContent = `Niv. ${etat.niveau}`;
@@ -120,10 +125,20 @@ function afficherTableRarites() {
   const tbl = document.getElementById('rarityTable');
   const lm  = luckMultiplierTotal();
 
+  // Grouper les brawlers par rareté (ordre affiché : super-rare → rare → common)
+  const groupOrder = ['super-rare', 'rare', 'common'];
+
+  const fmt = (n) => {
+    const effective = Math.round(n / lm);
+    if (effective >= 10000) return `1/${Math.round(effective / 1000)}k`;
+    if (effective <= 0) return `1/1`;
+    return `1/${effective}`;
+  };
+
   let html = `
     <div style="display:grid;grid-template-columns:1fr repeat(4,auto);gap:.25rem .5rem;
       font-size:.6rem;font-weight:900;text-transform:uppercase;letter-spacing:.05em;
-      color:var(--text-muted);padding-bottom:.3rem;border-bottom:1px solid var(--border);margin-bottom:.2rem">
+      color:var(--text-muted);padding-bottom:.3rem;border-bottom:1px solid var(--border);margin-bottom:.4rem">
       <span>Brawler</span>
       <span style="color:#94a3b8">Nor.</span>
       <span style="color:#38bdf8">Shi.</span>
@@ -132,32 +147,40 @@ function afficherTableRarites() {
     </div>
   `;
 
-  for (const b of [...BRAWLERS].reverse()) {
-    const norm    = b.div;
-    const shiny   = b.div * VARIANTES.shiny.chanceMult;
-    const golden  = b.div * VARIANTES.golden.chanceMult;
-    const rainbow = b.div * VARIANTES.rainbow.chanceMult;
+  for (const rarityKey of groupOrder) {
+    const r        = RARITIES[rarityKey];
+    const group    = [...BRAWLERS].filter(b => b.rarity === rarityKey).reverse();
+    if (!group.length) continue;
 
-    const fmt = (n) => {
-      const effective = Math.round(n / lm);
-      if (effective >= 10000) return `1/${Math.round(effective/1000)}k`;
-      if (effective <= 0) return `1/1`;
-      return `1/${effective}`;
-    };
-
+    // Séparateur de groupe
     html += `
-      <div style="display:grid;grid-template-columns:1fr repeat(4,auto);gap:.25rem .5rem;
-        padding:.3rem 0;border-bottom:1px solid rgba(255,255,255,.04);align-items:center">
-        <span style="display:flex;align-items:center;gap:.35rem">
-          ${brawlerImg(b, 'w-5 h-5')}
-          <span style="color:${b.couleur};font-weight:700;font-size:.7rem">${b.nom}</span>
-        </span>
-        <span style="color:#94a3b8;font-size:.65rem">${fmt(norm)}</span>
-        <span style="color:#38bdf8;font-size:.65rem">${fmt(shiny)}</span>
-        <span style="color:#fbbf24;font-size:.65rem">${fmt(golden)}</span>
-        <span style="color:#e879f9;font-size:.65rem">${fmt(rainbow)}</span>
+      <div style="display:flex;align-items:center;gap:.4rem;padding:.35rem 0 .2rem;
+        border-bottom:1px solid ${r.borderCss};margin-bottom:.15rem">
+        <span style="font-size:.6rem;font-weight:900;text-transform:uppercase;
+          letter-spacing:.07em;color:${r.couleur}">${r.label}</span>
       </div>
     `;
+
+    for (const b of group) {
+      const norm    = b.div;
+      const shiny   = b.div * VARIANTES.shiny.chanceMult;
+      const golden  = b.div * VARIANTES.golden.chanceMult;
+      const rainbow = b.div * VARIANTES.rainbow.chanceMult;
+
+      html += `
+        <div style="display:grid;grid-template-columns:1fr repeat(4,auto);gap:.25rem .5rem;
+          padding:.3rem 0;border-bottom:1px solid rgba(255,255,255,.04);align-items:center">
+          <span style="display:flex;align-items:center;gap:.35rem">
+            ${brawlerImg(b, 'w-5 h-5')}
+            <span style="color:${r.couleur};font-weight:700;font-size:.7rem">${b.nom}</span>
+          </span>
+          <span style="color:#94a3b8;font-size:.65rem">${fmt(norm)}</span>
+          <span style="color:#38bdf8;font-size:.65rem">${fmt(shiny)}</span>
+          <span style="color:#fbbf24;font-size:.65rem">${fmt(golden)}</span>
+          <span style="color:#e879f9;font-size:.65rem">${fmt(rainbow)}</span>
+        </div>
+      `;
+    }
   }
 
   tbl.innerHTML = html;
