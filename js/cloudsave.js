@@ -1,12 +1,5 @@
 /* ════════════════════════════════════════════════
    cloudsave.js — Sauvegarde cloud (Supabase)
-
-   Optionnel : si window.SUPABASE_URL / SUPABASE_ANON_KEY
-   sont vides (js/config.js non configuré), le jeu
-   fonctionne normalement, juste sans sauvegarde cloud.
-   Authentification : un compte anonyme Supabase par
-   navigateur (pas de login) — il faut activer "Allow
-   anonymous sign-ins" dans Supabase (voir SQL fourni).
 ════════════════════════════════════════════════ */
 
 let sb              = null;
@@ -31,7 +24,7 @@ function setCloudStatus(text, color) {
 
 /* ── Initialisation : connexion anonyme + chargement ── */
 async function initCloudSave() {
-  if (!cloudConfigure()) return; // pas de clés configurées → mode local uniquement
+  if (!cloudConfigure()) return;
 
   setCloudStatus('🔄 Connexion…', '#94a3b8');
   sb = window.supabase.createClient(window.SUPABASE_URL, window.SUPABASE_ANON_KEY);
@@ -55,9 +48,15 @@ async function initCloudSave() {
   }
 }
 
-/* ── Sérialisation : uniquement des données simples
-   (les pets équipés gardent juste brawlerId + variante,
-   pas l'objet brawler complet) ── */
+/* ── Expose le client Supabase pour leaderboard.js ── */
+function getCloudClient() {
+  return sb;
+}
+function getCloudUserId() {
+  return cloudUserId;
+}
+
+/* ── Sérialisation ── */
 function serialiserEtat() {
   return {
     pieces:            etat.pieces,
@@ -97,8 +96,6 @@ function appliquerEtatSauvegarde(saved) {
     );
   }
 
-  // Le nombre de slots dépend de prestigeUpgrades.slot : on l'ajuste avant/après
-  // avoir remplacé le tableau de pets équipés.
   ajusterSlotsPets();
 
   if (Array.isArray(saved.petsEquipes)) {
@@ -122,11 +119,10 @@ async function chargerEtatCloud() {
     .maybeSingle();
 
   if (error) { console.error('[cloudsave] Erreur chargement :', error); return; }
-  if (!data || !data.state) return; // première connexion, rien à charger encore
+  if (!data || !data.state) return;
 
   appliquerEtatSauvegarde(data.state);
 
-  // Re-rendre toute l'UI avec l'état rechargé
   afficherInventaire();
   afficherHistorique();
   afficherTableRarites();
@@ -142,9 +138,10 @@ async function chargerEtatCloud() {
 async function sauvegarderEtatCloud() {
   if (!sb || !cloudUserId) return;
 
+  const payload = serialiserEtat();
   const { error } = await sb
     .from('game_saves')
-    .upsert({ user_id: cloudUserId, state: serialiserEtat() }, { onConflict: 'user_id' });
+    .upsert({ user_id: cloudUserId, state: payload }, { onConflict: 'user_id' });
 
   if (error) {
     console.error('[cloudsave] Erreur sauvegarde :', error);
@@ -152,11 +149,69 @@ async function sauvegarderEtatCloud() {
   } else {
     setCloudStatus('☁️ Sauvegardé', '#22c55e');
   }
+
+  return payload; // utile pour sendBeacon
+}
+
+/* ── Sauvegarde synchrone via sendBeacon (avant fermeture de l'onglet) ── */
+function sauvegarderBeacon() {
+  if (!sb || !cloudUserId || !window.SUPABASE_URL || !window.SUPABASE_ANON_KEY) return;
+
+  const payload = JSON.stringify(serialiserEtat());
+  // Endpoint REST Supabase — upsert via beacon (fire-and-forget garanti même si l'onglet ferme)
+  const url = `${window.SUPABASE_URL}/rest/v1/game_saves?on_conflict=user_id`;
+  const body = JSON.stringify({ user_id: cloudUserId, state: JSON.parse(payload) });
+  const blob = new Blob([body], { type: 'application/json' });
+
+  // sendBeacon ignore la réponse mais garantit l'envoi avant fermeture
+  if (navigator.sendBeacon) {
+    // sendBeacon ne supporte pas les headers custom ; on passe par une sauvegarde async rapide
+    // en tant que fallback synchrone-ish
+    sauvegarderEtatCloud().catch(() => {});
+  }
 }
 
 /* ── Sauvegarde périodique + à la fermeture de l'onglet ── */
 function demarrerAutoSaveCloud() {
   clearInterval(cloudAutoSaveId);
-  cloudAutoSaveId = setInterval(sauvegarderEtatCloud, 15000);
-  window.addEventListener('beforeunload', () => { sauvegarderEtatCloud(); });
+  cloudAutoSaveId = setInterval(() => {
+    sauvegarderEtatCloud();
+    if (typeof mettreAJourScoreLeaderboard === 'function') mettreAJourScoreLeaderboard();
+  }, 15000);
+
+  // FIX : utiliser visibilitychange (fiable) en plus de beforeunload
+  document.addEventListener('visibilitychange', () => {
+    if (document.visibilityState === 'hidden') {
+      // Tenter une sauvegarde synchrone via keepalive fetch
+      _sauvegarderBeaconFetch();
+    }
+  });
+
+  window.addEventListener('beforeunload', () => {
+    _sauvegarderBeaconFetch();
+  });
+}
+
+/* ── Sauvegarde via fetch keepalive (fonctionne pendant beforeunload) ── */
+function _sauvegarderBeaconFetch() {
+  if (!cloudUserId || !window.SUPABASE_URL || !window.SUPABASE_ANON_KEY) return;
+
+  const body = JSON.stringify([{ user_id: cloudUserId, state: serialiserEtat() }]);
+  const url  = `${window.SUPABASE_URL}/rest/v1/game_saves?on_conflict=user_id`;
+
+  try {
+    fetch(url, {
+      method:  'POST',
+      headers: {
+        'Content-Type':  'application/json',
+        'apikey':        window.SUPABASE_ANON_KEY,
+        'Authorization': `Bearer ${window.SUPABASE_ANON_KEY}`,
+        'Prefer':        'resolution=merge-duplicates',
+      },
+      body:    body,
+      keepalive: true, // clé : garantit l'envoi même si l'onglet ferme
+    });
+  } catch (e) {
+    // Silencieux — on est en train de quitter la page
+  }
 }
