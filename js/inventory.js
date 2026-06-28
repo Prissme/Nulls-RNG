@@ -1,132 +1,218 @@
 /* ════════════════════════════════════════════════
-   inventory.js — Inventaire : vente, filtre, tri, rendu
+   ui.js — Rendu UI : résultat, pets, compteurs,
+           table raretés, historique, utilitaires
 ════════════════════════════════════════════════ */
 
-/* ── Vendre un item ── */
-function vendreItem(brawlerId, variante) {
-  const k = cle(brawlerId, variante);
-  if (!etat.inventaire[k] || etat.inventaire[k] <= 0) return;
-
-  const estEquipe = etat.petsEquipes.some(p =>
-    p && p.brawler.id === brawlerId && p.variante === variante);
-  if (estEquipe) return;
-
-  const b       = BRAWLERS.find(b => b.id === brawlerId);
-  const v       = VARIANTES[variante];
-  const prix    = Math.round(b.sellValue * v.sellMult * venteBonusPrestige());
-  etat.pieces  += prix;
-  etat.inventaire[k]--;
-  if (etat.inventaire[k] === 0) delete etat.inventaire[k];
-
-  Sound.coin();
-  mettreAJourCompteurs();
-  afficherInventaire();
-  sauvegarderEtatCloud();
+// Fonction utilitaire pour générer l'image de la pièce uniformément
+function coinImg(classes = 'w-5 h-5') {
+  return `<img src="./images/Coins.webp" alt="Coins" class="${classes} object-contain inline-block align-middle" onerror="this.style.display='none'">`;
 }
 
-/* ── Filtre par variante ── */
-function filtrerVariante(variante, btn) {
-  etat.filtreVariante = variante;
-  document.querySelectorAll('#variantTabs .tab-btn').forEach(b => b.classList.remove('active'));
-  btn.classList.add('active');
-  afficherInventaire();
+/* ── Zone résultat après un roll ── */
+function afficherResultat(b, vKey) {
+  const v     = VARIANTES[vKey];
+  const zone  = document.getElementById('resultZone');
+  const emoji = document.getElementById('resultEmoji');
+  const name  = document.getElementById('resultName');
+  const sub   = document.getElementById('resultSub');
+
+  zone.classList.remove('flash-anim');
+  void zone.offsetWidth;
+  zone.classList.add('flash-anim');
+
+  // Image au lieu de l'emoji
+  emoji.innerHTML = brawlerImg(b, 'w-24 h-24');
+
+  if (vKey === 'rainbow') {
+    name.className   = 'rainbow-text';
+    name.style.color = '';
+    name.textContent = `🌈 ${b.nom}`;
+  } else {
+    name.className   = '';
+    name.style.color = couleurVariante(b, vKey);
+    name.textContent = vKey !== 'normal' ? `${v.emoji} ${b.nom}` : b.nom;
+  }
+
+  // Badge de rareté + stats
+  const rarityHtml = rarityBadge(b.rarity);
+  sub.innerHTML = `
+    <span style="display:flex;align-items:center;justify-content:center;gap:.4rem;flex-wrap:wrap;margin-bottom:.25rem">
+      ${rarityHtml}
+      ${vKey !== 'normal' ? `<span style="font-size:.7rem;color:${couleurVariante(b, vKey)}">${v.label}</span>` : ''}
+    </span>
+    1/${b.div * v.chanceMult} &nbsp;•&nbsp; ${Math.round(calcCPS(b, vKey) * 10) / 10} ${coinImg('w-4 h-4')}/s
+  `;
+
+  const glowColor = couleurVariante(b, vKey);
+  zone.style.filter = `drop-shadow(0 0 ${vKey !== 'normal' ? 22 : 10}px ${glowColor})`;
 }
 
-/* ── Tri ── */
-function trierInventaire(mode, btn) {
-  etat.triInventaire = mode;
-  document.querySelectorAll('#sortTabs .tab-btn').forEach(b => b.classList.remove('active'));
-  btn.classList.add('active');
-  afficherInventaire();
+/* ── Slots pets équipés ── */
+function afficherPets() {
+  const container = document.getElementById('petSlots');
+  const maxSlots   = nbSlotsMax();
+  container.innerHTML = '';
+  container.style.gridTemplateColumns = `repeat(${Math.min(maxSlots, 3)}, 1fr)`;
+
+  for (let i = 0; i < maxSlots; i++) {
+    const pet  = etat.petsEquipes[i];
+    const slot = document.createElement('div');
+    slot.className = `pet-slot ${pet ? 'filled' : ''}`;
+
+    if (pet) {
+      const v     = VARIANTES[pet.variante];
+      const color = couleurVariante(pet.brawler, pet.variante);
+      slot.style.borderColor = color;
+      slot.style.background  = `${color}12`;
+      slot.innerHTML = `
+        <span class="unequip-x" onclick="desequiper(${i})">✕</span>
+        ${brawlerImg(pet.brawler, 'w-12 h-12')}
+        <span class="text-xs font-bold" style="color:${color}">${pet.brawler.nom}</span>
+        <span style="margin-top:.1rem">${rarityBadge(pet.brawler.rarity)}</span>
+        <span class="text-xs flex items-center justify-center gap-1" style="color:#fbbf24">+${Math.round(calcCPS(pet.brawler, pet.variante) * 10) / 10} ${coinImg('w-3.5 h-3.5')}/s</span>
+        ${pet.variante !== 'normal'
+          ? `<span class="text-xs" style="color:${color}">${v.emoji} ${v.label}</span>`
+          : ''}
+      `;
+    } else {
+      slot.innerHTML = `<span class="text-xs" style="color:var(--text-muted)">Slot ${i + 1}<br>vide</span>`;
+    }
+
+    container.appendChild(slot);
+  }
+
+  document.getElementById('totalCPS').textContent = totalCPS();
+  document.getElementById('cpsVal').textContent   = totalCPS();
 }
 
-/* ── Rendu de la grille inventaire ── */
-function afficherInventaire() {
-  const grid = document.getElementById('inventoryGrid');
-  grid.innerHTML = '';
+/* ── Compteurs header ── */
+function mettreAJourCompteurs() {
+  document.getElementById('coinsDisplay').textContent = etat.pieces.toLocaleString('fr-FR');
+  document.getElementById('rollsDisplay').textContent = etat.totalRolls.toLocaleString('fr-FR');
+  document.getElementById('luckLabel').textContent    = `x${Number(luckMultiplierTotal().toFixed(2))}`;
+  document.getElementById('speedLabel').textContent   = etat.speedActive ? 'x3' : 'x1';
+  document.getElementById('cpsVal').textContent       = totalCPS();
+  document.getElementById('totalCPS').textContent     = totalCPS();
 
-  const entries = Object.entries(etat.inventaire)
-    .filter(([k, qty]) => qty > 0)
-    .map(([k]) => parseKey(k))
-    .filter(({ variante }) => etat.filtreVariante === 'all' || variante === etat.filtreVariante)
-    .sort((a, b) => {
-      const ba = BRAWLERS.find(x => x.id === a.brawlerId);
-      const bb = BRAWLERS.find(x => x.id === b.brawlerId);
+  const cristauxEl = document.getElementById('cristauxDisplay');
+  if (cristauxEl) cristauxEl.textContent = etat.cristaux.toLocaleString('fr-FR');
 
-      if (etat.triInventaire === 'revenus') {
-        return calcCPS(bb, b.variante) - calcCPS(ba, a.variante);
-      }
-      return scoreRarete(bb, b.variante) - scoreRarete(ba, a.variante);
-    });
+  const xpRequis = xpRequisPourNiveau(etat.niveau);
+  const pct      = Math.min(100, (etat.xp / xpRequis) * 100);
+  document.getElementById('levelLabel').textContent = `Niv. ${etat.niveau}`;
+  document.getElementById('xpLabel').textContent     = `${etat.xp}/${xpRequis} XP`;
+  document.getElementById('xpBar').style.width        = pct + '%';
+}
 
-  if (entries.length === 0) {
-    grid.innerHTML = `<p class="col-span-2 text-center text-xs py-6" style="color:var(--text-muted)">
-      ${etat.filtreVariante !== 'all'
-        ? 'Aucun item dans cette catégorie.'
-        : 'Lance un Roll pour obtenir des brawlers !'}
-    </p>`;
+/* ── Notification de passage de niveau ── */
+function afficherLevelUp(niveau) {
+  const notif = document.createElement('div');
+  notif.style.cssText = `
+    position:fixed; top:140px; left:50%; transform:translateX(-50%);
+    background:var(--bg-card); border:1px solid #fbbf24;
+    color:#fbbf24; font-weight:900; font-size:1rem;
+    padding:.7rem 1.6rem; border-radius:14px; z-index:999;
+    box-shadow:0 0 24px rgba(251,191,36,.5);
+    animation: craftIn .4s cubic-bezier(.22,.68,0,1.2) forwards;
+  `;
+  notif.textContent = `🏆 Niveau ${niveau} atteint !`;
+  document.body.appendChild(notif);
+  setTimeout(() => notif.remove(), 2200);
+}
+
+/* ── Table des raretés ── */
+function afficherTableRarites() {
+  const tbl = document.getElementById('rarityTable');
+  const lm  = luckMultiplierTotal();
+
+  // Grouper les brawlers par rareté (ordre affiché : super-rare → rare → common)
+  const groupOrder = ['super-rare', 'rare', 'common'];
+
+  const fmt = (n) => {
+    const effective = Math.round(n / lm);
+    if (effective >= 10000) return `1/${Math.round(effective / 1000)}k`;
+    if (effective <= 0) return `1/1`;
+    return `1/${effective}`;
+  };
+
+  let html = `
+    <div style="display:grid;grid-template-columns:1fr repeat(4,auto);gap:.25rem .5rem;
+      font-size:.6rem;font-weight:900;text-transform:uppercase;letter-spacing:.05em;
+      color:var(--text-muted);padding-bottom:.3rem;border-bottom:1px solid var(--border);margin-bottom:.4rem">
+      <span>Brawler</span>
+      <span style="color:#94a3b8">Nor.</span>
+      <span style="color:#38bdf8">Shi.</span>
+      <span style="color:#fbbf24">Gol.</span>
+      <span style="color:#e879f9">Rain.</span>
+    </div>
+  `;
+
+  for (const rarityKey of groupOrder) {
+    const r        = RARITIES[rarityKey];
+    const group    = [...BRAWLERS].filter(b => b.rarity === rarityKey).reverse();
+    if (!group.length) continue;
+
+    // Séparateur de groupe
+    html += `
+      <div style="display:flex;align-items:center;gap:.4rem;padding:.35rem 0 .2rem;
+        border-bottom:1px solid ${r.borderCss};margin-bottom:.15rem">
+        <span style="font-size:.6rem;font-weight:900;text-transform:uppercase;
+          letter-spacing:.07em;color:${r.couleur}">${r.label}</span>
+      </div>
+    `;
+
+    for (const b of group) {
+      const norm    = b.div;
+      const shiny   = b.div * VARIANTES.shiny.chanceMult;
+      const golden  = b.div * VARIANTES.golden.chanceMult;
+      const rainbow = b.div * VARIANTES.rainbow.chanceMult;
+
+      html += `
+        <div style="display:grid;grid-template-columns:1fr repeat(4,auto);gap:.25rem .5rem;
+          padding:.3rem 0;border-bottom:1px solid rgba(255,255,255,.04);align-items:center">
+          <span style="display:flex;align-items:center;gap:.35rem">
+            ${brawlerImg(b, 'w-5 h-5')}
+            <span style="color:${r.couleur};font-weight:700;font-size:.7rem">${b.nom}</span>
+          </span>
+          <span style="color:#94a3b8;font-size:.65rem">${fmt(norm)}</span>
+          <span style="color:#38bdf8;font-size:.65rem">${fmt(shiny)}</span>
+          <span style="color:#fbbf24;font-size:.65rem">${fmt(golden)}</span>
+          <span style="color:#e879f9;font-size:.65rem">${fmt(rainbow)}</span>
+        </div>
+      `;
+    }
+  }
+
+  tbl.innerHTML = html;
+}
+
+/* ── Historique des derniers rolls ── */
+function afficherHistorique() {
+  const list = document.getElementById('historyList');
+  list.innerHTML = '';
+
+  if (!etat.historique.length) {
+    list.innerHTML = `<span class="text-xs" style="color:var(--text-muted)">Aucun roll pour l'instant.</span>`;
     return;
   }
 
-  for (const { brawlerId, variante } of entries) {
-    const k   = cle(brawlerId, variante);
-    const qty = etat.inventaire[k] || 0;
-    if (qty === 0) continue;
-
-    const b     = BRAWLERS.find(b => b.id === brawlerId);
+  for (const { brawler, variante } of etat.historique) {
     const v     = VARIANTES[variante];
-    const prix  = Math.round(b.sellValue * v.sellMult * venteBonusPrestige());
-    const cps   = calcCPS(b, variante);
-    const color = couleurVariante(b, variante);
-
-    const estEquipe   = etat.petsEquipes.some(p => p && p.brawler.id === brawlerId && p.variante === variante);
-    const slotsDispo  = etat.petsEquipes.filter(p => p === null).length;
-    const peutEquiper = !estEquipe && slotsDispo > 0;
-
-    let badgeHtml = '';
-    if (variante !== 'normal') {
-      badgeHtml = variante === 'rainbow'
-        ? `<span style="font-size:.6rem;font-weight:900;background:linear-gradient(90deg,#f472b6,#818cf8,#34d399,#fbbf24);-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text">🌈 RAINBOW</span>`
-        : `<span class="text-xs font-bold" style="color:${color}">${v.emoji} ${v.label}</span>`;
-    }
-
-    const imgFilter = variante === 'shiny'   ? 'drop-shadow(0 0 6px #38bdf8) brightness(1.1)'
-                    : variante === 'golden'  ? 'drop-shadow(0 0 6px #fbbf24) sepia(0.4) brightness(1.15)'
-                    : variante === 'rainbow' ? 'drop-shadow(0 0 8px #e879f9) saturate(1.5)'
-                    : '';
-
-    const varClass = variante === 'shiny'   ? 'var-shiny'
-                   : variante === 'golden'  ? 'var-golden'
-                   : variante === 'rainbow' ? 'var-rainbow'
-                   : '';
-
-    const card = document.createElement('div');
-    card.className = `inv-item ${b.bgClass} ${varClass}`;
-    if (variante === 'golden') card.style.borderColor = '#fbbf24';
-    if (variante === 'shiny')  card.style.borderColor = '#38bdf8';
-
-    card.innerHTML = `
-      <div class="flex items-center justify-between">
-        ${brawlerImg(b, 'w-10 h-10', `filter:${imgFilter}`)}
-        <span class="text-xs font-bold px-1.5 py-0.5 rounded-full"
-              style="background:rgba(0,0,0,.35);color:${color}">×${qty}</span>
-      </div>
-      <div class="font-bold text-sm leading-tight" style="color:${color}">${b.nom}</div>
-      ${badgeHtml}
-      <div class="text-xs" style="color:var(--text-muted)">1/${b.div * v.chanceMult}</div>
-      <div class="text-xs" style="color:#fbbf24">+${cps}💰/s</div>
-      <div class="flex gap-1 mt-1">
-        <button class="equip-btn ${estEquipe ? 'equipped' : ''}"
-                onclick="equiper(${brawlerId},'${variante}')"
-                ${!peutEquiper && !estEquipe ? 'disabled' : ''}>
-          ${estEquipe ? '✓ Équipé' : 'Équiper'}
-        </button>
-        <button class="sell-btn" onclick="vendreItem(${brawlerId},'${variante}')"
-                ${estEquipe ? 'disabled style="opacity:.35;cursor:not-allowed"' : ''}>
-          ${prix}💰
-        </button>
-      </div>
-    `;
-    grid.appendChild(card);
+    const color = couleurVariante(brawler, variante);
+    const chip  = document.createElement('span');
+    chip.className = 'text-xs font-bold px-2 py-1 rounded-full';
+    chip.style.cssText = `background:rgba(0,0,0,.4);border:1px solid ${color}55;color:${color};
+      display:inline-flex;align-items:center;gap:.3rem`;
+    chip.innerHTML = `${brawlerImg(brawler, 'w-5 h-5')}${v.emoji} ${brawler.nom}`;
+    list.appendChild(chip);
   }
+}
+
+/* ── Animation secouement bouton (erreur achat) ── */
+function secouerBouton(id) {
+  const btn = document.getElementById(id);
+  if (!btn) return;
+  btn.style.animation = 'none';
+  void btn.offsetWidth;
+  btn.style.animation = 'shake .3s ease';
 }
