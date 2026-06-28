@@ -14,6 +14,9 @@ function vendreItem(brawlerId, variante) {
     p && p.brawler.id === brawlerId && p.variante === variante);
   if (estEquipe) return;
 
+  // Persister les unlocks d'index AVANT de supprimer l'item
+  if (typeof luckBonusIndex === 'function') luckBonusIndex();
+
   const b       = BRAWLERS.find(b => b.id === brawlerId);
   const v       = VARIANTES[variante];
   const prix    = Math.round(b.sellValue * v.sellMult * venteBonusPrestige());

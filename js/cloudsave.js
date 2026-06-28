@@ -82,6 +82,17 @@ function serialiserEtat() {
     shellyStreak:      etat.shellyStreak,
     robotsBattus:      etat.robotsBattus,
     indexUnlocks:      etat.indexUnlocks,
+    /* ── Potions : on sauvegarde le timestamp de fin pour restaurer au refresh ── */
+    luckActive:   etat.luckActive,
+    luckFin:      etat.luckFin,
+    speedActive:  etat.speedActive,
+    speedFin:     etat.speedFin,
+    shinyActive:  etat.shinyActive,
+    shinyFin:     etat.shinyFin,
+    wishedActive: etat.wishedActive,
+    wishedFin:    etat.wishedFin,
+    goldenActive: etat.goldenActive,
+    goldenFin:    etat.goldenFin,
   };
 }
 
@@ -111,6 +122,18 @@ function appliquerEtatSauvegarde(saved) {
   if (typeof saved.shellyStreak === 'number') etat.shellyStreak = saved.shellyStreak;
   if (saved.robotsBattus && typeof saved.robotsBattus === 'object') etat.robotsBattus = saved.robotsBattus;
   if (saved.indexUnlocks && typeof saved.indexUnlocks === 'object') etat.indexUnlocks = saved.indexUnlocks;
+
+  /* ── Restaurer les potions encore actives (temps restant > 0) ── */
+  const now = Date.now();
+  ['luck', 'speed', 'shiny', 'wished', 'golden'].forEach(type => {
+    const fin = saved[`${type}Fin`];
+    if (saved[`${type}Active`] && typeof fin === 'number' && fin > now) {
+      etat[`${type}Active`] = true;
+      etat[`${type}Fin`]    = fin;
+      // Redémarre le timer visuel après que le DOM est prêt
+      setTimeout(() => demarrerTimer(type), 100);
+    }
+  });
 
   ajusterSlotsPets();
 

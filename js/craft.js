@@ -13,7 +13,8 @@ function crafterVariante(brawlerId, recette) {
   const qty  = etat.inventaire[kSrc] || 0;
   if (qty < recette.qte) return;
 
-  const equipes = etat.petsEquipes.filter(p =>
+  // Persister les unlocks d'index AVANT de consommer les items
+  if (typeof luckBonusIndex === 'function') luckBonusIndex();  const equipes = etat.petsEquipes.filter(p =>
     p && p.brawler.id === brawlerId && p.variante === recette.depuis).length;
   const disponibles = qty - equipes;
   if (disponibles < recette.qte) return;

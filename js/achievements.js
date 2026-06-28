@@ -44,13 +44,13 @@ const ACHIEVEMENTS_DEF = [
 function initAchievements() {
   if (!etat.achievements) etat.achievements = {};
   for (const def of ACHIEVEMENTS_DEF) {
+    // Ne pas écraser un achievement déjà chargé depuis le cloud save
     if (!etat.achievements[def.id]) {
       etat.achievements[def.id] = { debloque: false, reclamee: false };
     }
   }
-  // Données de suivi annexes
   if (typeof etat.shellyStreak === 'undefined') etat.shellyStreak = 0;
-  if (!etat.robotsBattus)  etat.robotsBattus = {};
+  if (!etat.robotsBattus) etat.robotsBattus = {};
 }
 
 /* ── Débloquer un succès ── */
