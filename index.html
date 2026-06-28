@@ -621,7 +621,7 @@
         <div id="resultName" style="color:var(--text-muted);font-size:1rem;font-weight:600">Rien encore</div>
         <div id="resultSub" style="font-family:var(--font-mono);font-size:.75rem;color:var(--text-dim)"></div>
       </div>
-      <button id="rollBtn" onclick="effectuerRoll()">ROLL</button>
+      <button id="rollBtn" onclick="if(acEnregistrerClic() && acRollAutorise()) effectuerRoll()">ROLL</button>
       <div class="autoroll-row">
         <span class="autoroll-label">Auto</span>
         <div class="toggle-track" id="autoToggle" onclick="toggleAutoRoll()">
@@ -1012,6 +1012,7 @@
 <script src="js/hugewished.js"></script>
 <script src="js/index.js"></script>
 <script src="js/achievements.js"></script>
+<script src="js/anticheat.js"></script>
 <script src="js/main.js"></script>
 <script>
   function toggleMute() {
