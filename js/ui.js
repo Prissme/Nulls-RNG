@@ -101,6 +101,21 @@ function mettreAJourCompteurs() {
   const cristauxEl = document.getElementById('cristauxDisplay');
   if (cristauxEl) cristauxEl.textContent = etat.cristaux.toLocaleString('fr-FR');
 
+  /* ── Points de Pouvoir ── */
+  const ppEl = document.getElementById('ppDisplay');
+  if (ppEl) ppEl.textContent = (etat.pointsPouvoir || 0).toLocaleString('fr-FR');
+
+  /* ── Badge Pouvoirs si PP > 0 non dépensés ── */
+  const skillBadge = document.getElementById('skillTreeBadge');
+  if (skillBadge) {
+    const pp = etat.pointsPouvoir || 0;
+    const hasUnlockable = typeof SKILL_TREE !== 'undefined' && SKILL_TREE.some(sk => {
+      return !sk.requis.every ? true : (sk.requis.every(r => !!(etat.skillsAchetes && etat.skillsAchetes[r])) &&
+        !(etat.skillsAchetes && etat.skillsAchetes[sk.id]) && pp >= sk.cout);
+    });
+    skillBadge.style.display = (pp > 0 && hasUnlockable) ? 'block' : 'none';
+  }
+
   const xpRequis = xpRequisPourNiveau(etat.niveau);
   const pct      = Math.min(100, (etat.xp / xpRequis) * 100);
   document.getElementById('levelLabel').textContent = `Niv. ${etat.niveau}`;

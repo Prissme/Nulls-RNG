@@ -52,13 +52,6 @@ const etat = {
   quetes:           [],
   quetesRefreshFin: 0,
   quetesInterval:   null,
-
-  /* ── Progression du robot : nombre de victoires en combat ── */
-  combatsGagnes: 0,
-
-  /* ── Arbre de compétences : Points de Pouvoir + skills achetés ── */
-  pointsPouvoir: 0,
-  skillsAchetes: {},
 };
 
 const cle      = (bId, variante) => `${bId}_${variante}`;

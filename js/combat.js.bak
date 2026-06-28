@@ -18,33 +18,17 @@ const APPARITIONS_ROBOTS = [
 let combat = null;
 
 function creerEtatCombat() {
-  /* ── Puissance du robot basée sur les VICTOIRES (indép. des revenus) ──
-     - 0 victoire   → puissance de base ≈ 10 (très facile)
-     - 10 victoires → puissance ≈ 70
-     - 50 victoires → puissance ≈ 1 010
-     - 100 victoires→ puissance ≈ 4 010
-     Formule : 10 + wins*2 + wins²*0.4
-  */
-  const wins = etat.combatsGagnes || 0;
-  const puissanceBaseRobot = 10 + wins * 2 + Math.floor(wins * wins * 0.4);
-
+  const puissanceTotale = Math.max(10, totalCPS());
   const robotBase = APPARITIONS_ROBOTS[Math.floor(Math.random() * APPARITIONS_ROBOTS.length)];
-  const variation = 0.85 + Math.random() * 0.3;
-  const puissanceEnnemi = Math.max(5, Math.round(puissanceBaseRobot * robotBase.mult * variation));
+  const variation = 0.8 + Math.random() * 0.4;
+  const puissanceEnnemi = Math.max(5, Math.round(puissanceTotale * robotBase.mult * variation));
 
-  /* ── Stats brawlers basées sur cpsBase UNIQUEMENT (indép. des revenus) ──
-     On n'utilise plus calcCPS() qui inclut variante & prestige.
-     La variante influe le drop/visuel, pas la puissance de combat.
-  */
   const brawlers = etat.petsEquipes
     .filter(p => p !== null)
     .map(p => {
-      const force = p.brawler.cpsBase;   // stat fixe, indép. des revenus
-      // Appliquer les bonus de l'arbre de compétences
-      const hpMult  = typeof bonusHPSkills  === 'function' ? bonusHPSkills()  : 1;
-      const atkMult = typeof bonusATKSkills === 'function' ? bonusATKSkills() : 1;
-      const hpMax = Math.max(30, Math.round(force * 15 * hpMult));
-      const atk   = Math.max(5,  Math.round(force * 3  * atkMult));
+      const cps = calcCPS(p.brawler, p.variante);
+      const hpMax = Math.max(30, cps * 15);
+      const atk   = Math.max(5,  cps * 3);
       return {
         brawler:   p.brawler,
         variante:  p.variante,
@@ -73,8 +57,6 @@ function creerEtatCombat() {
     victoire:    null,
     gainPieces:  0,
     gainXP:      0,
-    gainPP:      0,
-    fureurStacks: 0,       // compteur Fureur (skill)
   };
 }
 
@@ -210,9 +192,6 @@ function rendreRobot() {
     <div style="font-weight:900;color:${r.couleur};font-size:.85rem;margin-top:.3rem">${r.nom}</div>
     <div style="margin:.15rem 0">${roleBadge(r.role, '.6rem')}</div>
     <div style="font-size:.65rem;color:var(--text-muted);margin-bottom:.3rem">${r.desc}</div>
-    <div style="font-size:.6rem;color:#a855f7;font-weight:700;margin-bottom:.2rem">
-      🏆 ${etat.combatsGagnes || 0} victoire${(etat.combatsGagnes||0) !== 1 ? 's' : ''} — Niveau robot ${(etat.combatsGagnes || 0) + 1}
-    </div>
     <div style="width:100%;height:7px;background:var(--border);border-radius:4px;overflow:hidden;margin-bottom:.2rem">
       <div id="cb-robot-bar" style="height:100%;width:${pct}%;background:${barColor};border-radius:4px;transition:width .4s ease"></div>
     </div>
@@ -250,10 +229,7 @@ function rendreActions() {
           ${w ? 'Victoire !' : 'Défaite…'}
         </div>
         ${w ? `<div style="font-size:.8rem;color:#fbbf24;margin-bottom:.5rem">
-          +${combat.gainPieces} 💰 &nbsp; +${combat.gainXP} XP &nbsp; +${combat.gainPP || 1} ⚡PP
-        </div>
-        <div style="font-size:.7rem;color:#a855f7;margin-bottom:.4rem">
-          Victoire n°${etat.combatsGagnes} 🏆 — le prochain robot sera plus fort !
+          +${combat.gainPieces} 💰 &nbsp; +${combat.gainXP} XP
         </div>` : `<div style="font-size:.75rem;color:var(--text-muted);margin-bottom:.5rem">
           Ton équipe a été mise hors de combat.
         </div>`}
@@ -310,15 +286,6 @@ async function actionCombat(action) {
   rendreActions();
 
   const bActif = vivants[combat.actifIndex % vivants.length];
-
-  /* ── Résilience : soin passif si HP < 30% ── */
-  if (typeof hasResilience === 'function' && hasResilience() && bActif) {
-    if (bActif.hp < bActif.hpMax * 0.30) {
-      const soinRes = Math.round(bActif.hpMax * 0.10);
-      bActif.hp = Math.min(bActif.hpMax, bActif.hp + soinRes);
-      logCombat(`🌿 <b style="color:#22c55e">Résilience</b> soigne ${bActif.brawler.nom} de <b>+${soinRes} HP</b>`, 'cb-log-soin');
-    }
-  }
   const role   = bActif.brawler.role;
 
   /* ── Tour du joueur ── */
@@ -328,8 +295,7 @@ async function actionCombat(action) {
 
   if (action === 'attaque') {
     const mult  = multiplicateurRole(role, combat.robot.role);
-    const fureurMult = (typeof hasFureur === 'function' && hasFureur()) ? (1 + combat.fureurStacks * 0.10) : 1;
-    degatJoueur = Math.round(bActif.atk * (0.85 + Math.random() * 0.3) * mult * fureurMult);
+    degatJoueur = Math.round(bActif.atk * (0.85 + Math.random() * 0.3) * mult);
     msgJoueur   = `⚔️ <b style="color:${couleurVarianteLocal(bActif.brawler, bActif.variante)}">${bActif.brawler.nom}</b> attaque${suffixeAvantage(mult)} : <b style="color:#ef4444">-${degatJoueur} HP</b>`;
     Sound.roll && Sound.roll();
 
@@ -346,8 +312,7 @@ async function actionCombat(action) {
       Sound.golden && Sound.golden();
     } else {
       const mult  = multiplicateurRole(role, combat.robot.role);
-      const specialMultBonus = typeof bonusSpecialMult === 'function' ? bonusSpecialMult() : 0;
-      degatJoueur = Math.round(bActif.atk * (2.5 + specialMultBonus) * (0.9 + Math.random() * 0.2) * mult);
+      degatJoueur = Math.round(bActif.atk * 2.5 * (0.9 + Math.random() * 0.2) * mult);
       msgJoueur   = `✦ <b style="color:#a855f7">${bActif.brawler.nom} SPÉCIALE</b>${suffixeAvantage(mult)} : <b style="color:#ef4444">-${degatJoueur} HP !</b>`;
       Sound.golden && Sound.golden();
     }
@@ -355,8 +320,7 @@ async function actionCombat(action) {
   } else if (action === 'defense') {
     bActif.bouclier = true;
     const mult  = multiplicateurRole(role, combat.robot.role);
-    const riposteBase = typeof bonusRiposteMult === 'function' ? 0.5 + bonusRiposteMult() : 0.5;
-    degatJoueur = Math.round(bActif.atk * riposteBase * (0.8 + Math.random() * 0.4) * mult);
+    degatJoueur = Math.round(bActif.atk * 0.5 * (0.8 + Math.random() * 0.4) * mult);
     msgJoueur   = `🛡️ <b style="color:#38bdf8">${bActif.brawler.nom}</b> se défend et riposte${suffixeAvantage(mult)} : <b style="color:#ef4444">-${degatJoueur} HP</b>`;
   }
 
@@ -381,13 +345,7 @@ async function actionCombat(action) {
     combat.victoire = true;
     combat.gainPieces = Math.round(combat.robot.hpMax * 0.5);
     combat.gainXP     = Math.round(combat.robot.hpMax * 0.2);
-    /* ── Points de Pouvoir : 1 PP par victoire + 1 bonus tous les 5 victoires ── */
-    const winsApres = (etat.combatsGagnes || 0) + 1;
-    combat.gainPP = 1 + (winsApres % 5 === 0 ? 1 : 0);
     etat.pieces += combat.gainPieces;
-    etat.pointsPouvoir = (etat.pointsPouvoir || 0) + combat.gainPP;
-    /* ── Incrémenter le compteur de victoires → le robot devient plus fort ── */
-    etat.combatsGagnes = winsApres;
     if (typeof gagnerXP === 'function') gagnerXP(combat.gainXP);
     if (typeof mettreAJourCompteurs === 'function') mettreAJourCompteurs();
     if (typeof sauvegarderEtatCloud === 'function') sauvegarderEtatCloud();
@@ -403,9 +361,7 @@ async function actionCombat(action) {
   /* ── Contre-attaque du robot ── */
   await attendre(300);
 
-  const bouclierReductionBase = 0.4;
-  const bouclierBonus = typeof bonusBouclierReduction === 'function' ? bonusBouclierReduction() : 0;
-  const reductionBouclier = bActif.bouclier ? Math.max(0.1, bouclierReductionBase - bouclierBonus) : 1;
+  const reductionBouclier = bActif.bouclier ? 0.4 : 1;
   const multDef    = multiplicateurRole(combat.robot.role, role);
   const degatRobot = Math.round(combat.robot.atk * (0.8 + Math.random() * 0.4) * reductionBouclier * multDef);
   bActif.bouclier  = false;
@@ -429,14 +385,6 @@ async function actionCombat(action) {
   }
 
   /* ── Passer au prochain brawler vivant ── */
-  /* ── Fureur : stack gagné quand un brawler encaisse un coup ── */
-  if (typeof hasFureur === 'function' && hasFureur() && !bActif.mort) {
-    combat.fureurStacks++;
-    if (combat.fureurStacks <= 5) {
-      logCombat(`🔥 <b style="color:#f59e0b">Fureur</b> +${combat.fureurStacks * 10}% ATK`, '');
-    }
-  }
-
   combat.actifIndex++;
   combat.tour++;
 
