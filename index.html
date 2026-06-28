@@ -687,6 +687,10 @@
         <span class="toolbar-card-label">Renaissance</span>
         <span class="badge-dot hidden" id="prestigeBadge"></span>
       </button>
+      <button class="toolbar-card" data-color="green" onclick="ouvrirModal('modalIndex');afficherIndex()">
+        <span class="toolbar-icon-text">IDX</span>
+        <span class="toolbar-card-label">Index</span>
+      </button>
     </nav>
 
   </main>
@@ -879,6 +883,19 @@
   </div>
 </div>
 
+<!-- INDEX -->
+<div class="modal-overlay" id="modalIndex" onclick="fermerModalOverlay(event,'modalIndex')">
+  <div class="modal-box modal-box-sm">
+    <div class="modal-header">
+      <h2>📖 Index des Brawlers</h2>
+      <button class="modal-close" onclick="fermerModal('modalIndex')">✕</button>
+    </div>
+    <div class="modal-body">
+      <div id="indexZone"></div>
+    </div>
+  </div>
+</div>
+
 <!-- PRESTIGE -->
 <div class="modal-overlay" id="modalPrestige" onclick="fermerModalOverlay(event,'modalPrestige')">
   <div class="modal-box modal-box-sm">
@@ -912,6 +929,7 @@
 <script src="js/leaderboard.js"></script>
 <script src="js/modals.js"></script>
 <script src="js/cloudsave.js"></script>
+<script src="js/index.js"></script>
 <script src="js/main.js"></script>
 <script>
   function toggleMute() {
