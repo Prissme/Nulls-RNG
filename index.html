@@ -787,6 +787,44 @@
         Acheter — 100 000 <img src="./images/Coins.webp" alt="" class="w-5 h-5 object-contain" onerror="this.style.display='none'">
       </button>
 
+      <div class="divider"></div>
+
+      <!-- Potion Wished -->
+      <div class="potion-card" style="border-color:rgba(245,158,11,.3)">
+        <div class="potion-card-title" style="color:#f59e0b">Potion Wished</div>
+        <div class="potion-card-desc">
+          Auto-Roll ×6.7 — 67 secondes
+          <span id="wishedTimerHdr" class="hidden" style="font-family:var(--font-mono);font-weight:700;color:#f59e0b"></span>
+        </div>
+        <div id="wishedBarWrap" class="hidden" style="height:4px;background:var(--border);border-radius:2px;overflow:hidden;margin-top:.25rem">
+          <div id="wishedBar" class="timer-bar" style="width:100%;background:#f59e0b"></div>
+        </div>
+        <div id="wishedCountdown" class="hidden" style="font-family:var(--font-mono);font-size:.72rem;font-weight:700;color:#f59e0b"></div>
+      </div>
+      <button id="buyWishedBtn" onclick="acheterPotion('wished')" class="potion-buy-btn"
+        style="background:linear-gradient(135deg,#b45309,#f59e0b);color:#fff">
+        Acheter — 670 000 <img src="./images/Coins.webp" alt="" class="w-5 h-5 object-contain" onerror="this.style.display='none'">
+      </button>
+
+      <div class="divider"></div>
+
+      <!-- Potion Golden -->
+      <div class="potion-card" style="border-color:rgba(251,191,36,.35)">
+        <div class="potion-card-title" style="color:#fbbf24">Potion Golden</div>
+        <div class="potion-card-desc">
+          Rolls Golden garantis — 10 secondes
+          <span id="goldenTimerHdr" class="hidden" style="font-family:var(--font-mono);font-weight:700;color:#fbbf24"></span>
+        </div>
+        <div id="goldenBarWrap" class="hidden" style="height:4px;background:var(--border);border-radius:2px;overflow:hidden;margin-top:.25rem">
+          <div id="goldenBar" class="timer-bar" style="width:100%;background:#fbbf24"></div>
+        </div>
+        <div id="goldenCountdown" class="hidden" style="font-family:var(--font-mono);font-size:.72rem;font-weight:700;color:#fbbf24"></div>
+      </div>
+      <button id="buyGoldenBtn" onclick="acheterPotion('golden')" class="potion-buy-btn"
+        style="background:linear-gradient(135deg,#a16207,#fbbf24);color:#1a1a2e">
+        Acheter — 5 000 000 <img src="./images/Coins.webp" alt="" class="w-5 h-5 object-contain" onerror="this.style.display='none'">
+      </button>
+
     </div>
   </div>
 </div>
