@@ -7,12 +7,14 @@ let inventairePage = 1;
 
 /* ── Vendre un item ── */
 function vendreItem(brawlerId, variante) {
-  const k = cle(brawlerId, variante);
-  if (!etat.inventaire[k] || etat.inventaire[k] <= 0) return;
+  const k   = cle(brawlerId, variante);
+  const qty = etat.inventaire[k] || 0;
+  if (qty <= 0) return;
 
-  const estEquipe = etat.petsEquipes.some(p =>
-    p && p.brawler.id === brawlerId && p.variante === variante);
-  if (estEquipe) return;
+  // On garde toujours au moins autant de copies que de slots équipés avec cet item
+  const equippedCount = etat.petsEquipes.filter(p =>
+    p && p.brawler.id === brawlerId && p.variante === variante).length;
+  if (qty - 1 < equippedCount) return;
 
   // Persister les unlocks d'index AVANT de supprimer l'item
   if (typeof luckBonusIndex === 'function') luckBonusIndex();
@@ -99,9 +101,11 @@ function afficherInventaire() {
                   : prix >= 1000    ? (prix/1000).toFixed(prix%1000===0?0:1)+'k'
                   : prix;
 
-    const estEquipe   = etat.petsEquipes.some(p => p && p.brawler.id === brawlerId && p.variante === variante);
-    const slotsDispo  = etat.petsEquipes.filter(p => p === null).length;
-    const peutEquiper = !estEquipe && slotsDispo > 0;
+    const equippedCount  = etat.petsEquipes.filter(p => p && p.brawler.id === brawlerId && p.variante === variante).length;
+    const estEquipe      = equippedCount > 0;
+    const slotsDispo     = etat.petsEquipes.filter(p => p === null).length;
+    const peutEquiperPlus = equippedCount < qty && slotsDispo > 0;
+    const peutVendre      = (qty - equippedCount) > 0;
 
     const imgFilter = variante === 'shiny'   ? 'drop-shadow(0 0 8px #38bdf8) brightness(1.15)'
                     : variante === 'golden'  ? 'drop-shadow(0 0 8px #fbbf24) sepia(0.4) brightness(1.2)'
@@ -158,13 +162,13 @@ function afficherInventaire() {
         <button class="equip-btn ${estEquipe ? 'equipped' : ''}"
           style="flex:1;font-size:.58rem;padding:.18rem 0"
           onclick="equiper(${brawlerId},'${variante}')"
-          ${!peutEquiper && !estEquipe ? 'disabled' : ''}>
-          ${estEquipe ? '✓' : 'Pet'}
+          ${!peutEquiperPlus && !estEquipe ? 'disabled' : ''}>
+          ${estEquipe ? `✓${equippedCount > 1 ? ' ×' + equippedCount : ''}` : 'Pet'}
         </button>
         <button class="sell-btn"
           style="flex:1;font-size:.56rem;padding:.18rem 0"
           onclick="vendreItem(${brawlerId},'${variante}')"
-          ${estEquipe ? 'disabled' : ''}>
+          ${!peutVendre ? 'disabled' : ''}>
           ${prixFmt}💰
         </button>
       </div>
