@@ -1,13 +1,17 @@
 /* ════════════════════════════════════════════════
    combat.js — Combat Tour par Tour
    Équipe de brawlers équipés vs Robot ennemi
+
+   Système de rôles (voir data.js pour ROLES / multiplicateurRole) :
+     💥 Burst contre 🛡️ Tank/Aggro contre 🎯 Poke/Sniper contre 💥 Burst
+     💚 Soutien : toujours neutre, mais soigne son équipe (action Spéciale)
 ════════════════════════════════════════════════ */
 
 const APPARITIONS_ROBOTS = [
-  { id:'robot',     nom:'Robot Standard', image:'Robot.webp',      mult:0.7, couleur:'#94a3b8', desc:'Un bot basique, idéal pour s\'échauffer.' },
-  { id:'boxer',     nom:'Robot Boxeur',   image:'BoxerRobot.webp', mult:1.0, couleur:'#f97316', desc:'Frappe fort, encaisse bien.' },
-  { id:'sniper',    nom:'Robot Sniper',   image:'SniperRobot.webp',mult:1.3, couleur:'#38bdf8', desc:'Attaque à distance avec précision. Dangereux.' },
-  { id:'big_robot', nom:'Giga Robot',     image:'BigRobot.webp',   mult:1.8, couleur:'#ef4444', desc:'Le boss. Seule une équipe soudée peut le vaincre.' },
+  { id:'robot',     nom:'Robot Standard', image:'Robot.webp',      mult:0.7, couleur:'#94a3b8', desc:'Un bot basique, idéal pour s\'échauffer.',          role:'burst' },
+  { id:'boxer',     nom:'Robot Boxeur',   image:'BoxerRobot.webp', mult:1.0, couleur:'#f97316', desc:'Frappe fort, encaisse bien.',                        role:'tank'  },
+  { id:'sniper',    nom:'Robot Sniper',   image:'SniperRobot.webp',mult:1.3, couleur:'#38bdf8', desc:'Attaque à distance avec précision. Dangereux.',      role:'poke'  },
+  { id:'big_robot', nom:'Giga Robot',     image:'BigRobot.webp',   mult:1.8, couleur:'#ef4444', desc:'Le boss. Seule une équipe soudée peut le vaincre.',  role:'tank'  },
 ];
 
 /* ── État du combat ── */
@@ -79,6 +83,20 @@ function couleurVarianteLocal(b, v) {
   return b.couleur;
 }
 
+/* ── Badge HTML pour un rôle (Tank/Poke/Burst/Soutien) ── */
+function roleBadge(role, taille = '.55rem') {
+  const r = ROLES[role];
+  if (!r) return '';
+  return `<span style="font-size:${taille};font-weight:800;color:${r.couleur};white-space:nowrap">${r.emoji} ${r.label}</span>`;
+}
+
+/* ── Suffixe affiché dans le log selon le multiplicateur de rôle ── */
+function suffixeAvantage(mult) {
+  if (mult > 1) return ` <span style="color:#22c55e;font-weight:800">(avantage de type ×${mult})</span>`;
+  if (mult < 1) return ` <span style="color:#ef4444;font-weight:800">(désavantage de type ×${mult})</span>`;
+  return '';
+}
+
 /* ════════════════════════════════════════════════
    RENDU
 ════════════════════════════════════════════════ */
@@ -146,6 +164,7 @@ function rendreEquipe() {
           onerror="this.style.display='none'">
         <div style="font-size:.72rem;font-weight:800;color:${b.mort ? 'var(--text-muted)' : '#e2e8f0'};
           white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:80px">${b.brawler.nom}</div>
+        ${!b.mort ? `<div style="margin:.05rem 0">${roleBadge(b.brawler.role)}</div>` : ''}
         <div style="width:100%;height:5px;background:var(--border);border-radius:3px;overflow:hidden;margin-top:.2rem">
           <div style="height:100%;width:${pct}%;background:${barColor};border-radius:3px;transition:width .4s ease"></div>
         </div>
@@ -171,6 +190,7 @@ function rendreRobot() {
       style="width:80px;height:80px;object-fit:contain"
       onerror="this.style.display='none'">
     <div style="font-weight:900;color:${r.couleur};font-size:.85rem;margin-top:.3rem">${r.nom}</div>
+    <div style="margin:.15rem 0">${roleBadge(r.role, '.6rem')}</div>
     <div style="font-size:.65rem;color:var(--text-muted);margin-bottom:.3rem">${r.desc}</div>
     <div style="width:100%;height:7px;background:var(--border);border-radius:4px;overflow:hidden;margin-bottom:.2rem">
       <div id="cb-robot-bar" style="height:100%;width:${pct}%;background:${barColor};border-radius:4px;transition:width .4s ease"></div>
@@ -224,14 +244,18 @@ function rendreActions() {
     return;
   }
 
-  const vivants = brawlerVivant(combat);
-  const bActif  = vivants[combat.actifIndex % vivants.length];
-  const bloque  = combat.en_cours || !bActif;
+  const vivants   = brawlerVivant(combat);
+  const bActif    = vivants[combat.actifIndex % vivants.length];
+  const bloque    = combat.en_cours || !bActif;
+  const estSoutien = bActif && bActif.brawler.role === 'soutien';
 
   el.innerHTML = `
-    <div style="font-size:.7rem;color:var(--text-muted);text-align:center;margin-bottom:.4rem">
+    <div style="font-size:.7rem;color:var(--text-muted);text-align:center;margin-bottom:.2rem">
       Tour ${combat.tour} — 
       ${bActif ? `<span style="color:${couleurVarianteLocal(bActif.brawler, bActif.variante)};font-weight:800">${bActif.brawler.nom}</span> agit` : ''}
+    </div>
+    <div style="font-size:.6rem;color:var(--text-muted);text-align:center;margin-bottom:.4rem">
+      💥 Burst ▸ 🛡️ Tank ▸ 🎯 Poke ▸ 💥 Burst &nbsp;·&nbsp; 💚 Soutien soigne l'équipe
     </div>
     <div style="display:flex;gap:.5rem;flex-wrap:wrap;justify-content:center">
       <button class="cb-btn cb-btn-atk" onclick="actionCombat('attaque')" ${bloque ? 'disabled' : ''}>
@@ -240,7 +264,7 @@ function rendreActions() {
       <button class="cb-btn cb-btn-spe" onclick="actionCombat('speciale')"
         ${bloque || (bActif && !bActif.special) ? 'disabled' : ''}
         style="${bActif && !bActif.special ? 'opacity:.35' : ''}">
-        ✦ Spéciale${bActif && !bActif.special ? ' (utilisée)' : ''}
+        ${estSoutien ? '💚 Soin' : '✦ Spéciale'}${bActif && !bActif.special ? ' (utilisée)' : ''}
       </button>
       <button class="cb-btn cb-btn-def" onclick="actionCombat('defense')" ${bloque ? 'disabled' : ''}>
         🛡️ Défense
@@ -262,32 +286,55 @@ async function actionCombat(action) {
   rendreActions();
 
   const bActif = vivants[combat.actifIndex % vivants.length];
+  const role   = bActif.brawler.role;
 
   /* ── Tour du joueur ── */
   let degatJoueur = 0;
   let msgJoueur   = '';
+  let estSoin     = false;
 
   if (action === 'attaque') {
-    degatJoueur = Math.round(bActif.atk * (0.85 + Math.random() * 0.3));
-    msgJoueur   = `⚔️ <b style="color:${couleurVarianteLocal(bActif.brawler, bActif.variante)}">${bActif.brawler.nom}</b> attaque : <b style="color:#ef4444">-${degatJoueur} HP</b>`;
+    const mult  = multiplicateurRole(role, combat.robot.role);
+    degatJoueur = Math.round(bActif.atk * (0.85 + Math.random() * 0.3) * mult);
+    msgJoueur   = `⚔️ <b style="color:${couleurVarianteLocal(bActif.brawler, bActif.variante)}">${bActif.brawler.nom}</b> attaque${suffixeAvantage(mult)} : <b style="color:#ef4444">-${degatJoueur} HP</b>`;
     Sound.roll && Sound.roll();
+
   } else if (action === 'speciale') {
     if (!bActif.special) { combat.en_cours = false; return; }
-    bActif.special   = false;
-    degatJoueur = Math.round(bActif.atk * 2.5 * (0.9 + Math.random() * 0.2));
-    msgJoueur   = `✦ <b style="color:#a855f7">${bActif.brawler.nom} SPÉCIALE</b> : <b style="color:#ef4444">-${degatJoueur} HP !</b>`;
-    Sound.golden && Sound.golden();
+    bActif.special = false;
+
+    if (role === 'soutien') {
+      /* ── Spéciale Soutien : soigne toute l'équipe au lieu d'attaquer ── */
+      estSoin = true;
+      const soin = Math.round(bActif.atk * 1.8);
+      vivants.forEach(b => { b.hp = Math.min(b.hpMax, b.hp + soin); });
+      msgJoueur = `💚 <b style="color:#22c55e">${bActif.brawler.nom} SOUTIEN</b> : l'équipe est soignée de <b style="color:#22c55e">+${soin} HP</b> !`;
+      Sound.golden && Sound.golden();
+    } else {
+      const mult  = multiplicateurRole(role, combat.robot.role);
+      degatJoueur = Math.round(bActif.atk * 2.5 * (0.9 + Math.random() * 0.2) * mult);
+      msgJoueur   = `✦ <b style="color:#a855f7">${bActif.brawler.nom} SPÉCIALE</b>${suffixeAvantage(mult)} : <b style="color:#ef4444">-${degatJoueur} HP !</b>`;
+      Sound.golden && Sound.golden();
+    }
+
   } else if (action === 'defense') {
     bActif.bouclier = true;
-    degatJoueur = Math.round(bActif.atk * 0.5 * (0.8 + Math.random() * 0.4));
-    msgJoueur   = `🛡️ <b style="color:#38bdf8">${bActif.brawler.nom}</b> se défend et riposte : <b style="color:#ef4444">-${degatJoueur} HP</b>`;
+    const mult  = multiplicateurRole(role, combat.robot.role);
+    degatJoueur = Math.round(bActif.atk * 0.5 * (0.8 + Math.random() * 0.4) * mult);
+    msgJoueur   = `🛡️ <b style="color:#38bdf8">${bActif.brawler.nom}</b> se défend et riposte${suffixeAvantage(mult)} : <b style="color:#ef4444">-${degatJoueur} HP</b>`;
   }
 
   combat.robot.hp -= degatJoueur;
-  logCombat(msgJoueur, 'cb-log-joueur');
+  logCombat(msgJoueur, estSoin ? 'cb-log-soin' : 'cb-log-joueur');
 
-  /* Flash robot */
-  flashElement('cb-robot-img', '#ef4444');
+  if (estSoin) {
+    rendreEquipe();
+  }
+
+  /* Flash robot (sauf en cas de soin pur, qui ne le touche pas) */
+  if (!estSoin) {
+    flashElement('cb-robot-img', '#ef4444');
+  }
   rendreRobot();
 
   await attendre(500);
@@ -315,12 +362,13 @@ async function actionCombat(action) {
   await attendre(300);
 
   const reductionBouclier = bActif.bouclier ? 0.4 : 1;
-  const degatRobot = Math.round(combat.robot.atk * (0.8 + Math.random() * 0.4) * reductionBouclier);
+  const multDef    = multiplicateurRole(combat.robot.role, role);
+  const degatRobot = Math.round(combat.robot.atk * (0.8 + Math.random() * 0.4) * reductionBouclier * multDef);
   bActif.bouclier  = false;
 
   const cibleMsg = reductionBouclier < 1
     ? `🛡️ ${bActif.brawler.nom} bloque ! <b style="color:#f59e0b">-${degatRobot} HP</b> (réduit)`
-    : `🤖 ${combat.robot.nom} contre-attaque <b style="color:#38bdf8">${bActif.brawler.nom}</b> : <b style="color:#f59e0b">-${degatRobot} HP</b>`;
+    : `🤖 ${combat.robot.nom} contre-attaque${suffixeAvantage(multDef)} <b style="color:#38bdf8">${bActif.brawler.nom}</b> : <b style="color:#f59e0b">-${degatRobot} HP</b>`;
 
   bActif.hp -= degatRobot;
   logCombat(cibleMsg, 'cb-log-robot');
