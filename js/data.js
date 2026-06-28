@@ -18,30 +18,61 @@ const RARITIES = {
 
 const BRAWLERS = [
   /* ── Commun ── */
-  { id:1,  nom:"Shelly",   div:5,    couleur:"#94a3b8", emoji:"🔫", img:"ShellyNormal.webp",  cpsBase:1,  sellValue:1,  bgClass:"rarity-bg-common",      rarity:"common"     },
+  { id:1,  nom:"Shelly",   div:5,    couleur:"#94a3b8", emoji:"🔫", img:"ShellyNormal.webp",  cpsBase:1,  sellValue:1,  bgClass:"rarity-bg-common",      rarity:"common",     role:"burst"   },
 
   /* ── Rare ── */
-  { id:2,  nom:"Colt",     div:12,   couleur:"#22c55e", emoji:"🤠", img:"ColtNormal.webp",    cpsBase:2,  sellValue:2,  bgClass:"rarity-bg-rare",        rarity:"rare"       },
-  { id:3,  nom:"Nita",     div:25,   couleur:"#22c55e", emoji:"🐻", img:"NitaNormal.webp",    cpsBase:3,  sellValue:3,  bgClass:"rarity-bg-rare",        rarity:"rare"       },
-  { id:4,  nom:"Poco",     div:50,   couleur:"#22c55e", emoji:"🎸", img:"PocoNormal.webp",    cpsBase:5,  sellValue:5,  bgClass:"rarity-bg-rare",        rarity:"rare"       },
-  { id:5,  nom:"Barley",   div:100,  couleur:"#22c55e", emoji:"🍾", img:"BarleyNormal.webp",  cpsBase:8,  sellValue:7,  bgClass:"rarity-bg-rare",        rarity:"rare"       },
-  { id:6,  nom:"Bull",     div:200,  couleur:"#22c55e", emoji:"🐂", img:"BullNormal.webp",    cpsBase:12, sellValue:10, bgClass:"rarity-bg-rare",        rarity:"rare"       },
-  { id:7,  nom:"El Primo", div:400,  couleur:"#22c55e", emoji:"🥊", img:"PrimoNormal.webp",   cpsBase:18, sellValue:12, bgClass:"rarity-bg-rare",        rarity:"rare"       },
-  { id:8,  nom:"Rosa",     div:800,  couleur:"#22c55e", emoji:"🌹", img:"RosaNormal.webp",    cpsBase:25, sellValue:15, bgClass:"rarity-bg-rare",        rarity:"rare"       },
-  { id:9,  nom:"Brock",    div:300,  couleur:"#22c55e", emoji:"🚀", img:"BrockNormal.webp",   cpsBase:14, sellValue:11, bgClass:"rarity-bg-rare",        rarity:"rare"       },
+  { id:2,  nom:"Colt",     div:12,   couleur:"#22c55e", emoji:"🤠", img:"ColtNormal.webp",    cpsBase:2,  sellValue:2,  bgClass:"rarity-bg-rare",        rarity:"rare",       role:"burst"   },
+  { id:3,  nom:"Nita",     div:25,   couleur:"#22c55e", emoji:"🐻", img:"NitaNormal.webp",    cpsBase:3,  sellValue:3,  bgClass:"rarity-bg-rare",        rarity:"rare",       role:"tank"    },
+  { id:4,  nom:"Poco",     div:50,   couleur:"#22c55e", emoji:"🎸", img:"PocoNormal.webp",    cpsBase:5,  sellValue:5,  bgClass:"rarity-bg-rare",        rarity:"rare",       role:"soutien" },
+  { id:5,  nom:"Barley",   div:100,  couleur:"#22c55e", emoji:"🍾", img:"BarleyNormal.webp",  cpsBase:8,  sellValue:7,  bgClass:"rarity-bg-rare",        rarity:"rare",       role:"poke"    },
+  { id:6,  nom:"Bull",     div:200,  couleur:"#22c55e", emoji:"🐂", img:"BullNormal.webp",    cpsBase:12, sellValue:10, bgClass:"rarity-bg-rare",        rarity:"rare",       role:"tank"    },
+  { id:7,  nom:"El Primo", div:400,  couleur:"#22c55e", emoji:"🥊", img:"PrimoNormal.webp",   cpsBase:18, sellValue:12, bgClass:"rarity-bg-rare",        rarity:"rare",       role:"tank"    },
+  { id:8,  nom:"Rosa",     div:800,  couleur:"#22c55e", emoji:"🌹", img:"RosaNormal.webp",    cpsBase:25, sellValue:15, bgClass:"rarity-bg-rare",        rarity:"rare",       role:"tank"    },
+  { id:9,  nom:"Brock",    div:300,  couleur:"#22c55e", emoji:"🚀", img:"BrockNormal.webp",   cpsBase:14, sellValue:11, bgClass:"rarity-bg-rare",        rarity:"rare",       role:"poke"    },
 
   /* ── Super Rare ── */
-  { id:10, nom:"Jessie",   div:900,  couleur:"#3b82f6", emoji:"⚡", img:"JessieNormal.webp",  cpsBase:22, sellValue:18, bgClass:"rarity-bg-super-rare",  rarity:"super-rare" },
-  { id:11, nom:"Rico",     div:1000, couleur:"#3b82f6", emoji:"🎯", img:"RicoNormal.webp",    cpsBase:28, sellValue:22, bgClass:"rarity-bg-super-rare",  rarity:"super-rare" },
-  { id:12, nom:"Dyna",     div:1200, couleur:"#3b82f6", emoji:"💣", img:"DynaNormal.webp",    cpsBase:35, sellValue:28, bgClass:"rarity-bg-super-rare",  rarity:"super-rare" },
-  { id:13, nom:"Gus",      div:1400, couleur:"#3b82f6", emoji:"👻", img:"GusNormal.webp",     cpsBase:26, sellValue:20, bgClass:"rarity-bg-super-rare",  rarity:"super-rare" },
-  { id:16, nom:"Penny",    div:1500, couleur:"#3b82f6", emoji:"🏴‍☠️", img:"PennyNormal.webp",  cpsBase:24, sellValue:19, bgClass:"rarity-bg-super-rare",  rarity:"super-rare" },
-  { id:18, nom:"Carl",     div:1700, couleur:"#3b82f6", emoji:"🪃", img:"CarlNormal.webp",    cpsBase:29, sellValue:23, bgClass:"rarity-bg-super-rare",  rarity:"super-rare" },
-  { id:14, nom:"Jacky",    div:1900, couleur:"#3b82f6", emoji:"⛏️", img:"JackyNormal.webp",   cpsBase:30, sellValue:24, bgClass:"rarity-bg-super-rare",  rarity:"super-rare" },
-  { id:19, nom:"Darryl",   div:2200, couleur:"#3b82f6", emoji:"🛢️", img:"DarrylNormal.webp",  cpsBase:31, sellValue:24, bgClass:"rarity-bg-super-rare",  rarity:"super-rare" },
-  { id:17, nom:"Tick",     div:2600, couleur:"#3b82f6", emoji:"💥", img:"TickNormal.webp",    cpsBase:33, sellValue:26, bgClass:"rarity-bg-super-rare",  rarity:"super-rare" },
-  { id:15, nom:"Arkad",    div:3200, couleur:"#3b82f6", emoji:"🕹️", img:"8bitNormal.webp",    cpsBase:32, sellValue:25, bgClass:"rarity-bg-super-rare",  rarity:"super-rare" },
+  { id:10, nom:"Jessie",   div:900,  couleur:"#3b82f6", emoji:"⚡", img:"JessieNormal.webp",  cpsBase:22, sellValue:18, bgClass:"rarity-bg-super-rare",  rarity:"super-rare", role:"poke"    },
+  { id:11, nom:"Rico",     div:1000, couleur:"#3b82f6", emoji:"🎯", img:"RicoNormal.webp",    cpsBase:28, sellValue:22, bgClass:"rarity-bg-super-rare",  rarity:"super-rare", role:"burst"   },
+  { id:12, nom:"Dyna",     div:1200, couleur:"#3b82f6", emoji:"💣", img:"DynaNormal.webp",    cpsBase:35, sellValue:28, bgClass:"rarity-bg-super-rare",  rarity:"super-rare", role:"poke"    },
+  { id:13, nom:"Gus",      div:1400, couleur:"#3b82f6", emoji:"👻", img:"GusNormal.webp",     cpsBase:26, sellValue:20, bgClass:"rarity-bg-super-rare",  rarity:"super-rare", role:"soutien" },
+  { id:16, nom:"Penny",    div:1500, couleur:"#3b82f6", emoji:"🏴‍☠️", img:"PennyNormal.webp",  cpsBase:24, sellValue:19, bgClass:"rarity-bg-super-rare",  rarity:"super-rare", role:"poke"    },
+  { id:18, nom:"Carl",     div:1700, couleur:"#3b82f6", emoji:"🪃", img:"CarlNormal.webp",    cpsBase:29, sellValue:23, bgClass:"rarity-bg-super-rare",  rarity:"super-rare", role:"tank"    },
+  { id:14, nom:"Jacky",    div:1900, couleur:"#3b82f6", emoji:"⛏️", img:"JackyNormal.webp",   cpsBase:30, sellValue:24, bgClass:"rarity-bg-super-rare",  rarity:"super-rare", role:"tank"    },
+  { id:19, nom:"Darryl",   div:2200, couleur:"#3b82f6", emoji:"🛢️", img:"DarrylNormal.webp",  cpsBase:31, sellValue:24, bgClass:"rarity-bg-super-rare",  rarity:"super-rare", role:"tank"    },
+  { id:17, nom:"Tick",     div:2600, couleur:"#3b82f6", emoji:"💥", img:"TickNormal.webp",    cpsBase:33, sellValue:26, bgClass:"rarity-bg-super-rare",  rarity:"super-rare", role:"poke"    },
+  { id:15, nom:"Arkad",    div:3200, couleur:"#3b82f6", emoji:"🕹️", img:"8bitNormal.webp",    cpsBase:32, sellValue:25, bgClass:"rarity-bg-super-rare",  rarity:"super-rare", role:"burst"   },
 ];
+
+/* ════════════════════════════════════════════════
+   Rôles de combat — triangle de contre (façon pierre-feuille-ciseaux)
+
+     💥 Burst       contre  🛡️ Tank/Aggro   (×1.5 infligés / ×0.75 reçus)
+     🛡️ Tank/Aggro  contre  🎯 Poke/Sniper  (×1.5 infligés / ×0.75 reçus)
+     🎯 Poke/Sniper contre  💥 Burst        (×1.5 infligés / ×0.75 reçus)
+     💚 Soutien     → toujours neutre (×1), mais peut soigner son équipe
+════════════════════════════════════════════════ */
+const ROLES = {
+  tank:    { label:"Tank/Aggro",  emoji:"🛡️", couleur:"#ef4444" },
+  poke:    { label:"Poke/Sniper", emoji:"🎯", couleur:"#38bdf8" },
+  burst:   { label:"Burst",       emoji:"💥", couleur:"#f59e0b" },
+  soutien: { label:"Soutien",     emoji:"💚", couleur:"#22c55e" },
+};
+
+/* roleAttaquant → role qu'il contre */
+const ROLE_COUNTERS = {
+  burst: 'tank',
+  tank:  'poke',
+  poke:  'burst',
+};
+
+/* Multiplicateur de dégâts infligés par roleAttaquant à roleCible */
+function multiplicateurRole(roleAttaquant, roleCible) {
+  if (!roleAttaquant || !roleCible) return 1;
+  if (roleAttaquant === 'soutien' || roleCible === 'soutien') return 1;
+  if (ROLE_COUNTERS[roleAttaquant] === roleCible) return 1.5;
+  if (ROLE_COUNTERS[roleCible] === roleAttaquant) return 0.75;
+  return 1;
+}
 
 /* chanceMult : diviseur supplémentaire sur la chance de base
    cpsMult    : multiplicateur pièces/s quand équipé
