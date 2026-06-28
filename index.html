@@ -678,7 +678,7 @@
         <span class="toolbar-icon-text">ARENA</span>
         <span class="toolbar-card-label">Combat</span>
       </button>
-      <button class="toolbar-card" data-color="gold" onclick="ouvrirModal('modalLeaderboard')">
+      <button class="toolbar-card" data-color="gold" onclick="ouvrirModal('modalLeaderboard');afficherTransferId();chargerLeaderboard()">
         <span class="toolbar-icon-text">TOP</span>
         <span class="toolbar-card-label">Top CPS</span>
       </button>
@@ -878,6 +878,30 @@
       </div>
       <div id="leaderboardList" class="flex flex-col gap-1.5 max-h-64 overflow-y-auto pr-1">
         <div style="font-size:.75rem;text-align:center;color:var(--text-dim);padding:1rem 0">Chargement…</div>
+      </div>
+
+      <!-- Transfert de progression -->
+      <div style="margin-top:1rem;padding:.75rem;border-radius:12px;
+        background:rgba(59,130,246,.07);border:1px solid rgba(59,130,246,.2)">
+        <div style="font-size:.72rem;font-weight:800;color:#3b82f6;margin-bottom:.4rem">
+          🔄 Transférer ma progression
+        </div>
+        <div style="font-size:.65rem;color:var(--text-muted);margin-bottom:.5rem;line-height:1.5">
+          Donne ton ID de sauvegarde au staff pour transférer ta progression sur un autre appareil.
+        </div>
+        <div style="display:flex;align-items:center;gap:.4rem">
+          <code id="transferId" style="flex:1;font-family:var(--font-mono);font-size:.62rem;
+            background:rgba(0,0,0,.4);border:1px solid var(--border);border-radius:8px;
+            padding:.35rem .6rem;color:#5eead4;overflow:hidden;text-overflow:ellipsis;
+            white-space:nowrap;cursor:text">Chargement…</code>
+          <button onclick="copierTransferId()"
+            id="copyTransferBtn"
+            style="flex-shrink:0;background:rgba(59,130,246,.15);border:1px solid rgba(59,130,246,.4);
+              color:#3b82f6;border-radius:8px;padding:.35rem .7rem;font-size:.68rem;
+              font-weight:800;cursor:pointer;white-space:nowrap;transition:background .15s">
+            📋 Copier
+          </button>
+        </div>
       </div>
     </div>
   </div>
