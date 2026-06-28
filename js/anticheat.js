@@ -5,11 +5,13 @@
 ════════════════════════════════════════════════ */
 
 const ANTICHEAT = {
-  FENETRE_MS:      3000,   // fenêtre d'analyse
-  MAX_CLICS:       18,     // max clics humains dans la fenêtre (≈6/s)
-  INTERVALLE_MIN:  60,     // ms minimum entre 2 clics (en dessous = bot)
-  REGULARITE_SEUIL: 0.08,  // écart-type normalisé max (bot = très régulier)
-  BLOCAGE_MS:      15000,  // durée de blocage en ms
+  FENETRE_MS:        3000,  // fenêtre d'analyse
+  MAX_CLICS:         18,    // max clics humains dans la fenêtre (≈6/s)
+  INTERVALLE_MIN:    50,    // ms en dessous duquel un intervalle est jugé "trop rapide"
+  RATIO_RAPIDE_SEUIL: 0.5,  // proportion d'intervalles "trop rapides" requise pour suspecter un bot
+  REGULARITE_SEUIL:  0.10,  // écart-type normalisé max (bot = très régulier)
+  ECHANTILLON_MIN:   8,     // nb minimum de clics avant de pouvoir juger (évite les faux positifs sur petit échantillon)
+  BLOCAGE_MS:        15000, // durée de blocage en ms
 };
 
 let _acTimestamps  = [];   // timestamps des derniers clics manuels
@@ -37,10 +39,16 @@ function acEnregistrerClic() {
   return true; // clic autorisé
 }
 
-/* ── Détection : intervalle trop court OU trop régulier ── */
+/* ── Détection : un bot doit être À LA FOIS trop rapide ET trop régulier,
+   de façon SOUTENUE sur l'échantillon — pas juste un intervalle isolé.
+   Un humain qui spam-clique vite reste irrégulier (tremblement naturel du
+   geste, parfois un double-clic accidentel) ; un script, lui, est quasi
+   parfaitement uniforme sur la durée. Exiger les deux signaux ensemble,
+   sur une majorité d'intervalles, évite de bannir un joueur juste parce
+   qu'il clique fort et vite. ── */
 function _acDetecterBot() {
   const ts = _acTimestamps;
-  if (ts.length < 5) return false;
+  if (ts.length < ANTICHEAT.ECHANTILLON_MIN) return false;
 
   // Calculer les intervalles
   const intervalles = [];
@@ -48,9 +56,11 @@ function _acDetecterBot() {
     intervalles.push(ts[i] - ts[i - 1]);
   }
 
-  // Trop rapide ?
-  const minInterval = Math.min(...intervalles);
-  if (minInterval < ANTICHEAT.INTERVALLE_MIN) return true;
+  // Trop rapide ? on regarde la PROPORTION d'intervalles sous le seuil,
+  // pas seulement le minimum (un seul clic très rapproché — ex. rebond
+  // matériel d'un clic de souris — ne doit pas suffire à bannir).
+  const nbTropRapides = intervalles.filter(i => i < ANTICHEAT.INTERVALLE_MIN).length;
+  const ratioTropRapides = nbTropRapides / intervalles.length;
 
   // Trop régulier ? (écart-type faible = bot)
   const moy = intervalles.reduce((a, b) => a + b, 0) / intervalles.length;
@@ -58,9 +68,10 @@ function _acDetecterBot() {
   const ecartType = Math.sqrt(variance);
   const regularite = ecartType / moy; // coefficient de variation
 
-  if (regularite < ANTICHEAT.REGULARITE_SEUIL) return true;
+  const tropRapideSoutenu = ratioTropRapides >= ANTICHEAT.RATIO_RAPIDE_SEUIL;
+  const tropRegulier      = regularite < ANTICHEAT.REGULARITE_SEUIL;
 
-  return false;
+  return tropRapideSoutenu && tropRegulier;
 }
 
 /* ── Déclenche le blocage ── */
