@@ -91,6 +91,9 @@ COPY TickNormal.webp     /usr/share/nginx/html/TickNormal.webp
 COPY CarlNormal.webp     /usr/share/nginx/html/CarlNormal.webp
 COPY DarrylNormal.webp   /usr/share/nginx/html/DarrylNormal.webp
 
+# Easter egg Naell
+COPY Naell.webp            /usr/share/nginx/html/Naell.webp
+
 # Images des rôles (à la racine)
 COPY Tanks.webp          /usr/share/nginx/html/Tanks.webp
 COPY Pokes.webp          /usr/share/nginx/html/Pokes.webp
