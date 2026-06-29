@@ -129,7 +129,7 @@ function checkAchievementsVictoire(robotId) {
   initAchievements();
   if (!etat.robotsBattus) etat.robotsBattus = {};
   etat.robotsBattus[robotId] = true;
-  const tousTypes = APPARITIONS_ROBOTS.every(r => etat.robotsBattus[r.id]);
+  const tousTypes = Object.values(APPARITIONS_ROBOTS).every(r => etat.robotsBattus[r.id]);
   if (tousTypes) debloquerAchievement('all_robots_beaten');
 }
 
