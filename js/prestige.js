@@ -114,7 +114,7 @@ function lancerRenaissance() {
 
   // Reset de la progression d'un "run" (les stats lifetime et les bonus de prestige restent)
   etat.pieces      = 0;
-  etat.inventaire  = {};
+  _invMutation(() => { etat.inventaire  = {}; });
   etat.petsEquipes = new Array(nbSlotsMax()).fill(null);
   etat.historique  = [];
   etat.niveau      = 1;

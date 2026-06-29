@@ -22,9 +22,11 @@ function vendreItem(brawlerId, variante) {
   const b       = BRAWLERS.find(b => b.id === brawlerId);
   const v       = VARIANTES[variante];
   const prix    = Math.round(b.sellValue * v.sellMult * venteBonusPrestige());
-  etat.pieces  += prix;
-  etat.inventaire[k]--;
-  if (etat.inventaire[k] === 0) delete etat.inventaire[k];
+  _invMutation(() => {
+    etat.pieces  += prix;
+    etat.inventaire[k]--;
+    if (etat.inventaire[k] === 0) delete etat.inventaire[k];
+  });
 
   Sound.coin();
   mettreAJourCompteurs();

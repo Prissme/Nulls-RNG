@@ -19,11 +19,12 @@ function crafterVariante(brawlerId, recette) {
   const disponibles = qty - equipes;
   if (disponibles < recette.qte) return;
 
-  etat.inventaire[kSrc] -= recette.qte;
-  if (etat.inventaire[kSrc] === 0) delete etat.inventaire[kSrc];
-
   const kDst = cle(brawlerId, recette.vers);
-  etat.inventaire[kDst] = (etat.inventaire[kDst] || 0) + 1;
+  _invMutation(() => {
+    etat.inventaire[kSrc] -= recette.qte;
+    if (etat.inventaire[kSrc] === 0) delete etat.inventaire[kSrc];
+    etat.inventaire[kDst] = (etat.inventaire[kDst] || 0) + 1;
+  });
 
   progresserQuete('craft', { variante: recette.vers });
 
@@ -47,11 +48,12 @@ function crafterTout(brawlerId, recette) {
     const disponibles = qty - equipes;
     if (disponibles < recette.qte) break;
 
-    etat.inventaire[kSrc] -= recette.qte;
-    if (etat.inventaire[kSrc] === 0) delete etat.inventaire[kSrc];
-
     const kDst = cle(brawlerId, recette.vers);
-    etat.inventaire[kDst] = (etat.inventaire[kDst] || 0) + 1;
+    _invMutation(() => {
+      etat.inventaire[kSrc] -= recette.qte;
+      if (etat.inventaire[kSrc] === 0) delete etat.inventaire[kSrc];
+      etat.inventaire[kDst] = (etat.inventaire[kDst] || 0) + 1;
+    });
 
     progresserQuete('craft', { variante: recette.vers });
     nbCraft++;

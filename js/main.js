@@ -32,5 +32,8 @@
   demarrerCPS();
   initialiserQuetes();
   initCloudSave();
+  // Protection anti-exploit console (inventaire, pièces)
+  // Appelé après initCloudSave pour que l'inventaire soit chargé avant d'installer le Proxy
+  setTimeout(initProtectionInventaire, 1500);
   demarrerHugeWished();
 })();

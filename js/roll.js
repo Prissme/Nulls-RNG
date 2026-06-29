@@ -49,7 +49,7 @@ function effectuerRoll() {
   const inventaireAvant = Object.assign({}, etat.inventaire);
 
   const k = cle(brawler.id, variante);
-  etat.inventaire[k] = (etat.inventaire[k] || 0) + 1;
+  _invMutation(() => { etat.inventaire[k] = (etat.inventaire[k] || 0) + 1; });
 
   etat.historique.unshift({ brawler, variante });
   if (etat.historique.length > 6) etat.historique.pop();

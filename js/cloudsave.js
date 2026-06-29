@@ -117,7 +117,7 @@ function appliquerEtatSauvegarde(saved) {
   if (typeof saved.pieces       === 'number') etat.pieces       = saved.pieces;
   if (typeof saved.totalRolls   === 'number') etat.totalRolls   = saved.totalRolls;
   if (typeof saved.totalPotions === 'number') etat.totalPotions = saved.totalPotions;
-  if (saved.inventaire && typeof saved.inventaire === 'object') etat.inventaire = saved.inventaire;
+  if (saved.inventaire && typeof saved.inventaire === 'object') _invMutation(() => { etat.inventaire = saved.inventaire; });
   if (typeof saved.niveau === 'number') etat.niveau = saved.niveau;
   if (typeof saved.xp     === 'number') etat.xp     = saved.xp;
   if (Array.isArray(saved.quetes)) etat.quetes = saved.quetes;
