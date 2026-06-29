@@ -46,6 +46,9 @@ function redemarrerAutoRoll() {
   } else if (etat.speedActive) {
     delai = Math.round(base / 3);
     badgeText = 'x3';
+  } else if (etat.naellSpeedUnlocked) {
+    delai = Math.round(base / 2);
+    badgeText = '×2 👑';
   }
   etat.autoInterval = setInterval(effectuerRoll, delai);
   const badge = document.getElementById('autoSpeedBadge');
@@ -53,7 +56,7 @@ function redemarrerAutoRoll() {
     badge.textContent = badgeText;
     badge.style.background = etat.wishedActive ? 'rgba(245,158,11,.18)' : 'rgba(56,189,248,.12)';
     badge.style.color = etat.wishedActive ? '#f59e0b' : 'var(--accent-sky)';
-    badge.classList.toggle('hidden', !etat.speedActive && !etat.wishedActive);
+    badge.classList.toggle('hidden', !etat.speedActive && !etat.wishedActive && !etat.naellSpeedUnlocked);
   }
 }
 
