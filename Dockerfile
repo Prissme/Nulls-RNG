@@ -91,6 +91,12 @@ COPY TickNormal.webp     /usr/share/nginx/html/TickNormal.webp
 COPY CarlNormal.webp     /usr/share/nginx/html/CarlNormal.webp
 COPY DarrylNormal.webp   /usr/share/nginx/html/DarrylNormal.webp
 
+# Images des rôles (à la racine)
+COPY Tanks.webp          /usr/share/nginx/html/Tanks.webp
+COPY Pokes.webp          /usr/share/nginx/html/Pokes.webp
+COPY Bursts.webp         /usr/share/nginx/html/Bursts.webp
+COPY Soutiens.webp       /usr/share/nginx/html/Soutiens.webp
+
 # Images additionnelles (dans le sous-dossier images/)
 COPY HugeWished.webp     /usr/share/nginx/html/HugeWished.webp
 COPY Coins.webp          /usr/share/nginx/html/images/Coins.webp
