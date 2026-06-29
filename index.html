@@ -1,316 +1,1059 @@
-/* ════════════════════════════════════════════════
-   cloudsave.js — Sauvegarde cloud (Supabase)
-════════════════════════════════════════════════ */
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Null's RNG</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&family=Space+Mono:wght@400;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="css/styles.css" />
+  <style>
+    /* ── DESIGN TOKENS ── */
+    :root {
+      --bg:           #09090f;
+      --bg-card:      #10101a;
+      --bg-panel:     #14141f;
+      --border:       #1e1e2e;
+      --border-hi:    #2a2a3f;
+      --text:         #e2e2f0;
+      --text-muted:   #5a5a7a;
+      --text-dim:     #3a3a58;
 
-let sb              = null;
-let cloudUserId     = null;
-let cloudAutoSaveId = null;
+      --accent-gold:  #d4a843;
+      --accent-purple:#8b5cf6;
+      --accent-sky:   #38bdf8;
+      --accent-pink:  #c084fc;
+      --accent-green: #4ade80;
 
-/* ── Le cloud save est-il configuré ? ── */
-function cloudConfigure() {
-  return !!(window.supabase && window.SUPABASE_URL && window.SUPABASE_ANON_KEY);
-}
+      --shiny-col:    #38bdf8;
+      --golden-col:   #d4a843;
+      --rainbow-col:  #c084fc;
 
-/* ── Badge de statut (header) ── */
-function setCloudStatus(text, color) {
-  const chip = document.getElementById('cloudStatusChip');
-  const txt  = document.getElementById('cloudStatusText');
-  if (!chip || !txt) return;
-  chip.style.display     = 'flex';
-  chip.style.borderColor = `${color}66`;
-  txt.textContent = text;
-  txt.style.color = color;
-}
+      --font-ui:      'Space Grotesk', sans-serif;
+      --font-mono:    'Space Mono', monospace;
 
-/* ── Initialisation : connexion anonyme + chargement ── */
-async function initCloudSave() {
-  if (!cloudConfigure()) return;
-
-  setCloudStatus('🔄 Connexion…', '#94a3b8');
-  sb = window.supabase.createClient(window.SUPABASE_URL, window.SUPABASE_ANON_KEY);
-
-  try {
-    let { data: { session } } = await sb.auth.getSession();
-
-    if (!session) {
-      const { data, error } = await sb.auth.signInAnonymously();
-      if (error) throw error;
-      session = data.session;
+      /* keep bg-photo / bg-grid from original styles.css working */
     }
-    cloudUserId = session.user.id;
-    _cloudJWT   = session.access_token;
 
-    // Garde le JWT à jour si Supabase rafraîchit la session en arrière-plan
-    // (sinon la sauvegarde à la fermeture de l'onglet utiliserait un token expiré/invalide)
-    sb.auth.onAuthStateChange((_event, newSession) => {
-      if (newSession && newSession.access_token) _cloudJWT = newSession.access_token;
-    });
+    *, *::before, *::after { box-sizing: border-box; }
 
-    afficherTransferId(); // FIX: afficher l'UUID dès qu'il est disponible
-    await chargerEtatCloud();
-    setCloudStatus('☁️ Cloud actif', '#22c55e');
-    demarrerAutoSaveCloud();
-  } catch (err) {
-    console.error('[cloudsave] Échec initialisation :', err);
-    setCloudStatus('⚠️ Cloud indisponible', '#f87171');
-  }
-}
-
-/* ── Expose le client Supabase pour leaderboard.js ── */
-function getCloudClient() {
-  return sb;
-}
-function getCloudUserId() {
-  return cloudUserId;
-}
-
-let _cloudJWT = null;
-function getCloudJWT() {
-  return _cloudJWT;
-}
-
-/* ── Sérialisation ── */
-function serialiserEtat() {
-  return {
-    pieces:            etat.pieces,
-    totalRolls:        etat.totalRolls,
-    totalPotions:      etat.totalPotions,
-    inventaire:        etat.inventaire,
-    petsEquipes:       etat.petsEquipes.map(p => p ? { brawlerId: p.brawler.id, variante: p.variante } : null),
-    niveau:            etat.niveau,
-    xp:                etat.xp,
-    quetes:            etat.quetes,
-    quetesRefreshFin:  etat.quetesRefreshFin,
-    prestige:          etat.prestige,
-    combatsGagnes:     etat.combatsGagnes  || 0,
-    naellSpeedUnlocked: etat.naellSpeedUnlocked || false,
-    brawlerPP:         etat.brawlerPP      || {},
-    brawlerSkills:     etat.brawlerSkills  || {},
-    /* rétro-compat legacy */
-    pointsPouvoir:     0,
-    skillsAchetes:     {},
-    cristaux:          etat.cristaux,
-    prestigeUpgrades:  etat.prestigeUpgrades,
-    achievements:      etat.achievements,
-    shellyStreak:      etat.shellyStreak,
-    robotsBattus:      etat.robotsBattus,
-    indexUnlocks:      etat.indexUnlocks,
-    /* ── Potions : on sauvegarde le timestamp de fin pour restaurer au refresh ── */
-    luckActive:   etat.luckActive,
-    luckFin:      etat.luckFin,
-    speedActive:  etat.speedActive,
-    speedFin:     etat.speedFin,
-    shinyActive:  etat.shinyActive,
-    shinyFin:     etat.shinyFin,
-    wishedActive: etat.wishedActive,
-    wishedFin:    etat.wishedFin,
-    goldenActive: etat.goldenActive,
-    goldenFin:    etat.goldenFin,
-  };
-}
-
-/* ── Applique une sauvegarde chargée à l'état courant ── */
-function appliquerEtatSauvegarde(saved) {
-  if (!saved) return;
-
-  if (typeof saved.pieces       === 'number') etat.pieces       = saved.pieces;
-  if (typeof saved.totalRolls   === 'number') etat.totalRolls   = saved.totalRolls;
-  if (typeof saved.totalPotions === 'number') etat.totalPotions = saved.totalPotions;
-  if (saved.inventaire && typeof saved.inventaire === 'object') etat.inventaire = saved.inventaire;
-  if (typeof saved.niveau === 'number') etat.niveau = saved.niveau;
-  if (typeof saved.xp     === 'number') etat.xp     = saved.xp;
-  if (Array.isArray(saved.quetes)) etat.quetes = saved.quetes;
-  if (typeof saved.quetesRefreshFin === 'number') etat.quetesRefreshFin = saved.quetesRefreshFin;
-
-  if (typeof saved.prestige === 'number') etat.prestige = saved.prestige;
-  if (typeof saved.combatsGagnes === 'number') etat.combatsGagnes = saved.combatsGagnes;
-  if (typeof saved.naellSpeedUnlocked === 'boolean') etat.naellSpeedUnlocked = saved.naellSpeedUnlocked;
-  if (saved.brawlerPP     && typeof saved.brawlerPP     === 'object') etat.brawlerPP     = saved.brawlerPP;
-  if (saved.brawlerSkills && typeof saved.brawlerSkills === 'object') etat.brawlerSkills = saved.brawlerSkills;
-  if (typeof saved.cristaux === 'number') etat.cristaux = saved.cristaux;
-  if (saved.prestigeUpgrades && typeof saved.prestigeUpgrades === 'object') {
-    etat.prestigeUpgrades = Object.assign(
-      { luck: 0, cps: 0, vente: 0, slot: 0, vitesse: 0 },
-      saved.prestigeUpgrades
-    );
-  }
-
-  if (saved.achievements && typeof saved.achievements === 'object') etat.achievements = saved.achievements;
-  if (typeof saved.shellyStreak === 'number') etat.shellyStreak = saved.shellyStreak;
-  if (saved.robotsBattus && typeof saved.robotsBattus === 'object') etat.robotsBattus = saved.robotsBattus;
-  if (saved.indexUnlocks && typeof saved.indexUnlocks === 'object') etat.indexUnlocks = saved.indexUnlocks;
-
-  /* ── Restaurer les potions encore actives (temps restant > 0) ── */
-  const now = Date.now();
-  ['luck', 'speed', 'shiny', 'wished', 'golden'].forEach(type => {
-    const fin = saved[`${type}Fin`];
-    if (saved[`${type}Active`] && typeof fin === 'number' && fin > now) {
-      etat[`${type}Active`] = true;
-      etat[`${type}Fin`]    = fin;
-      // Redémarre le timer visuel après que le DOM est prêt
-      setTimeout(() => demarrerTimer(type), 100);
+    body {
+      margin: 0;
+      background: var(--bg);
+      color: var(--text);
+      font-family: var(--font-ui);
+      -webkit-font-smoothing: antialiased;
     }
-  });
 
-  ajusterSlotsPets();
-
-  if (Array.isArray(saved.petsEquipes)) {
-    etat.petsEquipes = saved.petsEquipes.map(p => {
-      if (!p) return null;
-      const b = BRAWLERS.find(b => b.id === p.brawlerId);
-      return b ? { brawler: b, variante: p.variante } : null;
-    });
-    ajusterSlotsPets();
-  }
-}
-
-/* ── Charger l'état depuis Supabase ── */
-async function chargerEtatCloud() {
-  if (!sb || !cloudUserId) return;
-
-  const { data, error } = await sb
-    .from('game_saves')
-    .select('state')
-    .eq('user_id', cloudUserId)
-    .maybeSingle();
-
-  if (error) { console.error('[cloudsave] Erreur chargement :', error); return; }
-  if (!data || !data.state) return;
-
-  appliquerEtatSauvegarde(data.state);
-
-  afficherInventaire();
-  afficherHistorique();
-  afficherTableRarites();
-  afficherPets();
-  afficherCraft();
-  afficherQuetes();
-  afficherPrestige();
-  if (typeof afficherAchievements === 'function') afficherAchievements();
-  mettreAJourCompteurs();
-  redemarrerAutoRoll();
-  
-  // FIX leaderboard : envoyer le vrai CPS après restauration des pets
-  if (typeof mettreAJourScoreLeaderboard === 'function') mettreAJourScoreLeaderboard();
-}
-
-/* ── Sauvegarder l'état vers Supabase ── */
-async function sauvegarderEtatCloud() {
-  if (!sb || !cloudUserId) return;
-
-  const payload = serialiserEtat();
-  const { error } = await sb
-    .from('game_saves')
-    .upsert({ user_id: cloudUserId, state: payload }, { onConflict: 'user_id' });
-
-  if (error) {
-    console.error('[cloudsave] Erreur sauvegarde :', error);
-    setCloudStatus('⚠️ Erreur sauvegarde', '#f87171');
-  } else {
-    setCloudStatus('☁️ Sauvegardé', '#22c55e');
-  }
-
-  return payload; // utile pour sendBeacon
-}
-
-/* ── Sauvegarde synchrone via sendBeacon (avant fermeture de l'onglet) ── */
-function sauvegarderBeacon() {
-  if (!sb || !cloudUserId || !window.SUPABASE_URL || !window.SUPABASE_ANON_KEY) return;
-
-  const payload = JSON.stringify(serialiserEtat());
-  // Endpoint REST Supabase — upsert via beacon (fire-and-forget garanti même si l'onglet ferme)
-  const url = `${window.SUPABASE_URL}/rest/v1/game_saves?on_conflict=user_id`;
-  const body = JSON.stringify({ user_id: cloudUserId, state: JSON.parse(payload) });
-  const blob = new Blob([body], { type: 'application/json' });
-
-  // sendBeacon ignore la réponse mais garantit l'envoi avant fermeture
-  if (navigator.sendBeacon) {
-    // sendBeacon ne supporte pas les headers custom ; on passe par une sauvegarde async rapide
-    // en tant que fallback synchrone-ish
-    sauvegarderEtatCloud().catch(() => {});
-  }
-}
-
-/* ── Sauvegarde périodique + à la fermeture de l'onglet ── */
-function demarrerAutoSaveCloud() {
-  clearInterval(cloudAutoSaveId);
-  cloudAutoSaveId = setInterval(() => {
-    sauvegarderEtatCloud();
-    if (typeof mettreAJourScoreLeaderboard === 'function') mettreAJourScoreLeaderboard();
-  }, 15000);
-
-  // FIX : utiliser visibilitychange (fiable) en plus de beforeunload
-  document.addEventListener('visibilitychange', () => {
-    if (document.visibilityState === 'hidden') {
-      // Tenter une sauvegarde synchrone via keepalive fetch
-      _sauvegarderBeaconFetch();
+    /* ── HEADER ── */
+    .nr-header {
+      position: sticky;
+      top: 0;
+      z-index: 50;
+      background: rgba(9,9,15,.92);
+      backdrop-filter: blur(12px);
+      border-bottom: 1px solid var(--border);
+      padding: .6rem 1.25rem;
+      display: flex;
+      align-items: center;
+      gap: .75rem;
+      flex-wrap: wrap;
     }
-  });
 
-  window.addEventListener('beforeunload', () => {
-    _sauvegarderBeaconFetch();
-  });
-}
+    .nr-logo {
+      font-family: var(--font-mono);
+      font-size: 1rem;
+      font-weight: 700;
+      letter-spacing: -.02em;
+      color: var(--text);
+      flex-shrink: 0;
+      display: flex;
+      align-items: center;
+      gap: .5rem;
+    }
+    .nr-logo-mark {
+      width: 24px; height: 24px;
+      background: var(--accent-purple);
+      border-radius: 5px;
+      display: inline-flex; align-items: center; justify-content: center;
+      font-size: .7rem; font-weight: 700; color: #fff;
+    }
 
-/* ── Sauvegarde via fetch keepalive (fonctionne pendant beforeunload) ── */
-function _sauvegarderBeaconFetch() {
-  if (!cloudUserId || !_cloudJWT || !window.SUPABASE_URL || !window.SUPABASE_ANON_KEY) return;
+    .nr-stats {
+      display: flex;
+      align-items: center;
+      gap: .4rem;
+      flex-wrap: wrap;
+      margin-left: auto;
+    }
 
-  const body = JSON.stringify([{ user_id: cloudUserId, state: serialiserEtat() }]);
-  const url  = `${window.SUPABASE_URL}/rest/v1/game_saves?on_conflict=user_id`;
+    .stat-chip {
+      display: inline-flex;
+      align-items: center;
+      gap: .4rem;
+      padding: .3rem .7rem;
+      border-radius: 8px;
+      background: var(--bg-card);
+      border: 1px solid var(--border);
+      font-size: .78rem;
+      font-family: var(--font-ui);
+      white-space: nowrap;
+    }
+    .stat-chip .val {
+      font-weight: 700;
+      font-family: var(--font-mono);
+      font-size: .82rem;
+    }
+    .stat-chip .lbl { color: var(--text-muted); }
 
-  try {
-    fetch(url, {
-      method:  'POST',
-      headers: {
-        'Content-Type':  'application/json',
-        'apikey':        window.SUPABASE_ANON_KEY,
-        // FIX : il faut le JWT de SESSION (utilisateur) ici, pas la clé anon.
-        // Avec la clé anon comme Bearer, auth.uid() vaut NULL côté Supabase et la
-        // policy RLS (auth.uid() = user_id) rejette l'upsert → la sauvegarde à la
-        // fermeture/changement d'onglet échouait silencieusement (fetch keepalive,
-        // pas de vérification du status), d'où la perte de progression au retour.
-        'Authorization': `Bearer ${_cloudJWT}`,
-        'Prefer':        'resolution=merge-duplicates',
-      },
-      body:    body,
-      keepalive: true, // clé : garantit l'envoi même si l'onglet ferme
-    });
-  } catch (e) {
-    // Silencieux — on est en train de quitter la page
+    /* XP chip special */
+    .xp-chip {
+      flex-direction: column;
+      align-items: stretch;
+      gap: .3rem;
+      min-width: 140px;
+    }
+    .xp-chip-row { display: flex; align-items: center; justify-content: space-between; gap: .5rem; }
+    .xp-track {
+      width: 100%; height: 3px;
+      background: var(--border-hi);
+      border-radius: 2px;
+      overflow: hidden;
+    }
+    .xp-track .timer-bar { height: 100%; border-radius: 2px; }
+
+    /* icon-btn (mute) */
+    .icon-btn {
+      width: 30px; height: 30px;
+      border: 1px solid var(--border);
+      border-radius: 7px;
+      background: var(--bg-card);
+      color: var(--text-muted);
+      font-size: .8rem;
+      cursor: pointer;
+      display: flex; align-items: center; justify-content: center;
+      transition: border-color .15s, color .15s;
+    }
+    .icon-btn:hover { border-color: var(--border-hi); color: var(--text); }
+
+    /* cloud chip */
+    #cloudStatusChip { font-size: .72rem; color: var(--text-muted); }
+
+    /* ── MAIN ── */
+    .nr-main {
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 1.25rem;
+      padding: 1.5rem 1.25rem 3rem;
+    }
+
+    /* ── CARD ── */
+    .card {
+      background: var(--bg-card);
+      border: 1px solid var(--border);
+      border-radius: 14px;
+    }
+
+    /* ── ROLL HUB ── */
+    .hub-roll {
+      width: 100%;
+      max-width: 560px;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 1.5rem;
+      padding: 2.5rem 2rem;
+    }
+
+    #resultZone {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: .5rem;
+      min-height: 100px;
+      justify-content: center;
+    }
+
+    /* replace emoji slot with a framed image/text zone */
+    #resultEmoji {
+      font-size: 4rem;
+      line-height: 1;
+      filter: drop-shadow(0 0 24px rgba(139,92,246,.5));
+    }
+
+    #resultName {
+      font-size: 1.05rem;
+      font-weight: 600;
+      letter-spacing: .02em;
+      color: var(--text-muted);
+    }
+
+    #resultSub {
+      font-size: .8rem;
+      color: var(--text-dim);
+      font-family: var(--font-mono);
+    }
+
+    /* ROLL BUTTON */
+    #rollBtn {
+      padding: .75rem 3rem;
+      font-family: var(--font-mono);
+      font-size: .95rem;
+      font-weight: 700;
+      letter-spacing: .12em;
+      text-transform: uppercase;
+      color: #fff;
+      background: var(--accent-purple);
+      border: none;
+      border-radius: 10px;
+      cursor: pointer;
+      transition: opacity .15s, transform .1s, box-shadow .2s;
+      box-shadow: 0 0 24px rgba(139,92,246,.35);
+    }
+    #rollBtn:hover { opacity: .9; box-shadow: 0 0 32px rgba(139,92,246,.5); }
+    #rollBtn:active { transform: scale(.97); }
+
+    /* AUTO ROLL ROW */
+    .autoroll-row {
+      display: flex;
+      align-items: center;
+      gap: .75rem;
+    }
+    .autoroll-label {
+      font-size: .78rem;
+      color: var(--text-muted);
+      letter-spacing: .05em;
+      text-transform: uppercase;
+    }
+
+    /* toggle — keep existing JS classes, restyle */
+    .toggle-track {
+      width: 36px; height: 20px;
+      background: var(--border-hi);
+      border-radius: 999px;
+      position: relative;
+      cursor: pointer;
+      transition: background .2s;
+    }
+    .toggle-track.on { background: var(--accent-purple); }
+    .toggle-thumb {
+      width: 14px; height: 14px;
+      background: #fff;
+      border-radius: 50%;
+      position: absolute;
+      top: 3px; left: 3px;
+      transition: left .2s;
+    }
+    .toggle-track.on .toggle-thumb { left: 19px; }
+
+    #autoLabel {
+      font-family: var(--font-mono);
+      font-size: .72rem;
+      font-weight: 700;
+      color: var(--text-muted);
+    }
+
+    #autoSpeedBadge {
+      font-size: .7rem;
+      font-weight: 700;
+      font-family: var(--font-mono);
+      padding: .15rem .5rem;
+      border-radius: 999px;
+      background: rgba(56,189,248,.15);
+      color: var(--accent-sky);
+      letter-spacing: .05em;
+    }
+
+    /* ── HISTORY STRIP ── */
+    .history-strip {
+      display: flex;
+      gap: .4rem;
+      flex-wrap: wrap;
+      justify-content: center;
+      width: 100%;
+      max-width: 560px;
+    }
+
+    /* ── PETS ── */
+    .hub-pets {
+      width: 100%;
+      max-width: 700px;
+      padding: 1.25rem 1.5rem;
+    }
+
+    .hub-title {
+      font-size: .82rem;
+      font-weight: 700;
+      letter-spacing: .1em;
+      text-transform: uppercase;
+      color: var(--text-muted);
+      margin: 0;
+    }
+    .hub-subtitle {
+      font-size: .72rem;
+      color: var(--text-dim);
+    }
+
+    /* ── TOOLBAR GRID ── */
+    .toolbar-grid {
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap: .6rem;
+      width: 100%;
+      max-width: 700px;
+    }
+    @media (max-width: 480px) {
+      .toolbar-grid { grid-template-columns: repeat(2, 1fr); }
+    }
+
+    .toolbar-card {
+      position: relative;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      gap: .4rem;
+      padding: .9rem .5rem;
+      background: var(--bg-card);
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      cursor: pointer;
+      transition: border-color .15s, background .15s;
+      font-family: var(--font-ui);
+    }
+    .toolbar-card:hover {
+      border-color: var(--border-hi);
+      background: var(--bg-panel);
+    }
+
+    .toolbar-card-icon {
+      font-size: 1.3rem;
+      line-height: 1;
+      /* if using image-based icons later, size them here */
+    }
+
+    .toolbar-card-label {
+      font-size: .72rem;
+      font-weight: 600;
+      letter-spacing: .06em;
+      text-transform: uppercase;
+      color: var(--text-muted);
+    }
+    .toolbar-card:hover .toolbar-card-label { color: var(--text); }
+
+    /* icon swaps — replace emojis with SVG letters/shapes */
+    .icon-inv::before   { content: "INV"; }
+    .icon-shop::before  { content: "SHOP"; }
+    .icon-quest::before { content: "QTE"; }
+    .icon-craft::before { content: "CRF"; }
+    .icon-rarity::before{ content: "RNG"; }
+    .icon-combat::before{ content: "ARENE"; }
+    .icon-lb::before    { content: "TOP"; }
+    .icon-prestige::before{ content: "REN"; }
+
+    .toolbar-icon-text {
+      font-family: var(--font-mono);
+      font-size: .62rem;
+      font-weight: 700;
+      letter-spacing: .06em;
+      color: var(--accent-purple);
+      background: rgba(139,92,246,.12);
+      border: 1px solid rgba(139,92,246,.25);
+      border-radius: 5px;
+      padding: .2rem .4rem;
+      line-height: 1;
+    }
+    .toolbar-card[data-color="gold"] .toolbar-icon-text   { color: var(--accent-gold); background: rgba(212,168,67,.1); border-color: rgba(212,168,67,.2); }
+    .toolbar-card[data-color="sky"] .toolbar-icon-text    { color: var(--accent-sky);  background: rgba(56,189,248,.1); border-color: rgba(56,189,248,.2); }
+    .toolbar-card[data-color="pink"] .toolbar-icon-text   { color: var(--accent-pink); background: rgba(192,132,252,.1); border-color: rgba(192,132,252,.2); }
+    .toolbar-card[data-color="green"] .toolbar-icon-text  { color: var(--accent-green);background: rgba(74,222,128,.1);  border-color: rgba(74,222,128,.2); }
+
+    /* badge dot */
+    .badge-dot {
+      position: absolute;
+      top: .45rem; right: .55rem;
+      width: 7px; height: 7px;
+      background: var(--accent-purple);
+      border-radius: 50%;
+      border: 1.5px solid var(--bg-card);
+    }
+
+    /* ── MODALS ── */
+    .modal-overlay {
+      position: fixed;
+      inset: 0;
+      background: rgba(0,0,0,.7);
+      backdrop-filter: blur(4px);
+      display: none;
+      align-items: center;
+      justify-content: center;
+      z-index: 100;
+      padding: 1rem;
+    }
+    .modal-overlay.open { display: flex; }
+
+    .modal-box {
+      background: var(--bg-card);
+      border: 1px solid var(--border-hi);
+      border-radius: 16px;
+      width: 100%;
+      max-width: 480px;
+      max-height: 85vh;
+      display: flex;
+      flex-direction: column;
+      overflow: hidden;
+    }
+    .modal-box-sm { max-width: 420px; }
+
+    .modal-header {
+      display: flex;
+      align-items: center;
+      gap: .75rem;
+      padding: 1rem 1.25rem;
+      border-bottom: 1px solid var(--border);
+      flex-shrink: 0;
+    }
+    .modal-header h2 {
+      margin: 0;
+      font-size: .9rem;
+      font-weight: 700;
+      letter-spacing: .08em;
+      text-transform: uppercase;
+      flex: 1;
+    }
+    .modal-close {
+      width: 28px; height: 28px;
+      background: transparent;
+      border: 1px solid var(--border);
+      border-radius: 6px;
+      color: var(--text-muted);
+      font-size: .8rem;
+      cursor: pointer;
+      display: flex; align-items: center; justify-content: center;
+      transition: border-color .15s, color .15s;
+      flex-shrink: 0;
+    }
+    .modal-close:hover { border-color: var(--border-hi); color: var(--text); }
+
+    .modal-body {
+      overflow-y: auto;
+      padding: 1rem 1.25rem;
+      flex: 1;
+    }
+
+    /* modal tabs */
+    .modal-tabs {
+      display: flex;
+      gap: .3rem;
+      padding: .6rem 1.25rem 0;
+      flex-wrap: wrap;
+    }
+    .tab-btn {
+      padding: .25rem .65rem;
+      border-radius: 6px;
+      border: 1px solid var(--border);
+      background: transparent;
+      color: var(--text-muted);
+      font-size: .75rem;
+      font-weight: 600;
+      font-family: var(--font-ui);
+      cursor: pointer;
+      transition: border-color .15s, color .15s, background .15s;
+    }
+    .tab-btn:hover, .tab-btn.active {
+      border-color: var(--accent-purple);
+      color: var(--text);
+      background: rgba(139,92,246,.1);
+    }
+
+    /* equip best btn */
+    .equip-best-btn {
+      width: 100%;
+      padding: .5rem;
+      border-radius: 8px;
+      border: 1px solid rgba(139,92,246,.3);
+      background: rgba(139,92,246,.08);
+      color: var(--accent-purple);
+      font-size: .78rem;
+      font-weight: 700;
+      font-family: var(--font-ui);
+      letter-spacing: .06em;
+      text-transform: uppercase;
+      cursor: pointer;
+      transition: background .15s, border-color .15s;
+    }
+    .equip-best-btn:hover {
+      background: rgba(139,92,246,.16);
+      border-color: rgba(139,92,246,.5);
+    }
+
+    /* boutique item cards */
+    .potion-card {
+      border-radius: 10px;
+      padding: .85rem 1rem;
+      border: 1px solid var(--border);
+      background: var(--bg-panel);
+      display: flex;
+      flex-direction: column;
+      gap: .35rem;
+    }
+    .potion-card-title { font-size: .85rem; font-weight: 700; }
+    .potion-card-desc  { font-size: .73rem; color: var(--text-muted); }
+    .potion-buy-btn {
+      width: 100%;
+      padding: .5rem;
+      border: none;
+      border-radius: 8px;
+      font-size: .8rem;
+      font-weight: 700;
+      font-family: var(--font-ui);
+      letter-spacing: .04em;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: .4rem;
+      transition: opacity .15s;
+    }
+    .potion-buy-btn:hover { opacity: .85; }
+
+    .divider { height: 1px; background: var(--border); margin: .25rem 0; }
+
+    /* timer bar (shared) */
+    .timer-bar {
+      height: 100%;
+      border-radius: 999px;
+      transition: width .1s linear;
+    }
+
+    /* ── SCROLLBAR ── */
+    ::-webkit-scrollbar { width: 4px; }
+    ::-webkit-scrollbar-track { background: transparent; }
+    ::-webkit-scrollbar-thumb { background: var(--border-hi); border-radius: 2px; }
+  </style>
+</head>
+<body>
+<div class="bg-photo"></div>
+<div class="bg-grid"></div>
+<div class="z-content flex flex-col min-h-screen">
+
+  <!-- HEADER -->
+  <header class="nr-header">
+    <div class="nr-logo">
+      <span class="nr-logo-mark">N</span>
+      Null's RNG
+    </div>
+
+    <div class="nr-stats">
+      <!-- cloud status -->
+      <div class="stat-chip" id="cloudStatusChip" style="display:none">
+        <span id="cloudStatusText" class="lbl">Sync…</span>
+      </div>
+
+      <!-- mute -->
+      <button id="muteBtn" onclick="toggleMute()" class="icon-btn" title="Son">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" id="muteIcon">
+          <polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5"/>
+          <path d="M19.07 4.93a10 10 0 0 1 0 14.14"/>
+          <path d="M15.54 8.46a5 5 0 0 1 0 7.07"/>
+        </svg>
+      </button>
+
+      <!-- level / XP -->
+      <div class="stat-chip xp-chip" style="border-color:rgba(212,168,67,.3)">
+        <div class="xp-chip-row">
+          <span class="val" id="levelLabel" style="color:var(--accent-gold)">Niv. 1</span>
+          <span class="lbl text-xs" id="xpLabel">0/100 XP</span>
+        </div>
+        <div class="xp-track">
+          <div id="xpBar" class="timer-bar" style="width:0%;background:linear-gradient(90deg,#b8860b,var(--accent-gold))"></div>
+        </div>
+      </div>
+
+      <!-- coins -->
+      <div class="stat-chip" id="coinChip">
+        <img src="./images/Coins.webp" alt="" style="width:26px;height:26px" class="object-contain" onerror="this.style.display='none'">
+        <span id="coinsDisplay" class="val">0</span>
+        <span class="lbl">pièces</span>
+        <span id="cpsDisplay" style="color:var(--accent-gold);font-family:var(--font-mono);font-size:.72rem">
+          +<span id="cpsVal">0</span>/s
+        </span>
+      </div>
+
+      <!-- cristaux -->
+      <div class="stat-chip" style="border-color:rgba(192,132,252,.3)">
+        <span class="val" id="cristauxDisplay" style="color:var(--accent-pink)">0</span>
+        <span class="lbl">cristaux</span>
+      </div>
+
+      <!-- points de pouvoir -->
+      <div class="stat-chip" style="border-color:rgba(168,85,247,.4);cursor:pointer"
+           onclick="ouvrirSkillTreeGlobal()">
+        <span class="val" id="ppDisplay" style="color:#a855f7">0</span>
+        <span class="lbl">⚡ PP</span>
+      </div>
+
+      <!-- rolls -->
+      <div class="stat-chip">
+        <span class="val" id="rollsDisplay">0</span>
+        <span class="lbl">rolls</span>
+      </div>
+
+      <!-- luck -->
+      <div class="stat-chip" style="border-color:rgba(139,92,246,.3)">
+        <span class="val" id="luckLabel" style="color:var(--accent-purple)">x1</span>
+        <span class="lbl">luck</span>
+        <span id="luckTimerHdr" class="hidden" style="font-family:var(--font-mono);font-size:.7rem;font-weight:700;color:var(--accent-purple)"></span>
+      </div>
+
+      <!-- vitesse -->
+      <div class="stat-chip" style="border-color:rgba(56,189,248,.3)">
+        <span class="val" id="speedLabel" style="color:var(--accent-sky)">x1</span>
+        <span class="lbl">vitesse</span>
+        <span id="speedTimerHdr" class="hidden" style="font-family:var(--font-mono);font-size:.7rem;font-weight:700;color:var(--accent-sky)"></span>
+      </div>
+    </div>
+  </header>
+
+  <!-- MAIN -->
+  <main class="nr-main">
+
+    <!-- ROLL -->
+    <section class="hub-roll card">
+      <div id="resultZone">
+        <div id="resultEmoji" style="font-size:4rem;line-height:1">—</div>
+        <div id="resultName" style="color:var(--text-muted);font-size:1rem;font-weight:600">Rien encore</div>
+        <div id="resultSub" style="font-family:var(--font-mono);font-size:.75rem;color:var(--text-dim)"></div>
+      </div>
+      <button id="rollBtn" onclick="if(acEnregistrerClic() && acRollAutorise()) effectuerRoll()">ROLL</button>
+      <div class="autoroll-row">
+        <span class="autoroll-label">Auto</span>
+        <div class="toggle-track" id="autoToggle" onclick="toggleAutoRoll()">
+          <div class="toggle-thumb"></div>
+        </div>
+        <span id="autoLabel" style="font-family:var(--font-mono);font-size:.72rem;font-weight:700;color:var(--text-muted)">OFF</span>
+        <span id="autoSpeedBadge" class="hidden" style="font-family:var(--font-mono);font-size:.7rem;font-weight:700;padding:.15rem .5rem;border-radius:999px;background:rgba(56,189,248,.12);color:var(--accent-sky)">x3</span>
+      </div>
+    </section>
+
+    <!-- HISTORY -->
+    <div id="historyList" class="history-strip"></div>
+
+    <!-- PETS -->
+    <section class="hub-pets card">
+      <div style="display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:.5rem;margin-bottom:1rem">
+        <h2 class="hub-title">Pets équipés</h2>
+        <span class="hub-subtitle">Génèrent des pièces/s — slots bonus via Renaissance</span>
+      </div>
+      <div class="grid grid-cols-3 gap-3" id="petSlots"></div>
+      <div style="margin-top:.75rem;font-size:.78rem;text-align:center;color:var(--text-muted);display:flex;align-items:center;justify-content:center;gap:.4rem">
+        Total :
+        <span id="totalCPS" style="font-weight:700;font-family:var(--font-mono);color:var(--accent-gold)">0</span>
+        <img src="./images/Coins.webp" alt="" style="width:22px;height:22px" class="object-contain" onerror="this.style.display='none'">/s
+      </div>
+    </section>
+
+    <!-- TOOLBAR -->
+    <nav class="toolbar-grid">
+      <button class="toolbar-card" onclick="ouvrirModal('modalInventaire')">
+        <span class="toolbar-icon-text">INV</span>
+        <span class="toolbar-card-label">Inventaire</span>
+        <span class="badge-dot hidden" id="quetesBadge_inv" style="display:none"></span>
+      </button>
+      <button class="toolbar-card" data-color="gold" onclick="ouvrirModal('modalBoutique')">
+        <span class="toolbar-icon-text">SHOP</span>
+        <span class="toolbar-card-label">Boutique</span>
+      </button>
+      <button class="toolbar-card" data-color="green" onclick="ouvrirModal('modalQuetes')">
+        <span class="toolbar-icon-text">QTE</span>
+        <span class="toolbar-card-label">Quêtes</span>
+        <span class="badge-dot hidden" id="quetesBadge"></span>
+      </button>
+      <button class="toolbar-card" onclick="ouvrirModal('modalCraft')">
+        <span class="toolbar-icon-text">CRAFT</span>
+        <span class="toolbar-card-label">Craft</span>
+        <span class="badge-dot hidden" id="craftBadge"></span>
+      </button>
+      <button class="toolbar-card" data-color="sky" onclick="ouvrirModal('modalRaretes')">
+        <span class="toolbar-icon-text">DROP</span>
+        <span class="toolbar-card-label">Raretés</span>
+      </button>
+      <button class="toolbar-card" data-color="pink" onclick="ouvrirModal('modalCombat')">
+        <span class="toolbar-icon-text">ARENA</span>
+        <span class="toolbar-card-label">Combat</span>
+      </button>
+      <button class="toolbar-card" data-color="sky" onclick="ouvrirSkillTreeGlobal()">
+        <span class="toolbar-icon-text">⚡</span>
+        <span class="toolbar-card-label">Pouvoirs</span>
+        <span class="badge-dot hidden" id="skillTreeBadge"></span>
+      </button>
+      <button class="toolbar-card" data-color="gold" onclick="ouvrirModal('modalLeaderboard');afficherTransferId();chargerLeaderboard()">
+        <span class="toolbar-icon-text">TOP</span>
+        <span class="toolbar-card-label">Top CPS</span>
+      </button>
+      <button class="toolbar-card" data-color="pink" onclick="ouvrirModal('modalPrestige')">
+        <span class="toolbar-icon-text">REN</span>
+        <span class="toolbar-card-label">Renaissance</span>
+        <span class="badge-dot hidden" id="prestigeBadge"></span>
+      </button>
+      <button class="toolbar-card" data-color="green" onclick="ouvrirModal('modalIndex');afficherIndex()">
+        <span class="toolbar-icon-text">IDX</span>
+        <span class="toolbar-card-label">Index</span>
+      </button>
+      <button class="toolbar-card" data-color="gold" onclick="ouvrirModal('modalAchievements');afficherAchievements()">
+        <span class="toolbar-icon-text">🏆</span>
+        <span class="toolbar-card-label">Succès</span>
+        <span class="badge-dot hidden" id="achievementsBadge"></span>
+      </button>
+    </nav>
+
+  </main>
+</div>
+
+<!-- ── MODALS ── -->
+
+<!-- INVENTAIRE -->
+<div class="modal-overlay" id="modalInventaire" onclick="fermerModalOverlay(event,'modalInventaire')">
+  <div class="modal-box">
+    <div class="modal-header">
+      <h2>Inventaire</h2>
+      <button class="modal-close" onclick="fermerModal('modalInventaire')">✕</button>
+    </div>
+    <div class="modal-tabs" id="variantTabs">
+      <button class="tab-btn active" onclick="filtrerVariante('all', this)">Tous</button>
+      <button class="tab-btn" onclick="filtrerVariante('normal', this)">Base</button>
+      <button class="tab-btn" onclick="filtrerVariante('shiny', this)" style="color:var(--shiny-col)">Shiny</button>
+      <button class="tab-btn" onclick="filtrerVariante('golden', this)" style="color:var(--golden-col)">Golden</button>
+      <button class="tab-btn" onclick="filtrerVariante('rainbow', this)" style="color:var(--rainbow-col)">Rainbow</button>
+    </div>
+    <div class="modal-tabs" id="sortTabs" style="padding-top:.4rem">
+      <span style="font-size:.72rem;color:var(--text-muted);display:flex;align-items:center">Trier :</span>
+      <button class="tab-btn active" onclick="trierInventaire('rarete', this)">Rareté</button>
+      <button class="tab-btn" onclick="trierInventaire('revenus', this)">Revenus</button>
+    </div>
+    <div style="padding:.6rem 1.25rem 0">
+      <button class="equip-best-btn" onclick="equiperMeilleurs()">Equiper les meilleurs pets</button>
+    </div>
+    <div id="inventoryGrid" class="modal-body flex flex-col gap-2"></div>
+  </div>
+</div>
+
+<!-- BOUTIQUE -->
+<div class="modal-overlay" id="modalBoutique" onclick="fermerModalOverlay(event,'modalBoutique')">
+  <div class="modal-box modal-box-sm">
+    <div class="modal-header">
+      <h2>Boutique</h2>
+      <button class="modal-close" onclick="fermerModal('modalBoutique')">✕</button>
+    </div>
+    <div class="modal-body flex flex-col gap-3">
+
+      <!-- Potion Chance -->
+      <div class="potion-card" style="border-color:rgba(139,92,246,.25)">
+        <div class="potion-card-title" style="color:var(--accent-purple)">Potion de Chance</div>
+        <div class="potion-card-desc">Luck x2 — 30 secondes</div>
+        <div id="luckBarWrap" class="hidden" style="height:4px;background:var(--border);border-radius:2px;overflow:hidden;margin-top:.25rem">
+          <div id="luckBar" class="timer-bar" style="width:100%;background:var(--accent-purple)"></div>
+        </div>
+        <div id="luckCountdown" class="hidden" style="font-family:var(--font-mono);font-size:.72rem;font-weight:700;color:var(--accent-purple)"></div>
+      </div>
+      <button id="buyLuckBtn" onclick="acheterPotion('luck')" class="potion-buy-btn"
+        style="background:linear-gradient(135deg,#7c3aed,var(--accent-purple));color:#fff">
+        Acheter — 250 <img src="./images/Coins.webp" alt="" class="w-5 h-5 object-contain" onerror="this.style.display='none'">
+      </button>
+
+      <div class="divider"></div>
+
+      <!-- Potion Vitesse -->
+      <div class="potion-card" style="border-color:rgba(56,189,248,.25)">
+        <div class="potion-card-title" style="color:var(--accent-sky)">Potion de Vitesse</div>
+        <div class="potion-card-desc">Auto-Roll x3 — 20 secondes</div>
+        <div id="speedBarWrap" class="hidden" style="height:4px;background:var(--border);border-radius:2px;overflow:hidden;margin-top:.25rem">
+          <div id="speedBar" class="timer-bar" style="width:100%;background:var(--accent-sky)"></div>
+        </div>
+        <div id="speedCountdown" class="hidden" style="font-family:var(--font-mono);font-size:.72rem;font-weight:700;color:var(--accent-sky)"></div>
+      </div>
+      <button id="buySpeedBtn" onclick="acheterPotion('speed')" class="potion-buy-btn"
+        style="background:linear-gradient(135deg,#0369a1,var(--accent-sky));color:#fff">
+        Acheter — 400 <img src="./images/Coins.webp" alt="" class="w-5 h-5 object-contain" onerror="this.style.display='none'">
+      </button>
+
+      <div class="divider"></div>
+
+      <!-- Potion Shiny -->
+      <div class="potion-card" style="border-color:rgba(56,189,248,.2)">
+        <div class="potion-card-title" style="color:var(--accent-sky)">Potion de Shiny</div>
+        <div class="potion-card-desc">
+          Rolls Shiny garantis — 5 secondes
+          <span id="shinyTimerHdr" class="hidden" style="font-family:var(--font-mono);font-weight:700;color:var(--accent-sky)"></span>
+        </div>
+        <div id="shinyBarWrap" class="hidden" style="height:4px;background:var(--border);border-radius:2px;overflow:hidden;margin-top:.25rem">
+          <div id="shinyBar" class="timer-bar" style="width:100%;background:var(--accent-sky)"></div>
+        </div>
+        <div id="shinyCountdown" class="hidden" style="font-family:var(--font-mono);font-size:.72rem;font-weight:700;color:var(--accent-sky)"></div>
+      </div>
+      <button id="buyShinyBtn" onclick="acheterPotion('shiny')" class="potion-buy-btn"
+        style="background:linear-gradient(135deg,#0284c7,var(--accent-sky));color:#fff">
+        Acheter — 100 000 <img src="./images/Coins.webp" alt="" class="w-5 h-5 object-contain" onerror="this.style.display='none'">
+      </button>
+
+      <div class="divider"></div>
+
+      <!-- Potion Wished -->
+      <div class="potion-card" style="border-color:rgba(245,158,11,.3)">
+        <div class="potion-card-title" style="color:#f59e0b">Potion Wished</div>
+        <div class="potion-card-desc">
+          Auto-Roll ×6.7 — 67 secondes
+          <span id="wishedTimerHdr" class="hidden" style="font-family:var(--font-mono);font-weight:700;color:#f59e0b"></span>
+        </div>
+        <div id="wishedBarWrap" class="hidden" style="height:4px;background:var(--border);border-radius:2px;overflow:hidden;margin-top:.25rem">
+          <div id="wishedBar" class="timer-bar" style="width:100%;background:#f59e0b"></div>
+        </div>
+        <div id="wishedCountdown" class="hidden" style="font-family:var(--font-mono);font-size:.72rem;font-weight:700;color:#f59e0b"></div>
+      </div>
+      <button id="buyWishedBtn" onclick="acheterPotion('wished')" class="potion-buy-btn"
+        style="background:linear-gradient(135deg,#b45309,#f59e0b);color:#fff">
+        Acheter — 670 000 <img src="./images/Coins.webp" alt="" class="w-5 h-5 object-contain" onerror="this.style.display='none'">
+      </button>
+
+      <div class="divider"></div>
+
+      <!-- Potion Golden -->
+      <div class="potion-card" style="border-color:rgba(251,191,36,.35)">
+        <div class="potion-card-title" style="color:#fbbf24">Potion Golden</div>
+        <div class="potion-card-desc">
+          Rolls Golden garantis — 10 secondes
+          <span id="goldenTimerHdr" class="hidden" style="font-family:var(--font-mono);font-weight:700;color:#fbbf24"></span>
+        </div>
+        <div id="goldenBarWrap" class="hidden" style="height:4px;background:var(--border);border-radius:2px;overflow:hidden;margin-top:.25rem">
+          <div id="goldenBar" class="timer-bar" style="width:100%;background:#fbbf24"></div>
+        </div>
+        <div id="goldenCountdown" class="hidden" style="font-family:var(--font-mono);font-size:.72rem;font-weight:700;color:#fbbf24"></div>
+      </div>
+      <button id="buyGoldenBtn" onclick="acheterPotion('golden')" class="potion-buy-btn"
+        style="background:linear-gradient(135deg,#a16207,#fbbf24);color:#1a1a2e">
+        Acheter — 5 000 000 <img src="./images/Coins.webp" alt="" class="w-5 h-5 object-contain" onerror="this.style.display='none'">
+      </button>
+
+    </div>
+  </div>
+</div>
+
+<!-- QUETES -->
+<div class="modal-overlay" id="modalQuetes" onclick="fermerModalOverlay(event,'modalQuetes')">
+  <div class="modal-box modal-box-sm">
+    <div class="modal-header">
+      <h2>Quêtes</h2>
+      <span id="quetesTimer" style="font-family:var(--font-mono);font-size:.72rem;font-weight:700;color:var(--text-muted)"></span>
+      <button class="modal-close" onclick="fermerModal('modalQuetes')">✕</button>
+    </div>
+    <div id="quetesList" class="modal-body"></div>
+  </div>
+</div>
+
+<!-- CRAFT -->
+<div class="modal-overlay" id="modalCraft" onclick="fermerModalOverlay(event,'modalCraft')">
+  <div class="modal-box modal-box-sm">
+    <div class="modal-header">
+      <h2>Craft</h2>
+      <span style="font-size:.72rem;color:var(--text-muted)">10× → upgrade</span>
+      <button class="modal-close" onclick="fermerModal('modalCraft')">✕</button>
+    </div>
+    <div class="modal-body">
+      <div style="font-size:.72rem;color:var(--text-muted);display:flex;flex-direction:column;gap:.2rem;margin-bottom:.75rem">
+        <div>10 Normal → 1 Shiny</div>
+        <div>10 Shiny → 1 Golden</div>
+        <div>10 Golden → 1 Rainbow</div>
+      </div>
+      <div id="craftList"></div>
+    </div>
+  </div>
+</div>
+
+<!-- RARETES -->
+<div class="modal-overlay" id="modalRaretes" onclick="fermerModalOverlay(event,'modalRaretes')">
+  <div class="modal-box modal-box-sm">
+    <div class="modal-header">
+      <h2>Raretés</h2>
+      <button class="modal-close" onclick="fermerModal('modalRaretes')">✕</button>
+    </div>
+    <div class="modal-body">
+      <div id="rarityTable" class="flex flex-col gap-1 text-xs"></div>
+    </div>
+  </div>
+</div>
+
+<!-- COMBAT -->
+<div class="modal-overlay" id="modalCombat" onclick="fermerModalOverlay(event,'modalCombat')">
+  <div class="modal-box" style="max-width:640px">
+    <div class="modal-header">
+      <h2>Arene de Combat</h2>
+      <button class="modal-close" onclick="fermerModal('modalCombat')">✕</button>
+    </div>
+    <div class="modal-body" style="padding:.75rem 1rem 1rem">
+      <div id="combatZone"></div>
+    </div>
+  </div>
+</div>
+
+<!-- SKILL TREE -->
+<div class="modal-overlay" id="modalSkillTree" onclick="fermerModalOverlay(event,'modalSkillTree')">
+  <div class="modal-box" style="max-width:680px">
+    <div class="modal-header">
+      <h2 id="skillTreeTitle">⚡ Arbre de Compétences</h2>
+      <button class="modal-close" onclick="fermerModal('modalSkillTree')">✕</button>
+    </div>
+    <div class="modal-body" style="padding:.75rem 1rem 1rem">
+      <div id="skillTreeZone"></div>
+    </div>
+  </div>
+</div>
+
+<!-- LEADERBOARD -->
+<div class="modal-overlay" id="modalLeaderboard" onclick="fermerModalOverlay(event,'modalLeaderboard')">
+  <div class="modal-box modal-box-sm">
+    <div class="modal-header">
+      <h2>Top Joueurs — CPS</h2>
+      <button class="modal-close" onclick="fermerModal('modalLeaderboard')">✕</button>
+    </div>
+    <div class="modal-body">
+      <div style="font-size:.72rem;color:var(--text-muted);text-align:center;margin-bottom:.75rem">
+        Classement mondial par revenus par seconde.
+      </div>
+      <!-- Pseudo -->
+      <div style="display:flex;gap:.5rem;align-items:center;margin-bottom:.75rem">
+        <input
+          id="pseudoInput"
+          type="text"
+          maxlength="20"
+          placeholder="Ton pseudo…"
+          style="flex:1;background:rgba(255,255,255,.06);border:1px solid var(--border);
+                 border-radius:10px;padding:.4rem .75rem;color:#e2e8f0;font-size:.8rem;
+                 font-family:inherit;outline:none;"
+          oninput="this.style.borderColor='var(--accent-purple)'"
+        />
+        <button
+          onclick="sauvegarderPseudo()"
+          style="background:rgba(168,85,247,.2);border:1px solid rgba(168,85,247,.5);
+                 color:#a855f7;border-radius:10px;padding:.4rem .85rem;font-size:.78rem;
+                 font-weight:700;cursor:pointer;letter-spacing:.04em;white-space:nowrap;
+                 transition:background .15s;"
+          onmouseover="this.style.background='rgba(168,85,247,.35)'"
+          onmouseout="this.style.background='rgba(168,85,247,.2)'"
+        >Valider</button>
+      </div>
+      <div id="leaderboardList" class="flex flex-col gap-1.5 max-h-64 overflow-y-auto pr-1">
+        <div style="font-size:.75rem;text-align:center;color:var(--text-dim);padding:1rem 0">Chargement…</div>
+      </div>
+
+      <!-- Transfert de progression -->
+      <div style="margin-top:1rem;padding:.75rem;border-radius:12px;
+        background:rgba(59,130,246,.07);border:1px solid rgba(59,130,246,.2)">
+        <div style="font-size:.72rem;font-weight:800;color:#3b82f6;margin-bottom:.4rem">
+          🔄 Transférer ma progression
+        </div>
+        <div style="font-size:.65rem;color:var(--text-muted);margin-bottom:.5rem;line-height:1.5">
+          Donne ton ID de sauvegarde au staff pour transférer ta progression sur un autre appareil.
+        </div>
+        <div style="display:flex;align-items:center;gap:.4rem">
+          <code id="transferId" style="flex:1;font-family:var(--font-mono);font-size:.62rem;
+            background:rgba(0,0,0,.4);border:1px solid var(--border);border-radius:8px;
+            padding:.35rem .6rem;color:#5eead4;overflow:hidden;text-overflow:ellipsis;
+            white-space:nowrap;cursor:text">Chargement…</code>
+          <button onclick="copierTransferId()"
+            id="copyTransferBtn"
+            style="flex-shrink:0;background:rgba(59,130,246,.15);border:1px solid rgba(59,130,246,.4);
+              color:#3b82f6;border-radius:8px;padding:.35rem .7rem;font-size:.68rem;
+              font-weight:800;cursor:pointer;white-space:nowrap;transition:background .15s">
+            📋 Copier
+          </button>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- INDEX -->
+<div class="modal-overlay" id="modalIndex" onclick="fermerModalOverlay(event,'modalIndex')">
+  <div class="modal-box modal-box-sm">
+    <div class="modal-header">
+      <h2>📖 Index des Brawlers</h2>
+      <button class="modal-close" onclick="fermerModal('modalIndex')">✕</button>
+    </div>
+    <div class="modal-body">
+      <div id="indexZone"></div>
+    </div>
+  </div>
+</div>
+
+<!-- PRESTIGE -->
+<div class="modal-overlay" id="modalPrestige" onclick="fermerModalOverlay(event,'modalPrestige')">
+  <div class="modal-box modal-box-sm">
+    <div class="modal-header">
+      <h2>Renaissance</h2>
+      <button class="modal-close" onclick="fermerModal('modalPrestige')">✕</button>
+    </div>
+    <div class="modal-body">
+      <div id="prestigeZone"></div>
+    </div>
+  </div>
+</div>
+
+<!-- ACHIEVEMENTS -->
+<div class="modal-overlay" id="modalAchievements" onclick="fermerModalOverlay(event,'modalAchievements')">
+  <div class="modal-box modal-box-sm">
+    <div class="modal-header">
+      <h2>🏆 Succès</h2>
+      <button class="modal-close" onclick="fermerModal('modalAchievements')">✕</button>
+    </div>
+    <div class="modal-body">
+      <div id="achievementsList"></div>
+    </div>
+  </div>
+</div>
+
+<!-- SCRIPTS (unchanged) -->
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.js"></script>
+<script src="js/config.js"></script>
+<script src="js/data.js?v=3"></script>
+<script src="js/state.js"></script>
+<script src="js/sound.js"></script>
+<script src="js/ui.js"></script>
+<script src="js/discord.js"></script>
+<script src="js/roll.js"></script>
+<script src="js/potions.js"></script>
+<script src="js/autoroll.js"></script>
+<script src="js/pets.js"></script>
+<script src="js/inventory.js"></script>
+<script src="js/craft.js"></script>
+<script src="js/prestige.js"></script>
+<script src="js/quetes.js"></script>
+<script src="js/combat.js?v=3"></script>
+  <script src="js/skilltree.js"></script>
+<script src="js/leaderboard.js"></script>
+<script src="js/modals.js"></script>
+<script src="js/cloudsave.js"></script>
+<script src="js/hugewished.js"></script>
+<script src="js/index.js"></script>
+<script src="js/achievements.js"></script>
+<script src="js/anticheat.js"></script>
+<script src="js/naell.js"></script>
+<script src="js/main.js"></script>
+<script>
+  function toggleMute() {
+    const on = Sound.toggle();
+    const icon = document.getElementById('muteIcon');
+    if (!on) {
+      icon.innerHTML = `<polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5"/>
+        <line x1="23" y1="9" x2="17" y2="15"/><line x1="17" y1="9" x2="23" y2="15"/>`;
+    } else {
+      icon.innerHTML = `<polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5"/>
+        <path d="M19.07 4.93a10 10 0 0 1 0 14.14"/>
+        <path d="M15.54 8.46a5 5 0 0 1 0 7.07"/>`;
+    }
   }
-}
-
-/* ── Affiche l'UUID dans la zone de transfert ── */
-function afficherTransferId() {
-  const el = document.getElementById('transferId');
-  if (!el) return;
-  if (cloudUserId) {
-    el.textContent = cloudUserId;
-    el.style.color = '#5eead4';
-  } else if (!cloudConfigure()) {
-    el.textContent = 'Cloud non configuré';
-    el.style.color = 'var(--text-muted)';
-  }
-  // Si cloud configuré mais pas encore connecté, on garde "Chargement…"
-  // jusqu'à ce que initCloudSave() appelle afficherTransferId()
-}
-
-/* ── Copie l'UUID dans le presse-papier ── */
-function copierTransferId() {
-  if (!cloudUserId) return;
-  navigator.clipboard.writeText(cloudUserId).then(() => {
-    const btn = document.getElementById('copyTransferBtn');
-    if (!btn) return;
-    btn.textContent = '✓ Copié !';
-    btn.style.background = 'rgba(34,197,94,.2)';
-    btn.style.borderColor = 'rgba(34,197,94,.5)';
-    btn.style.color = '#22c55e';
-    setTimeout(() => {
-      btn.textContent = '📋 Copier';
-      btn.style.background = 'rgba(59,130,246,.15)';
-      btn.style.borderColor = 'rgba(59,130,246,.4)';
-      btn.style.color = '#3b82f6';
-    }, 2000);
-  });
-}
+</script>
+</body>
+</html>
