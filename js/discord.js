@@ -192,7 +192,10 @@ async function envoyerNotifDiscord(brawler, variante, username) {
   try {
     const res = await fetch('/api/discord', {
       method:  'POST',
-      headers: { 'Content-Type': 'application/json' },
+      headers: {
+        'Content-Type':    'application/json',
+        'X-Proxy-Secret':  window.PROXY_SECRET || '',
+      },
       body:    JSON.stringify(payload),
     });
     if (!res.ok) {
