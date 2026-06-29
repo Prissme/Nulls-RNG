@@ -56,6 +56,9 @@ const etat = {
   /* ── Progression du robot : nombre de victoires en combat ── */
   combatsGagnes: 0,
 
+  /* ── Easter egg Naell : speed x2 permanent débloqué ── */
+  naellSpeedUnlocked: false,
+
   /* ── Arbre de compétences : PP et skills INDIVIDUELS par brawler ──
      Clé : "brawlerId_variante"  (ex: "11_rainbow")
      brawlerPP     : { [cle]: number }             – PP disponibles pour ce brawler
