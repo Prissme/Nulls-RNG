@@ -2,7 +2,8 @@
 set -e
 
 # Injecte les variables d'environnement Koyeb dans js/config.js
-envsubst '${SUPABASE_URL} ${SUPABASE_ANON_KEY} ${DISCORD_BOT_TOKEN} ${DISCORD_CHANNEL_ID}' \
+# NE PAS injecter DISCORD_BOT_TOKEN ni DISCORD_CHANNEL_ID — ils restent serveur uniquement
+envsubst '${SUPABASE_URL} ${SUPABASE_ANON_KEY} ${PROXY_SECRET}' \
   < /usr/share/nginx/html/js/config.template.js \
   > /usr/share/nginx/html/js/config.js
 
