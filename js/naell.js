@@ -60,7 +60,7 @@ function _naellShowDebug(cpsActuel) {
   _naellDebugEl.innerHTML = `
     <span style="color:${cpsColor};font-size:1rem">${cpsActuel}</span>
     <span style="color:var(--text-muted, #5a5a7a);font-size:.7rem">/ ${requis} clic/s</span>
-    ${ok ? `<span style="color:#a855f7;font-size:.72rem">⏱ ${progSecs}s / ${totalSecs}s</span>` : ''}
+    ${ok ? `<span style="color:#a855f7;font-size:.72rem">⏱ ${progSecs}s</span>` : ''}
     <span style="display:inline-block;width:60px;height:4px;background:rgba(255,255,255,.1);border-radius:2px;overflow:hidden;vertical-align:middle">
       <span style="display:block;height:100%;width:${barPct}%;background:#a855f7;border-radius:2px;transition:width .1s"></span>
     </span>
@@ -137,14 +137,14 @@ function _naellOuvrirDialogue() {
       box-shadow:0 0 60px rgba(168,85,247,.3);
       text-align:center;
     ">
-      <img src="./Naell.webp" alt="Naell"
-        style="width:100px;height:100px;object-fit:cover;border-radius:50%;
-          border:3px solid #a855f7;box-shadow:0 0 20px rgba(168,85,247,.5);
-          margin-bottom:1rem"
-        onerror="this.style.display='none'">
-      <div style="font-weight:900;font-size:1.1rem;color:#e879f9;margin-bottom:1.2rem">
+      <div style="font-weight:900;font-size:1.1rem;color:#e879f9;margin-bottom:.6rem">
         NAELL
       </div>
+      <img src="./Naell.webp" alt="Naell"
+        style="width:110px;height:110px;object-fit:contain;
+          filter:drop-shadow(0 0 18px rgba(168,85,247,.6));
+          margin-bottom:1rem"
+        onerror="this.style.display='none'">
       <div id="naellDialogueLigne" style="
         font-size:.9rem;color:#e2e8f0;font-weight:600;
         min-height:2.5rem;line-height:1.5;margin-bottom:1.5rem;
@@ -368,14 +368,15 @@ function _naellAfficherResultat(citation, sousTitre, couleur, victoire) {
       box-shadow:0 0 60px ${couleur}33;
       text-align:center;
     ">
+      <div style="font-weight:900;font-size:.8rem;color:#a855f7;margin-bottom:.5rem">NAELL</div>
       <img src="./Naell.webp" alt="Naell"
-        style="width:80px;height:80px;object-fit:cover;border-radius:50%;
-          border:3px solid ${couleur};box-shadow:0 0 20px ${couleur}66;
+        style="width:90px;height:90px;object-fit:contain;
+          filter:drop-shadow(0 0 16px ${couleur}99);
           margin-bottom:1rem"
         onerror="this.style.display='none'">
-      <div style="font-weight:900;font-size:.8rem;color:#a855f7;margin-bottom:.75rem">NAELL</div>
-      <div style="font-size:.88rem;color:#e2e8f0;font-weight:600;
-        line-height:1.5;margin-bottom:1rem;font-style:italic">
+      <div style="font-size:.82rem;color:#e2e8f0;font-weight:600;
+        line-height:1.5;margin-bottom:1rem;font-style:italic;
+        word-break:break-word;overflow-wrap:break-word;max-width:100%">
         "${citation}"
       </div>
       <div style="font-size:.8rem;font-weight:800;color:${couleur};margin-bottom:1.5rem">
