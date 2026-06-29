@@ -21,9 +21,13 @@ function afficherResultat(b, vKey) {
   zone.classList.add('flash-anim');
 
   // Image au lieu de l'emoji
-  emoji.innerHTML = brawlerImg(b, 'w-24 h-24');
+  emoji.innerHTML = brawlerImg(b, 'w-24 h-24', vKey === 'monochrome' ? 'filter:grayscale(1) contrast(1.15)' : '');
 
-  if (vKey === 'rainbow') {
+  if (vKey === 'monochrome') {
+    name.className   = 'monochrome-text';
+    name.style.color = '';
+    name.textContent = `◐ ${b.nom}`;
+  } else if (vKey === 'rainbow') {
     name.className   = 'rainbow-text';
     name.style.color = '';
     name.textContent = `🌈 ${b.nom}`;
@@ -151,7 +155,7 @@ function afficherTableRarites() {
   const tbl = document.getElementById('rarityTable');
   const lm  = luckMultiplierTotal();
 
-  const groupOrder = ['super-rare', 'rare', 'common'];
+  const groupOrder = ['epic', 'super-rare', 'rare', 'common'];
 
   const fmtProba = (div, chanceMult) => {
     const effective = Math.round((div * chanceMult) / lm);
@@ -161,10 +165,11 @@ function afficherTableRarites() {
   };
 
   const VAR_CFG = [
-    { key: 'normal',  label: 'Normal',  color: '#94a3b8' },
-    { key: 'shiny',   label: 'Shiny',   color: '#38bdf8' },
-    { key: 'golden',  label: 'Golden',  color: '#fbbf24' },
-    { key: 'rainbow', label: 'Rainbow', color: '#e879f9' },
+    { key: 'normal',     label: 'Normal',     color: '#94a3b8' },
+    { key: 'shiny',      label: 'Shiny',      color: '#38bdf8' },
+    { key: 'golden',     label: 'Golden',     color: '#fbbf24' },
+    { key: 'rainbow',    label: 'Rainbow',    color: '#e879f9' },
+    { key: 'monochrome', label: 'Monochrome', color: '#f8fafc' },
   ];
 
   let html = '';

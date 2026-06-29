@@ -36,6 +36,14 @@ const ACHIEVEMENTS_DEF = [
     couleur: '#a855f7',
     rewardXP: 3000,
   },
+  {
+    id: 'naell_vaincu',
+    icone: '⌨️',
+    nom: 'Plus Rapide que Naell',
+    desc: 'Vaincre Naell',
+    couleur: '#e879f9',
+    rewardXP: 1500,
+  },
 ];
 
 /* ── État des succès (initialisé dans etat via state.js) ── */

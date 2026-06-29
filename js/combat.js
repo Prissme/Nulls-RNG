@@ -165,6 +165,7 @@ function logCombat(msg, classe = '') {
 }
 
 function couleurVarianteLocal(b, v) {
+  if (v === 'monochrome') return '#f8fafc';
   if (v === 'rainbow') return '#e879f9';
   if (v === 'golden')  return '#fbbf24';
   if (v === 'shiny')   return '#38bdf8';

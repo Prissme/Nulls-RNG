@@ -112,13 +112,18 @@ function afficherInventaire() {
     const peutEquiperPlus = equippedCount < qty && slotsDispo > 0;
     const peutVendre      = (qty - equippedCount) > 0;
 
-    const imgFilter = variante === 'shiny'   ? 'drop-shadow(0 0 8px #38bdf8) brightness(1.15)'
-                    : variante === 'golden'  ? 'drop-shadow(0 0 8px #fbbf24) sepia(0.4) brightness(1.2)'
-                    : variante === 'rainbow' ? 'drop-shadow(0 0 10px #e879f9) saturate(1.6)'
+    const imgFilter = variante === 'shiny'      ? 'drop-shadow(0 0 8px #38bdf8) brightness(1.15)'
+                    : variante === 'golden'     ? 'drop-shadow(0 0 8px #fbbf24) sepia(0.4) brightness(1.2)'
+                    : variante === 'rainbow'    ? 'drop-shadow(0 0 10px #e879f9) saturate(1.6)'
+                    : variante === 'monochrome' ? 'drop-shadow(0 0 10px #f8fafc) grayscale(1) contrast(1.2)'
                     : `drop-shadow(0 0 4px ${color}66)`;
 
     let varBadge = '';
-    if (variante === 'rainbow') {
+    if (variante === 'monochrome') {
+      varBadge = `<span style="font-size:.48rem;font-weight:900;
+        background:linear-gradient(90deg,#ffffff,#94a3b8,#000000,#94a3b8,#ffffff);
+        -webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text">◐ MONOCHROME</span>`;
+    } else if (variante === 'rainbow') {
       varBadge = `<span style="font-size:.48rem;font-weight:900;
         background:linear-gradient(90deg,#f472b6,#818cf8,#34d399,#fbbf24);
         -webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text">🌈 RAINBOW</span>`;

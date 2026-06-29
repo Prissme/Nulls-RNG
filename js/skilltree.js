@@ -254,9 +254,10 @@ function afficherSkillTree() {
   const totalAchetes = Object.keys(skills).length;
   const rangees = [1, 2, 3];
 
-  const imgFilter = variante === 'shiny'   ? 'drop-shadow(0 0 8px #38bdf8) brightness(1.15)'
-                  : variante === 'golden'  ? 'drop-shadow(0 0 8px #fbbf24) sepia(0.4) brightness(1.2)'
-                  : variante === 'rainbow' ? 'drop-shadow(0 0 10px #e879f9) saturate(1.6)'
+  const imgFilter = variante === 'shiny'      ? 'drop-shadow(0 0 8px #38bdf8) brightness(1.15)'
+                  : variante === 'golden'     ? 'drop-shadow(0 0 8px #fbbf24) sepia(0.4) brightness(1.2)'
+                  : variante === 'rainbow'    ? 'drop-shadow(0 0 10px #e879f9) saturate(1.6)'
+                  : variante === 'monochrome' ? 'drop-shadow(0 0 10px #f8fafc) grayscale(1) contrast(1.2)'
                   : `drop-shadow(0 0 4px ${color}66)`;
 
   zone.innerHTML = `

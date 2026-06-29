@@ -323,6 +323,7 @@ function _naellVictoire() {
   if (typeof sauvegarderEtatCloud === 'function') sauvegarderEtatCloud();
   if (typeof redemarrerAutoRoll   === 'function') redemarrerAutoRoll();
   if (typeof mettreAJourCompteurs === 'function') mettreAJourCompteurs();
+  if (typeof debloquerAchievement === 'function') debloquerAchievement('naell_vaincu');
 
   _naellActif = false;
 

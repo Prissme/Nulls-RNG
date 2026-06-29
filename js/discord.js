@@ -46,6 +46,7 @@ function afficherAnimationLuckyPull(brawler, variante) {
   const v         = VARIANTES[variante];
   const color     = couleurVariante(brawler, variante);
   const isRainbow = variante === 'rainbow';
+  const isMonochrome = variante === 'monochrome';
 
   const overlay = document.createElement('div');
   overlay.id    = 'luckyPullOverlay';
@@ -61,8 +62,9 @@ function afficherAnimationLuckyPull(brawler, variante) {
       @keyframes lpFadeOut { from { opacity:1 } to { opacity:0 } }
       #lpCard {
         background: linear-gradient(145deg, rgba(255,255,255,.06), rgba(255,255,255,.02));
-        border: 2px solid ${isRainbow ? 'transparent' : color};
+        border: 2px solid ${(isRainbow || isMonochrome) ? 'transparent' : color};
         ${isRainbow ? 'border-image: linear-gradient(90deg,#f472b6,#818cf8,#38bdf8,#34d399,#fbbf24) 1;' : ''}
+        ${isMonochrome ? 'border-image: linear-gradient(90deg,#ffffff,#94a3b8,#000000,#94a3b8,#ffffff) 1;' : ''}
         border-radius: 20px; padding: 2.5rem 3rem;
         display: flex; flex-direction: column; align-items: center; gap: 1rem;
         box-shadow: 0 0 60px ${color}55, 0 0 120px ${color}22;
@@ -102,17 +104,19 @@ function afficherAnimationLuckyPull(brawler, variante) {
         position: relative; z-index: 1;
         ${isRainbow
           ? 'background:linear-gradient(90deg,#f472b6,#818cf8,#38bdf8,#34d399,#fbbf24);-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;'
-          : `color:${color};`}
+          : isMonochrome
+            ? 'background:linear-gradient(90deg,#ffffff,#94a3b8,#000000,#94a3b8,#ffffff);-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;'
+            : `color:${color};`}
       }
       #lpImg {
         width: 110px; height: 110px; object-fit: contain;
         position: relative; z-index: 1;
-        filter: drop-shadow(0 0 18px ${color});
+        filter: drop-shadow(0 0 18px ${color})${isMonochrome ? ' grayscale(1) contrast(1.2)' : ''};
         animation: lpImgPulse 1.4s ease-in-out infinite alternate;
       }
       @keyframes lpImgPulse {
-        from { filter: drop-shadow(0 0 12px ${color}99); transform: scale(.97) }
-        to   { filter: drop-shadow(0 0 28px ${color});   transform: scale(1.03) }
+        from { filter: drop-shadow(0 0 12px ${color}99)${isMonochrome ? ' grayscale(1) contrast(1.2)' : ''}; transform: scale(.97) }
+        to   { filter: drop-shadow(0 0 28px ${color})${isMonochrome ? ' grayscale(1) contrast(1.2)' : ''};   transform: scale(1.03) }
       }
       #lpSub { font-size: .85rem; color: #94a3b8; position: relative; z-index: 1; line-height: 1.5; }
       #lpClose { font-size: .72rem; color: #64748b; position: relative; z-index: 1; margin-top: .5rem; }

@@ -105,6 +105,18 @@ const Sound = (() => {
     noise(0.15, freqs.length * 0.06, 0.4);
   }
 
+  /* Roll Monochrome — statique "TV noir et blanc" + accord grave dramatique, la plus rare des mutations */
+  function monochrome() {
+    init();
+    noise(0.3, 0, 0.5);
+    const freqs = [130, 196, 261, 392, 523, 659, 784, 1047, 1319, 1568];
+    freqs.forEach((f, i) => {
+      note('square', f,     0.22, i * 0.05, 0.45);
+      note('sine',   f * 2, 0.18, i * 0.05, 0.25);
+    });
+    noise(0.2, freqs.length * 0.05, 0.5);
+  }
+
   /* Achat potion / vente — "coin" */
   function coin() {
     init();
@@ -172,5 +184,5 @@ const Sound = (() => {
 
   function isEnabled() { return enabled; }
 
-  return { roll, shiny, golden, rainbow, coin, craft, levelUp, questClaim, error, autoOn, autoOff, toggle, setVolume, isEnabled };
+  return { roll, shiny, golden, rainbow, monochrome, coin, craft, levelUp, questClaim, error, autoOn, autoOff, toggle, setVolume, isEnabled };
 })();

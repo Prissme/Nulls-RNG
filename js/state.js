@@ -95,6 +95,7 @@ let luckMultiplierTotal = () =>
   (etat.luckActive ? POTIONS.luck.luckMult : 1) * luckBonusNiveau() * luckBonusPrestige() * (1 + (typeof luckBonusIndex === 'function' ? luckBonusIndex() : 0));
 
 const couleurVariante = (brawler, variante) => {
+  if (variante === 'monochrome') return '#f8fafc';
   if (variante === 'rainbow') return '#e879f9';
   if (variante === 'golden')  return '#fbbf24';
   if (variante === 'shiny')   return '#38bdf8';

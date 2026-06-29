@@ -55,10 +55,11 @@ function effectuerRoll() {
   if (etat.historique.length > 6) etat.historique.pop();
 
   // Son selon la variante obtenue
-  if      (variante === 'rainbow') Sound.rainbow();
-  else if (variante === 'golden')  Sound.golden();
-  else if (variante === 'shiny')   Sound.shiny();
-  else                             Sound.roll();
+  if      (variante === 'monochrome') Sound.monochrome();
+  else if (variante === 'rainbow')    Sound.rainbow();
+  else if (variante === 'golden')     Sound.golden();
+  else if (variante === 'shiny')      Sound.shiny();
+  else                                 Sound.roll();
 
   // Progression quêtes
   progresserQuete('roll', { brawlerId: brawler.id, variante });

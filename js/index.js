@@ -12,10 +12,11 @@
 ════════════════════════════════════════════════ */
 
 const INDEX_LUCK_BONUS = {
-  normal:  0.05,  // +5%
-  shiny:   0.10,  // +10%
-  golden:  0.15,  // +15%
-  rainbow: 0.20,  // +20%
+  normal:     0.05,  // +5%
+  shiny:      0.10,  // +10%
+  golden:     0.15,  // +15%
+  rainbow:    0.20,  // +20%
+  monochrome: 0.30,  // +30%
 };
 
 /* Retourne la liste des raretés présentes dans BRAWLERS */
@@ -70,11 +71,11 @@ function afficherIndex() {
   const zone = document.getElementById('indexZone');
   if (!zone) return;
 
-  const rarityKeys  = ['super-rare', 'rare', 'common'];
-  const variantes   = ['normal', 'shiny', 'golden', 'rainbow'];
-  const varLabels   = { normal: 'Normal', shiny: 'Shiny', golden: 'Golden', rainbow: 'Rainbow' };
-  const varColors   = { normal: '#94a3b8', shiny: '#38bdf8', golden: '#fbbf24', rainbow: '#e879f9' };
-  const varEmojis   = { normal: '', shiny: '✦', golden: '★', rainbow: '🌈' };
+  const rarityKeys  = ['epic', 'super-rare', 'rare', 'common'];
+  const variantes   = ['normal', 'shiny', 'golden', 'rainbow', 'monochrome'];
+  const varLabels   = { normal: 'Normal', shiny: 'Shiny', golden: 'Golden', rainbow: 'Rainbow', monochrome: 'Monochrome' };
+  const varColors   = { normal: '#94a3b8', shiny: '#38bdf8', golden: '#fbbf24', rainbow: '#e879f9', monochrome: '#f8fafc' };
+  const varEmojis   = { normal: '', shiny: '✦', golden: '★', rainbow: '🌈', monochrome: '◐' };
 
   const totalBonusIndex = luckBonusIndex();
   const groups = getRarityGroups();
@@ -93,7 +94,8 @@ function afficherIndex() {
       <br>Normal <span style="color:#94a3b8">+5%</span> &nbsp;•&nbsp;
       Shiny <span style="color:#38bdf8">+10%</span> &nbsp;•&nbsp;
       Golden <span style="color:#fbbf24">+15%</span> &nbsp;•&nbsp;
-      Rainbow <span style="color:#e879f9">+20%</span>
+      Rainbow <span style="color:#e879f9">+20%</span> &nbsp;•&nbsp;
+      Monochrome <span style="color:#f8fafc">+30%</span>
     </div>
   `;
 
@@ -114,19 +116,20 @@ function afficherIndex() {
 
     /* Grille : brawler en ligne, variantes en colonnes */
     html += `
-      <div style="display:grid;grid-template-columns:1fr repeat(4,36px);gap:.2rem .3rem;
+      <div style="display:grid;grid-template-columns:1fr repeat(5,36px);gap:.2rem .3rem;
         font-size:.58rem;font-weight:700;text-align:center;margin-bottom:.2rem;padding:0 .1rem">
         <span style="color:var(--text-muted);text-align:left">Brawler</span>
         <span style="color:#94a3b8">Nor.</span>
         <span style="color:#38bdf8">Shi.</span>
         <span style="color:#fbbf24">Gol.</span>
         <span style="color:#e879f9">Rain.</span>
+        <span style="color:#f8fafc">Mono.</span>
       </div>
     `;
 
     for (const b of group) {
       html += `
-        <div style="display:grid;grid-template-columns:1fr repeat(4,36px);gap:.2rem .3rem;
+        <div style="display:grid;grid-template-columns:1fr repeat(5,36px);gap:.2rem .3rem;
           align-items:center;padding:.25rem .1rem;border-radius:6px;
           background:rgba(255,255,255,.02);margin-bottom:.15rem">
           <span style="display:flex;align-items:center;gap:.35rem">
@@ -146,7 +149,7 @@ function afficherIndex() {
     }
 
     /* Ligne de totaux + récompenses pour cette rareté */
-    html += `<div style="display:grid;grid-template-columns:1fr repeat(4,36px);gap:.2rem .3rem;
+    html += `<div style="display:grid;grid-template-columns:1fr repeat(5,36px);gap:.2rem .3rem;
       margin-top:.35rem;padding-top:.3rem;border-top:1px solid rgba(255,255,255,.05)">
       <span style="font-size:.6rem;color:var(--text-muted);font-weight:700">Récompense</span>`;
     for (const v of variantes) {

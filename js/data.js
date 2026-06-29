@@ -4,16 +4,18 @@
 ════════════════════════════════════════════════ */
 
 /*
-  rarity : 'common' | 'rare' | 'super-rare'
+  rarity : 'common' | 'rare' | 'super-rare' | 'epic'
   Commun     → Shelly
   Rare       → Rosa, Poco, El Primo, Brock, Colt, Nita, Bull, Barley
-  Super Rare → Jessie, Rico, Dyna
+  Super Rare → Jessie, Rico, Dyna, Gus, Penny, Carl, Jacky, Darryl, Tick, Arkad
+  Épique     → Bo, Piper, Pam, Frank, Bibi (plus dur à obtenir que toutes les Super Rare)
 */
 
 const RARITIES = {
   'common':     { label: 'Commun',     couleur: '#94a3b8', bgCss: 'rgba(148,163,184,.12)', borderCss: 'rgba(148,163,184,.35)' },
   'rare':       { label: 'Rare',       couleur: '#22c55e', bgCss: 'rgba(34,197,94,.12)',   borderCss: 'rgba(34,197,94,.40)'   },
   'super-rare': { label: 'Super Rare', couleur: '#3b82f6', bgCss: 'rgba(59,130,246,.14)',  borderCss: 'rgba(59,130,246,.45)'  },
+  'epic':       { label: 'Épique',     couleur: '#c026d3', bgCss: 'rgba(192,38,211,.14)',  borderCss: 'rgba(192,38,211,.5)'   },
 };
 
 const BRAWLERS = [
@@ -41,6 +43,13 @@ const BRAWLERS = [
   { id:19, nom:"Darryl",   div:2200, couleur:"#3b82f6", emoji:"🛢️", img:"DarrylNormal.webp",  cpsBase:31, sellValue:24, bgClass:"rarity-bg-super-rare",  rarity:"super-rare", role:"tank"    },
   { id:17, nom:"Tick",     div:2600, couleur:"#3b82f6", emoji:"💥", img:"TickNormal.webp",    cpsBase:33, sellValue:26, bgClass:"rarity-bg-super-rare",  rarity:"super-rare", role:"poke"    },
   { id:15, nom:"Arkad",    div:3200, couleur:"#3b82f6", emoji:"🕹️", img:"8bitNormal.webp",    cpsBase:32, sellValue:25, bgClass:"rarity-bg-super-rare",  rarity:"super-rare", role:"burst"   },
+
+  /* ── Épique ── (plus dur à obtenir que toutes les Super Rare, mais rapportent beaucoup plus) */
+  { id:20, nom:"Bo",       div:5000,  couleur:"#c026d3", emoji:"🏹", img:"BoNormal.webp",     cpsBase:45,  sellValue:36, bgClass:"rarity-bg-epic", rarity:"epic", role:"poke"    },
+  { id:21, nom:"Piper",    div:6500,  couleur:"#c026d3", emoji:"🌂", img:"PiperNormal.webp",  cpsBase:55,  sellValue:44, bgClass:"rarity-bg-epic", rarity:"epic", role:"poke"    },
+  { id:22, nom:"Pam",      div:8000,  couleur:"#c026d3", emoji:"🛠️", img:"PamNormal.webp",    cpsBase:68,  sellValue:54, bgClass:"rarity-bg-epic", rarity:"epic", role:"soutien" },
+  { id:23, nom:"Frank",    div:10000, couleur:"#c026d3", emoji:"🔨", img:"FrankNormal.webp",  cpsBase:85,  sellValue:68, bgClass:"rarity-bg-epic", rarity:"epic", role:"tank"    },
+  { id:24, nom:"Bibi",     div:13000, couleur:"#c026d3", emoji:"⚾", img:"BibiNormal.webp",   cpsBase:105, sellValue:84, bgClass:"rarity-bg-epic", rarity:"epic", role:"burst"   },
 ];
 
 /* ════════════════════════════════════════════════
@@ -92,13 +101,15 @@ function multiplicateurRole(roleAttaquant, roleCible) {
    cpsMult    : multiplicateur pièces/s quand équipé
    sellMult   : multiplicateur prix de vente                 */
 const VARIANTES = {
-  normal:  { label:"Normal",  badge:"badge-normal",  emoji:"",   chanceMult:1,   cpsMult:1,   sellMult:1   },
-  shiny:   { label:"Shiny",   badge:"badge-shiny",   emoji:"✦",  chanceMult:15,  cpsMult:2,   sellMult:3   },
-  golden:  { label:"Golden",  badge:"badge-golden",  emoji:"★",  chanceMult:100, cpsMult:5,   sellMult:8   },
-  rainbow: { label:"Rainbow", badge:"badge-rainbow", emoji:"🌈", chanceMult:500, cpsMult:12,  sellMult:20  },
+  normal:     { label:"Normal",     badge:"badge-normal",     emoji:"",   chanceMult:1,     cpsMult:1,   sellMult:1   },
+  shiny:      { label:"Shiny",      badge:"badge-shiny",      emoji:"✦",  chanceMult:15,    cpsMult:2,   sellMult:3   },
+  golden:     { label:"Golden",     badge:"badge-golden",     emoji:"★",  chanceMult:100,   cpsMult:5,   sellMult:8   },
+  rainbow:    { label:"Rainbow",    badge:"badge-rainbow",    emoji:"🌈", chanceMult:500,   cpsMult:12,  sellMult:20  },
+  /* Monochrome : 33x plus dur à obtenir qu'un Rainbow (500 × 33), mais rapporte 10x plus d'argent */
+  monochrome: { label:"Monochrome", badge:"badge-monochrome", emoji:"◐",  chanceMult:16500, cpsMult:120, sellMult:200 },
 };
 
-const ORDRE_VARIANTES = ['rainbow', 'golden', 'shiny', 'normal'];
+const ORDRE_VARIANTES = ['monochrome', 'rainbow', 'golden', 'shiny', 'normal'];
 
 /* Potions */
 const POTIONS = {
