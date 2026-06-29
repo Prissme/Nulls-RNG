@@ -65,6 +65,11 @@ function afficherInventaire() {
     .sort((a, b) => {
       const ba = BRAWLERS.find(x => x.id === a.brawlerId);
       const bb = BRAWLERS.find(x => x.id === b.brawlerId);
+      // Équipés en premier
+      const aEquipe = etat.petsEquipes.some(p => p && p.brawler.id === a.brawlerId && p.variante === a.variante) ? 1 : 0;
+      const bEquipe = etat.petsEquipes.some(p => p && p.brawler.id === b.brawlerId && p.variante === b.variante) ? 1 : 0;
+      if (bEquipe !== aEquipe) return bEquipe - aEquipe;
+      // Puis tri normal
       if (etat.triInventaire === 'revenus') {
         return calcCPS(bb, b.variante) - calcCPS(ba, a.variante);
       }
