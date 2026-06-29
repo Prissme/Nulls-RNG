@@ -301,3 +301,58 @@ function acRollAutorise() {
   secouerBouton('rollBtn');
   return false;
 }
+
+
+/* ══════════════════════════════════════════════
+   SECTION 3 : RATE-LIMIT SUR effectuerRoll()
+   Bloque les appels directs depuis la console
+   (ex: for(let i=0;i<9999;i++) effectuerRoll())
+   Le vrai effectuerRoll est wrappé ici au moment
+   où initProtectionRoll() est appelé — après que
+   roll.js a posé window.effectuerRoll.
+══════════════════════════════════════════════ */
+
+const ROLL_RATELIMIT = {
+  INTERVALLE_MIN_MS:  45,   // < plancher auto-roll légitime (80ms sans potion, 30ms avec Wished)
+  BURST_MAX:           3,   // tolérance : 3 appels simultanés (même ms) = script
+  FENETRE_BURST_MS:    5,   // fenêtre "même tick" en pratique
+};
+
+let _rrDernierAppel  = 0;
+let _rrBurstCompte   = 0;
+let _rrBurstFenetre  = 0;
+
+function initProtectionRoll() {
+  const _rollOriginal = window.effectuerRoll;
+  if (typeof _rollOriginal !== 'function') {
+    console.warn('[NullsRNG] initProtectionRoll : effectuerRoll introuvable.');
+    return;
+  }
+
+  window.effectuerRoll = function (...args) {
+    const now = Date.now();
+
+    // ── Détection burst synchrone (même ms ou quasi) ──
+    if (now - _rrBurstFenetre <= ROLL_RATELIMIT.FENETRE_BURST_MS) {
+      _rrBurstCompte++;
+    } else {
+      _rrBurstCompte  = 1;
+      _rrBurstFenetre = now;
+    }
+
+    if (_rrBurstCompte > ROLL_RATELIMIT.BURST_MAX) {
+      _signalExploit(`effectuerRoll burst : ${_rrBurstCompte} appels en ${ROLL_RATELIMIT.FENETRE_BURST_MS}ms`);
+      return;
+    }
+
+    // ── Rate-limit temporel ──
+    const delta = now - _rrDernierAppel;
+    if (_rrDernierAppel > 0 && delta < ROLL_RATELIMIT.INTERVALLE_MIN_MS) {
+      _signalExploit(`effectuerRoll trop rapide : ${delta}ms < ${ROLL_RATELIMIT.INTERVALLE_MIN_MS}ms`);
+      return;
+    }
+
+    _rrDernierAppel = now;
+    return _rollOriginal.apply(this, args);
+  };
+}
