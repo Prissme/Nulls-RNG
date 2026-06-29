@@ -67,6 +67,13 @@ function afficherPets() {
       const color = couleurVariante(pet.brawler, pet.variante);
       slot.style.borderColor = color;
       slot.style.background  = `${color}12`;
+      slot.style.cursor      = 'pointer';
+      slot.title             = `Voir les skills de ${pet.brawler.nom}`;
+      slot.onclick = (e) => {
+        // Ignorer le clic si c'est sur le bouton ✕
+        if (e.target.classList.contains('unequip-x')) return;
+        ouvrirSkillTreeBrawler(pet.brawler.id, pet.variante);
+      };
       slot.innerHTML = `
         <span class="unequip-x" onclick="desequiper(${i})">✕</span>
         ${brawlerImg(pet.brawler, 'w-12 h-12')}
