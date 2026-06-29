@@ -105,6 +105,8 @@ function serialiserEtat() {
     wishedFin:    etat.wishedFin,
     goldenActive: etat.goldenActive,
     goldenFin:    etat.goldenFin,
+    /* ── Easter egg Naell ── */
+    naellSpeedUnlocked: etat.naellSpeedUnlocked || false,
   };
 }
 
@@ -137,6 +139,9 @@ function appliquerEtatSauvegarde(saved) {
   if (typeof saved.shellyStreak === 'number') etat.shellyStreak = saved.shellyStreak;
   if (saved.robotsBattus && typeof saved.robotsBattus === 'object') etat.robotsBattus = saved.robotsBattus;
   if (saved.indexUnlocks && typeof saved.indexUnlocks === 'object') etat.indexUnlocks = saved.indexUnlocks;
+
+  /* ── Easter egg Naell ── */
+  if (saved.naellSpeedUnlocked === true) etat.naellSpeedUnlocked = true;
 
   /* ── Restaurer les potions encore actives (temps restant > 0) ── */
   const now = Date.now();
