@@ -29,6 +29,9 @@ function acEnregistrerClic() {
   // Garder seulement la fenêtre d'analyse
   _acTimestamps = _acTimestamps.filter(t => now - t <= ANTICHEAT.FENETRE_MS);
 
+  // Easter egg Naell : tracker les clics rapides
+  if (typeof naellEnregistrerClic === 'function') naellEnregistrerClic();
+
   if (_acTimestamps.length >= ANTICHEAT.MAX_CLICS) {
     if (_acDetecterBot()) {
       _acDeclencher();
