@@ -64,7 +64,6 @@ function roleIcon(role, size = '16px', style = '') {
   if (!r) return '';
   return `<img src="${r.img}" alt="${r.label}"
     style="width:${size};height:${size};object-fit:contain;${style}"
-    title="${r.label}"
     onerror="this.outerHTML='<span style=\"font-size:.6rem;color:${r.couleur}\">${r.emoji}</span>'" />`;
 }
 
