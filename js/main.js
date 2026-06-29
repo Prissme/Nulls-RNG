@@ -35,5 +35,8 @@
   // Protection anti-exploit console (inventaire, pièces)
   // Appelé après initCloudSave pour que l'inventaire soit chargé avant d'installer le Proxy
   setTimeout(initProtectionInventaire, 1500);
+  // Protection rate-limit sur effectuerRoll() (bloque les boucles console)
+  // Appelé légèrement après pour laisser roll.js poser window.effectuerRoll
+  setTimeout(initProtectionRoll, 1600);
   demarrerHugeWished();
 })();
