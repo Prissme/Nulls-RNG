@@ -130,6 +130,11 @@ function afficherInventaire() {
       position:relative;min-width:0;
     `;
 
+    /* PP disponibles pour ce brawler */
+    const ppBrawler = typeof getBrawlerPP === 'function' ? getBrawlerPP(brawlerId, variante) : 0;
+    const skillsCount = typeof getBrawlerSkills === 'function'
+      ? Object.keys(getBrawlerSkills(brawlerId, variante)).length : 0;
+
     card.innerHTML = `
       ${qty > 1 ? `<span style="
         position:absolute;top:.28rem;right:.28rem;
@@ -137,9 +142,24 @@ function afficherInventaire() {
         padding:.1rem .28rem;border-radius:999px;
         background:rgba(0,0,0,.6);border:1px solid ${color}40;color:${color}">×${qty}</span>` : ''}
 
-      <div style="width:50px;height:50px;display:flex;align-items:center;justify-content:center;
-        border-radius:10px;background:rgba(0,0,0,.3);border:1px solid ${color}30">
-        ${brawlerImg(b, 'w-10 h-10', `filter:${imgFilter}`)}
+      ${ppBrawler > 0 ? `<span style="
+        position:absolute;top:.28rem;left:.28rem;
+        font-size:.52rem;font-weight:900;line-height:1;
+        padding:.1rem .25rem;border-radius:999px;
+        background:rgba(168,85,247,.3);border:1px solid rgba(168,85,247,.6);color:#c084fc">
+        ⚡${ppBrawler}</span>` : ''}
+
+      <div style="position:relative;width:50px;height:50px;cursor:pointer"
+        onclick="ouvrirSkillTreeBrawler(${brawlerId},'${variante}')">
+        <div style="width:50px;height:50px;display:flex;align-items:center;justify-content:center;
+          border-radius:10px;background:rgba(0,0,0,.3);border:1px solid ${color}30">
+          ${brawlerImg(b, 'w-10 h-10', `filter:${imgFilter}`)}
+        </div>
+        <div style="position:absolute;top:-4px;right:-4px;
+          background:rgba(0,0,0,.7);border-radius:4px;padding:1px;
+          line-height:0;border:1px solid rgba(255,255,255,.12)">
+          ${roleIcon(b.role, '13px')}
+        </div>
       </div>
 
       <div style="line-height:1.15;min-width:0;width:100%">
@@ -172,6 +192,16 @@ function afficherInventaire() {
           ${prixFmt}💰
         </button>
       </div>
+
+      <button onclick="ouvrirSkillTreeBrawler(${brawlerId},'${variante}')"
+        style="width:100%;margin-top:.1rem;padding:.22rem 0;border-radius:7px;border:none;
+          cursor:pointer;font-size:.6rem;font-weight:800;
+          background:${ppBrawler > 0 ? 'linear-gradient(135deg,rgba(124,58,237,.6),rgba(168,85,247,.6))' : 'rgba(100,100,120,.2)'};
+          color:${ppBrawler > 0 ? '#c084fc' : 'var(--text-muted)'};
+          border:1px solid ${ppBrawler > 0 ? 'rgba(168,85,247,.5)' : 'rgba(100,100,120,.3)'};
+          ${ppBrawler > 0 ? 'box-shadow:0 0 8px rgba(168,85,247,.2);' : ''}">
+        ⚡ Skills${skillsCount > 0 ? ' ('+skillsCount+')' : ''}${ppBrawler > 0 ? ' · '+ppBrawler+' PP' : ''}
+      </button>
     `;
     grid.appendChild(card);
   }

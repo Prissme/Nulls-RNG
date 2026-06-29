@@ -52,11 +52,21 @@ const BRAWLERS = [
      💚 Soutien     → toujours neutre (×1), mais peut soigner son équipe
 ════════════════════════════════════════════════ */
 const ROLES = {
-  tank:    { label:"Tank/Aggro",  emoji:"🛡️", couleur:"#ef4444" },
-  poke:    { label:"Poke/Sniper", emoji:"🎯", couleur:"#38bdf8" },
-  burst:   { label:"Burst",       emoji:"💥", couleur:"#f59e0b" },
-  soutien: { label:"Soutien",     emoji:"💚", couleur:"#22c55e" },
+  tank:    { label:"Tank/Aggro",  emoji:"🛡️", couleur:"#ef4444", img:"Tanks.webp"    },
+  poke:    { label:"Poke/Sniper", emoji:"🎯", couleur:"#38bdf8", img:"Pokes.webp"    },
+  burst:   { label:"Burst",       emoji:"💥", couleur:"#f59e0b", img:"Bursts.webp"   },
+  soutien: { label:"Soutien",     emoji:"💚", couleur:"#22c55e", img:"Soutiens.webp" },
 };
+
+/* ── Icône de rôle : petit logo en image ── */
+function roleIcon(role, size = '16px', style = '') {
+  const r = ROLES[role];
+  if (!r) return '';
+  return `<img src="${r.img}" alt="${r.label}"
+    style="width:${size};height:${size};object-fit:contain;${style}"
+    title="${r.label}"
+    onerror="this.outerHTML='<span style=\"font-size:.6rem;color:${r.couleur}\">${r.emoji}</span>'" />`;
+}
 
 /* roleAttaquant → role qu'il contre */
 const ROLE_COUNTERS = {

@@ -56,9 +56,13 @@ const etat = {
   /* ── Progression du robot : nombre de victoires en combat ── */
   combatsGagnes: 0,
 
-  /* ── Arbre de compétences : Points de Pouvoir + skills achetés ── */
-  pointsPouvoir: 0,
-  skillsAchetes: {},
+  /* ── Arbre de compétences : PP et skills INDIVIDUELS par brawler ──
+     Clé : "brawlerId_variante"  (ex: "11_rainbow")
+     brawlerPP     : { [cle]: number }             – PP disponibles pour ce brawler
+     brawlerSkills : { [cle]: { [skillId]: true } } – skills achetés
+  ── */
+  brawlerPP:     {},
+  brawlerSkills: {},
 };
 
 const cle      = (bId, variante) => `${bId}_${variante}`;
@@ -112,4 +116,24 @@ function gagnerXP(montant) {
     Sound.levelUp();
     afficherLevelUp(etat.niveau);
   }
+}
+
+/* ── Helpers PP par brawler ── */
+function getBrawlerPP(brawlerId, variante) {
+  const k = cle(brawlerId, variante);
+  return etat.brawlerPP[k] || 0;
+}
+
+function setBrawlerPP(brawlerId, variante, val) {
+  const k = cle(brawlerId, variante);
+  etat.brawlerPP[k] = Math.max(0, val);
+}
+
+function getBrawlerSkills(brawlerId, variante) {
+  const k = cle(brawlerId, variante);
+  return etat.brawlerSkills[k] || {};
+}
+
+function brawlerSkillAchete(brawlerId, variante, skillId) {
+  return !!(getBrawlerSkills(brawlerId, variante)[skillId]);
 }

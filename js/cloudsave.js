@@ -82,9 +82,12 @@ function serialiserEtat() {
     quetes:            etat.quetes,
     quetesRefreshFin:  etat.quetesRefreshFin,
     prestige:          etat.prestige,
-    combatsGagnes:     etat.combatsGagnes || 0,
-    pointsPouvoir:     etat.pointsPouvoir  || 0,
-    skillsAchetes:     etat.skillsAchetes  || {},
+    combatsGagnes:     etat.combatsGagnes  || 0,
+    brawlerPP:         etat.brawlerPP      || {},
+    brawlerSkills:     etat.brawlerSkills  || {},
+    /* rétro-compat legacy */
+    pointsPouvoir:     0,
+    skillsAchetes:     {},
     cristaux:          etat.cristaux,
     prestigeUpgrades:  etat.prestigeUpgrades,
     achievements:      etat.achievements,
@@ -119,9 +122,9 @@ function appliquerEtatSauvegarde(saved) {
   if (typeof saved.quetesRefreshFin === 'number') etat.quetesRefreshFin = saved.quetesRefreshFin;
 
   if (typeof saved.prestige === 'number') etat.prestige = saved.prestige;
-  if (typeof saved.combatsGagnes  === 'number') etat.combatsGagnes  = saved.combatsGagnes;
-  if (typeof saved.pointsPouvoir  === 'number') etat.pointsPouvoir  = saved.pointsPouvoir;
-  if (saved.skillsAchetes && typeof saved.skillsAchetes === 'object') etat.skillsAchetes = saved.skillsAchetes;
+  if (typeof saved.combatsGagnes === 'number') etat.combatsGagnes = saved.combatsGagnes;
+  if (saved.brawlerPP     && typeof saved.brawlerPP     === 'object') etat.brawlerPP     = saved.brawlerPP;
+  if (saved.brawlerSkills && typeof saved.brawlerSkills === 'object') etat.brawlerSkills = saved.brawlerSkills;
   if (typeof saved.cristaux === 'number') etat.cristaux = saved.cristaux;
   if (saved.prestigeUpgrades && typeof saved.prestigeUpgrades === 'object') {
     etat.prestigeUpgrades = Object.assign(

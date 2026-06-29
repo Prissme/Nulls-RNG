@@ -19,22 +19,49 @@ const APPARITIONS_ROBOTS = {
 
 /* ── Les 15 levels : tableau de vagues ── */
 const LEVELS_COMBAT = [
-  /* L1  */ [{ type:'robot',     n:1  }],
-  /* L2  */ [{ type:'boxer',     n:1  }],
-  /* L3  */ [{ type:'sniper',    n:2  }],
-  /* L4  */ [{ type:'boxer',     n:2  }, { type:'robot', n:1 }],
-  /* L5  */ [{ type:'big_robot', n:1  }],
-  /* L6  */ [{ type:'sniper',    n:4  }],
-  /* L7  */ [{ type:'boxer',     n:3  }, { type:'sniper', n:2 }],
-  /* L8  */ [{ type:'robot',     n:6  }],
-  /* L9  */ [{ type:'sniper',    n:3  }, { type:'boxer', n:2 }, { type:'robot', n:1 }],
-  /* L10 */ [{ type:'big_robot', n:1  }, { type:'robot', n:5 }],
-  /* L11 */ [{ type:'big_robot', n:1  }, { type:'boxer', n:1 }, { type:'sniper', n:1 }, { type:'robot', n:1 }],
-  /* L12 */ [{ type:'big_robot', n:2  }],
-  /* L13 */ [{ type:'big_robot', n:2  }, { type:'boxer', n:2 }],
-  /* L14 */ [{ type:'robot',     n:15 }],
-  /* L15 */ [{ type:'big_robot', n:3  }, { type:'boxer', n:5 }, { type:'sniper', n:5 }, { type:'robot', n:10 }],
+  /* L1  — Tutorial : 1 robot basique */
+  [{ type:'robot',     n:1  }],
+  /* L2  — Intro tank */
+  [{ type:'boxer',     n:1  }],
+  /* L3  — Duo sniper, faut un tank ou un burst */
+  [{ type:'sniper',    n:2  }],
+  /* L4  — Mix tank + robot, composition burst conseillée */
+  [{ type:'boxer',     n:2  }, { type:'robot', n:2 }],
+  /* L5  — Premier Boss, HP x2.5 — seule un soutien peut tenir */
+  [{ type:'big_robot', n:1  }],
+  /* L6  — 5 snipers, ATK élevée — tank ou soutien obligatoire */
+  [{ type:'sniper',    n:5  }],
+  /* L7  — Flanc tank + poke — mix de rôles nécessaire */
+  [{ type:'boxer',     n:3  }, { type:'sniper', n:3 }],
+  /* L8  — Horde de robots, volume écrasant */
+  [{ type:'robot',     n:10 }],
+  /* L9  — Trio infernal, toutes compositions testées */
+  [{ type:'sniper',    n:4  }, { type:'boxer', n:3 }, { type:'robot', n:3 }],
+  /* L10 — Boss + escorte de robots, milestone critique */
+  [{ type:'big_robot', n:1  }, { type:'robot', n:8 }],
+  /* L11 — Deux boss + mix, sans soutien c'est la défaite */
+  [{ type:'big_robot', n:2  }, { type:'boxer', n:2 }, { type:'sniper', n:2 }],
+  /* L12 — Trois boss, ATK dévastatrice */
+  [{ type:'big_robot', n:3  }],
+  /* L13 — Armée de choc : boss + boxeurs + snipers */
+  [{ type:'big_robot', n:2  }, { type:'boxer', n:4 }, { type:'sniper', n:4 }],
+  /* L14 — Vague de 20 robots — défense et soutien indispensables */
+  [{ type:'robot',     n:20 }],
+  /* L15 — HARDCORE : le chaos absolu, seule la meilleure compo survit */
+  [{ type:'big_robot', n:4  }, { type:'boxer', n:6 }, { type:'sniper', n:8 }, { type:'robot', n:12 }],
 ];
+
+/* ── Multiplicateurs de stats par palier de level (dans un cycle de 15) ── */
+function statMultiplierForLevel(levelInCycle) {
+  // L1–5 : apprentissage (x1 → x2)
+  if (levelInCycle <= 5)  return 1 + (levelInCycle - 1) * 0.25;
+  // L6–10 : intermédiaire (x2.25 → x4)
+  if (levelInCycle <= 10) return 2.25 + (levelInCycle - 6) * 0.35;
+  // L11–14 : difficile (x4.5 → x7)
+  if (levelInCycle <= 14) return 4.5 + (levelInCycle - 11) * 0.83;
+  // L15 : HARDCORE (x9)
+  return 9;
+}
 
 /* ── État du combat ── */
 let combat = null;
@@ -42,12 +69,17 @@ let combat = null;
 /* ── Créer la liste de robots pour un level donné ── */
 function creerVague(level) {
   /* level est 1-indexé. Cycle sur 15. */
-  const idx   = ((level - 1) % 15);
-  const cycle = Math.floor((level - 1) / 15); // combien de fois on a bouclé
-  const scaleMult = 1 + cycle * 0.5;           // +50% puissance par cycle
+  const idx          = ((level - 1) % 15);
+  const levelInCycle = idx + 1;
+  const cycle        = Math.floor((level - 1) / 15); // combien de fois on a bouclé
 
-  const baseHP  = 80;
-  const baseATK = 15;
+  /* Scaling intra-cycle (L1→L15 de plus en plus dur) + bonus inter-cycle */
+  const intraScale = statMultiplierForLevel(levelInCycle);
+  const cycleScale = 1 + cycle * 0.75; // +75% puissance par cycle (au lieu de +50%)
+  const scaleMult  = intraScale * cycleScale;
+
+  const baseHP  = 120; // augmenté de 80 → 120
+  const baseATK = 22;  // augmenté de 15 → 22
 
   const robots = [];
   LEVELS_COMBAT[idx].forEach(groupe => {
@@ -73,13 +105,12 @@ function creerEtatCombat() {
 
   const vague = creerVague(level);
 
-  /* ── Stats brawlers : tous égaux, seuls les skills modifient ── */
-  const hpMult  = typeof bonusHPSkills  === 'function' ? bonusHPSkills()  : 1;
-  const atkMult = typeof bonusATKSkills === 'function' ? bonusATKSkills() : 1;
-
+  /* ── Stats brawlers : individuelles selon les skills de chaque brawler ── */
   const brawlers = etat.petsEquipes
     .filter(p => p !== null)
     .map(p => {
+      const hpMult  = typeof bonusHPBrawler  === 'function' ? bonusHPBrawler(p.brawler.id, p.variante)  : 1;
+      const atkMult = typeof bonusATKBrawler === 'function' ? bonusATKBrawler(p.brawler.id, p.variante) : 1;
       const hpMax = Math.round(100 * hpMult);
       const atk   = Math.round(20  * atkMult);
       return {
@@ -151,8 +182,9 @@ function suffixeAvantage(mult) {
 function afficherCombat() {
   const zone = document.getElementById('combatZone');
   if (!zone) return;
+  // Si un combat est en cours ou terminé, ne pas le réinitialiser
   if (!combat) combat = creerEtatCombat();
-  if (combat.brawlers.length === 0) {
+  if (combat.brawlers.length === 0 && combat.phase !== 'fin') {
     zone.innerHTML = `
       <div style="text-align:center;padding:2rem;color:var(--text-muted)">
         <div style="font-size:2rem;margin-bottom:.5rem">⚠️</div>
@@ -187,23 +219,32 @@ function rendreCombat() {
 function rendreLevelBar() {
   const el = document.getElementById('cb-level-bar');
   if (!el || !combat) return;
-  const level   = combat.level;
-  const cycle   = Math.floor((level - 1) / 15);
+  const level        = combat.level;
+  const cycle        = Math.floor((level - 1) / 15);
   const levelInCycle = ((level - 1) % 15) + 1;
-  const robot   = robotActuel(combat);
-  const vivants = combat.vague.filter(r => !r.mort);
-  const total   = combat.vague.length;
-  const ko      = total - vivants.length;
+  const robot        = robotActuel(combat);
+  const vivants      = combat.vague.filter(r => !r.mort);
+  const total        = combat.vague.length;
+  const ko           = total - vivants.length;
+
+  /* Indicateur de difficulté */
+  let diffLabel, diffColor;
+  if (levelInCycle <= 5)       { diffLabel = '🟢 Facile';    diffColor = '#22c55e'; }
+  else if (levelInCycle <= 9)  { diffLabel = '🟡 Normal';    diffColor = '#f59e0b'; }
+  else if (levelInCycle <= 13) { diffLabel = '🔴 Difficile'; diffColor = '#ef4444'; }
+  else if (levelInCycle === 14){ diffLabel = '☠️ Extrême';   diffColor = '#f97316'; }
+  else                         { diffLabel = '💀 HARDCORE';  diffColor = '#a855f7'; }
 
   el.innerHTML = `
     <div style="display:flex;align-items:center;justify-content:space-between;
       margin-bottom:.5rem;padding:.4rem .6rem;background:rgba(168,85,247,.08);
       border-radius:10px;border:1px solid rgba(168,85,247,.2)">
-      <div>
+      <div style="display:flex;align-items:center;gap:.5rem">
         <span style="font-size:.8rem;font-weight:900;color:#a855f7">
           ⚡ Level ${levelInCycle}/15
         </span>
-        ${cycle > 0 ? `<span style="font-size:.6rem;color:#f59e0b;margin-left:.4rem">Cycle ${cycle + 1}</span>` : ''}
+        ${cycle > 0 ? `<span style="font-size:.6rem;color:#f59e0b">Cycle ${cycle + 1}</span>` : ''}
+        <span style="font-size:.65rem;font-weight:800;color:${diffColor}">${diffLabel}</span>
       </div>
       <div style="font-size:.65rem;color:var(--text-muted)">
         ${ko}/${total} robots éliminés
@@ -239,13 +280,17 @@ function rendreEquipe() {
           color:${b.mort ? 'var(--text-muted)' : color};margin-bottom:.2rem">
           ${b.mort ? '☠️ KO' : estActif ? '▶ En jeu' : ''}
         </div>
-        <img src="${b.brawler.img}" alt="${b.brawler.nom}"
-          style="width:48px;height:48px;object-fit:contain;opacity:${b.mort ? 0.3 : 1};
-            ${b.mort ? 'filter:grayscale(1)' : ''}"
-          onerror="this.style.display='none'">
+        <div style="position:relative;display:inline-block">
+          <img src="${b.brawler.img}" alt="${b.brawler.nom}"
+            style="width:48px;height:48px;object-fit:contain;opacity:${b.mort ? 0.3 : 1};
+              ${b.mort ? 'filter:grayscale(1)' : ''}"
+            onerror="this.style.display='none'">
+          ${!b.mort ? `<div style="position:absolute;top:-4px;right:-4px;
+            background:rgba(0,0,0,.75);border-radius:4px;padding:1px;line-height:0;
+            border:1px solid rgba(255,255,255,.15)">${roleIcon(b.brawler.role,'13px')}</div>` : ''}
+        </div>
         <div style="font-size:.72rem;font-weight:800;color:${b.mort ? 'var(--text-muted)' : '#e2e8f0'};
           white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:80px">${b.brawler.nom}</div>
-        ${!b.mort ? `<div style="margin:.05rem 0">${roleBadge(b.brawler.role)}</div>` : ''}
         <div style="width:100%;height:5px;background:var(--border);border-radius:3px;overflow:hidden;margin-top:.2rem">
           <div style="height:100%;width:${pct}%;background:${barColor};border-radius:3px;transition:width .4s ease"></div>
         </div>
@@ -270,11 +315,15 @@ function rendreRobot() {
     <div style="font-size:.65rem;font-weight:900;text-transform:uppercase;color:${r.couleur};letter-spacing:.1em;margin-bottom:.3rem">
       ⚔️ Adversaire
     </div>
-    <img src="./images/${r.image}" alt="${r.nom}" id="cb-robot-img"
-      style="width:80px;height:80px;object-fit:contain"
-      onerror="this.style.display='none'">
+    <div style="position:relative;display:inline-block">
+      <img src="./images/${r.image}" alt="${r.nom}" id="cb-robot-img"
+        style="width:80px;height:80px;object-fit:contain"
+        onerror="this.style.display='none'">
+      <div style="position:absolute;top:-4px;right:-4px;
+        background:rgba(0,0,0,.75);border-radius:5px;padding:2px;line-height:0;
+        border:1px solid rgba(255,255,255,.15)">${roleIcon(r.role,'16px')}</div>
+    </div>
     <div style="font-weight:900;color:${r.couleur};font-size:.85rem;margin-top:.3rem">${r.nom}</div>
-    <div style="margin:.15rem 0">${roleBadge(r.role, '.6rem')}</div>
     <div style="font-size:.65rem;color:var(--text-muted);margin-bottom:.25rem">${r.desc}</div>
     ${restants > 0 ? `<div style="font-size:.6rem;color:#f59e0b;margin-bottom:.2rem">+${restants} robot${restants > 1 ? 's' : ''} en attente</div>` : ''}
     <div style="width:100%;height:7px;background:var(--border);border-radius:4px;overflow:hidden;margin-bottom:.2rem">
@@ -383,7 +432,7 @@ async function actionCombat(action) {
   if (!robot) { combat.en_cours = false; return; }
 
   /* ── Résilience : soin passif si HP < 30% ── */
-  if (typeof hasResilience === 'function' && hasResilience()) {
+  if (typeof hasResilienceBrawler === 'function' && hasResilienceBrawler(bActif.brawler.id, bActif.variante)) {
     if (bActif.hp < bActif.hpMax * 0.30) {
       const soinRes = Math.round(bActif.hpMax * 0.10);
       bActif.hp = Math.min(bActif.hpMax, bActif.hp + soinRes);
@@ -396,7 +445,7 @@ async function actionCombat(action) {
 
   if (action === 'attaque') {
     const mult       = multiplicateurRole(role, robot.role);
-    const fureurMult = (typeof hasFureur === 'function' && hasFureur()) ? (1 + combat.fureurStacks * 0.10) : 1;
+    const fureurMult = (typeof hasFureurBrawler === 'function' && hasFureurBrawler(bActif.brawler.id, bActif.variante)) ? (1 + combat.fureurStacks * 0.10) : 1;
     degatJoueur = Math.round(bActif.atk * (0.85 + Math.random() * 0.3) * mult * fureurMult);
     msgJoueur   = `⚔️ <b style="color:${couleurVarianteLocal(bActif.brawler, bActif.variante)}">${bActif.brawler.nom}</b> attaque${suffixeAvantage(mult)} : <b style="color:#ef4444">-${degatJoueur} HP</b>`;
     Sound.roll && Sound.roll();
@@ -412,7 +461,7 @@ async function actionCombat(action) {
       Sound.golden && Sound.golden();
     } else {
       const mult            = multiplicateurRole(role, robot.role);
-      const specialMultBonus = typeof bonusSpecialMult === 'function' ? bonusSpecialMult() : 0;
+      const specialMultBonus = typeof bonusSpecialBrawler === 'function' ? bonusSpecialBrawler(bActif.brawler.id, bActif.variante) : 0;
       degatJoueur = Math.round(bActif.atk * (2.5 + specialMultBonus) * (0.9 + Math.random() * 0.2) * mult);
       msgJoueur   = `✦ <b style="color:#a855f7">${bActif.brawler.nom} SPÉCIALE</b>${suffixeAvantage(mult)} : <b style="color:#ef4444">-${degatJoueur} HP !</b>`;
       Sound.golden && Sound.golden();
@@ -421,7 +470,7 @@ async function actionCombat(action) {
   } else if (action === 'defense') {
     bActif.bouclier = true;
     const mult        = multiplicateurRole(role, robot.role);
-    const riposteBase = typeof bonusRiposteMult === 'function' ? 0.5 + bonusRiposteMult() : 0.5;
+    const riposteBase = typeof bonusRiposteBrawler === 'function' ? 0.5 + bonusRiposteBrawler(bActif.brawler.id, bActif.variante) : 0.5;
     degatJoueur = Math.round(bActif.atk * riposteBase * (0.8 + Math.random() * 0.4) * mult);
     msgJoueur   = `🛡️ <b style="color:#38bdf8">${bActif.brawler.nom}</b> se défend et riposte${suffixeAvantage(mult)} : <b style="color:#ef4444">-${degatJoueur} HP</b>`;
   }
@@ -457,9 +506,14 @@ async function actionCombat(action) {
       /* Toute la vague est vaincue → victoire du level */
       const winsApres = (etat.combatsGagnes || 0) + 1;
       combat.gainPP   = 1 + (winsApres % 5 === 0 ? 2 : 0); // +2 bonus tous les 5 levels
-      etat.pieces       += combat.gainPieces;
-      etat.pointsPouvoir = (etat.pointsPouvoir || 0) + combat.gainPP;
-      etat.combatsGagnes = winsApres;
+      etat.pieces        += combat.gainPieces;
+      etat.combatsGagnes  = winsApres;
+      /* Distribuer les PP à chaque brawler de l'équipe ayant participé */
+      combat.brawlers.forEach(b => {
+        const k = cle(b.brawler.id, b.variante);
+        if (!etat.brawlerPP) etat.brawlerPP = {};
+        etat.brawlerPP[k] = (etat.brawlerPP[k] || 0) + combat.gainPP;
+      });
       if (typeof gagnerXP === 'function') gagnerXP(combat.gainXP);
       if (typeof mettreAJourCompteurs === 'function') mettreAJourCompteurs();
       if (typeof sauvegarderEtatCloud  === 'function') sauvegarderEtatCloud();
@@ -478,7 +532,7 @@ async function actionCombat(action) {
   /* ── Contre-attaque du robot ── */
   await attendre(300);
 
-  const bouclierBonus   = typeof bonusBouclierReduction === 'function' ? bonusBouclierReduction() : 0;
+  const bouclierBonus   = typeof bonusBouclierBrawler === 'function' ? bonusBouclierBrawler(bActif.brawler.id, bActif.variante) : 0;
   const reductionBouclier = bActif.bouclier ? Math.max(0.1, 0.4 - bouclierBonus) : 1;
   const multDef  = multiplicateurRole(robot.role, role);
   const degatRobot = Math.round(robot.atk * (0.8 + Math.random() * 0.4) * reductionBouclier * multDef);
@@ -499,7 +553,7 @@ async function actionCombat(action) {
   }
 
   /* ── Fureur ── */
-  if (typeof hasFureur === 'function' && hasFureur() && !bActif.mort) {
+  if (typeof hasFureurBrawler === 'function' && hasFureurBrawler(bActif.brawler.id, bActif.variante) && !bActif.mort) {
     combat.fureurStacks++;
     if (combat.fureurStacks <= 5)
       logCombat(`🔥 <b style="color:#f59e0b">Fureur</b> +${combat.fureurStacks * 10}% ATK`, '');

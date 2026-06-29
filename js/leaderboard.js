@@ -72,23 +72,22 @@ async function mettreAJourScoreLeaderboard() {
     ? getCloudJWT()
     : window.SUPABASE_ANON_KEY;
 
-  // Protection : ne jamais écraser un score positif par 0
-  if (cpsActuel === 0) {
-    try {
-      const { data } = await client
+  // Protection : ne jamais écraser un score existant par un score inférieur
+  try {
+    const { data: existing } = await client
+      .from('nulls_rng_leaderboard')
+      .select('cps')
+      .eq('user_id', userId)
+      .maybeSingle();
+    if (existing && existing.cps > cpsActuel) {
+      // Le score sauvegardé est meilleur → on met à jour uniquement le pseudo
+      await client
         .from('nulls_rng_leaderboard')
-        .select('cps')
-        .eq('user_id', userId)
-        .maybeSingle();
-      if (data && data.cps > 0) {
-        await client
-          .from('nulls_rng_leaderboard')
-          .update({ username: pseudo, updated_at: new Date().toISOString() })
-          .eq('user_id', userId);
-        return;
-      }
-    } catch (_) {}
-  }
+        .update({ username: pseudo, updated_at: new Date().toISOString() })
+        .eq('user_id', userId);
+      return;
+    }
+  } catch (_) {}
 
   try {
     const res = await fetch(`${window.SUPABASE_URL}/rest/v1/nulls_rng_leaderboard?on_conflict=user_id`, {
