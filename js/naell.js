@@ -18,6 +18,66 @@ let _naellTypingInterval = null;
 let _naellTypingRestant  = NAELL_TEMPS_LIMITE;
 
 /* ── Appelé à chaque clic sur rollBtn (depuis anticheat.js / index.html) ── */
+/* ── Indicateur CPS debug (affiché pendant le clic rapide) ── */
+let _naellDebugEl = null;
+let _naellDebugTimeout = null;
+
+function _naellShowDebug(cpsActuel) {
+  if (!_naellDebugEl) {
+    _naellDebugEl = document.createElement('div');
+    _naellDebugEl.style.cssText = `
+      position: fixed;
+      bottom: 1.5rem;
+      left: 50%;
+      transform: translateX(-50%);
+      z-index: 9999;
+      background: rgba(9,9,15,.92);
+      border: 1px solid rgba(139,92,246,.4);
+      border-radius: 12px;
+      padding: .5rem 1.2rem;
+      font-family: var(--font-mono, monospace);
+      font-size: .85rem;
+      font-weight: 700;
+      color: #e2e2f0;
+      pointer-events: none;
+      transition: opacity .2s;
+      display: flex;
+      align-items: center;
+      gap: .6rem;
+      white-space: nowrap;
+    `;
+    document.body.appendChild(_naellDebugEl);
+  }
+
+  const requis = NAELL_CPS_REQUIS;
+  const ok = cpsActuel >= requis;
+  const progSecs = _naellDebutSeuil ? ((Date.now() - _naellDebutSeuil) / 1000).toFixed(1) : '0.0';
+  const totalSecs = NAELL_DUREE_SEUIL;
+
+  const cpsColor = ok ? '#4ade80' : '#f87171';
+  const barPct = ok ? Math.min(100, ((Date.now() - _naellDebutSeuil) / (NAELL_DUREE_SEUIL * 1000)) * 100) : 0;
+
+  _naellDebugEl.innerHTML = `
+    <span style="color:${cpsColor};font-size:1rem">${cpsActuel}</span>
+    <span style="color:var(--text-muted, #5a5a7a);font-size:.7rem">/ ${requis} clic/s</span>
+    ${ok ? `<span style="color:#a855f7;font-size:.72rem">⏱ ${progSecs}s / ${totalSecs}s</span>` : ''}
+    <span style="display:inline-block;width:60px;height:4px;background:rgba(255,255,255,.1);border-radius:2px;overflow:hidden;vertical-align:middle">
+      <span style="display:block;height:100%;width:${barPct}%;background:#a855f7;border-radius:2px;transition:width .1s"></span>
+    </span>
+  `;
+  _naellDebugEl.style.opacity = '1';
+
+  clearTimeout(_naellDebugTimeout);
+  _naellDebugTimeout = setTimeout(() => {
+    if (_naellDebugEl) {
+      _naellDebugEl.style.opacity = '0';
+      setTimeout(() => {
+        if (_naellDebugEl) { _naellDebugEl.remove(); _naellDebugEl = null; }
+      }, 200);
+    }
+  }, 1200);
+}
+
 function naellEnregistrerClic() {
   // Déjà actif ou en cooldown → rien
   if (_naellActif) return;
@@ -31,6 +91,9 @@ function naellEnregistrerClic() {
 
   const cpsActuel = _naellClicRecents.length;
 
+  // Afficher l'indicateur debug
+  _naellShowDebug(cpsActuel);
+
   if (cpsActuel >= NAELL_CPS_REQUIS) {
     if (_naellDebutSeuil === null) {
       _naellDebutSeuil = now;
@@ -38,6 +101,7 @@ function naellEnregistrerClic() {
       // 10 secondes maintenues à 10+ cps → déclencher !
       _naellDebutSeuil = null;
       _naellClicRecents = [];
+      if (_naellDebugEl) { _naellDebugEl.remove(); _naellDebugEl = null; }
       _naellOuvrirDialogue();
     }
   } else {
