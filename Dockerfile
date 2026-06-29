@@ -91,6 +91,13 @@ COPY TickNormal.webp     /usr/share/nginx/html/TickNormal.webp
 COPY CarlNormal.webp     /usr/share/nginx/html/CarlNormal.webp
 COPY DarrylNormal.webp   /usr/share/nginx/html/DarrylNormal.webp
 
+# Brawlers Épiques
+COPY BoNormal.webp       /usr/share/nginx/html/BoNormal.webp
+COPY PiperNormal.webp    /usr/share/nginx/html/PiperNormal.webp
+COPY PamNormal.webp      /usr/share/nginx/html/PamNormal.webp
+COPY FrankNormal.webp    /usr/share/nginx/html/FrankNormal.webp
+COPY BibiNormal.webp     /usr/share/nginx/html/BibiNormal.webp
+
 # Easter egg Naell
 COPY Naell.webp            /usr/share/nginx/html/Naell.webp
 
