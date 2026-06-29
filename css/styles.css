@@ -15,6 +15,7 @@
   --shiny-col:   #38bdf8;
   --golden-col:  #fbbf24;
   --rainbow-col: #e879f9;
+  --monochrome-col: #f8fafc;
 }
 
 * { box-sizing: border-box; margin: 0; padding: 0; }
@@ -31,8 +32,9 @@ body {
 
 /* ── Couleurs rareté brawler (sémantiques) ── */
 .rarity-bg-common     { background: rgba(148,163,184,.12); border-color: rgba(148,163,184,.35); }
-.rarity-bg-rare       { background: rgba(34,197,94,.12);   border-color: rgba(34,197,94,.40);   }
+.rarity-bg-rare        { background: rgba(34,197,94,.12);   border-color: rgba(34,197,94,.40);   }
 .rarity-bg-super-rare { background: rgba(59,130,246,.14);  border-color: rgba(59,130,246,.45);  }
+.rarity-bg-epic       { background: rgba(192,38,211,.14);  border-color: rgba(192,38,211,.5);   }
 
 /* Rétrocompat : anciennes classes numérotées conservées au cas où */
 .rarity-bg-1 { background: rgba(148,163,184,.12); border-color: rgba(148,163,184,.3); }
@@ -55,11 +57,19 @@ body {
   background-clip: text;
   font-weight: 900;
 }
+.badge-monochrome {
+  background: linear-gradient(90deg,#ffffff,#94a3b8,#000000,#94a3b8,#ffffff);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+  font-weight: 900;
+}
 
 /* ── Effets variante (carte inventaire) ── */
 .var-shiny  { box-shadow: 0 0 12px rgba(56,189,248,.45); }
 .var-golden { box-shadow: 0 0 14px rgba(251,191,36,.5); }
 .var-rainbow { animation: rainbowBorder 2s linear infinite; }
+.var-monochrome { animation: monochromeBorder 2s linear infinite; }
 
 @keyframes rainbowBorder {
   0%   { box-shadow: 0 0 14px #f472b6; border-color: #f472b6; }
@@ -67,6 +77,12 @@ body {
   50%  { box-shadow: 0 0 14px #34d399; border-color: #34d399; }
   75%  { box-shadow: 0 0 14px #fbbf24; border-color: #fbbf24; }
   100% { box-shadow: 0 0 14px #f472b6; border-color: #f472b6; }
+}
+
+@keyframes monochromeBorder {
+  0%   { box-shadow: 0 0 14px #ffffff; border-color: #ffffff; }
+  50%  { box-shadow: 0 0 14px #000000; border-color: #000000; }
+  100% { box-shadow: 0 0 14px #ffffff; border-color: #ffffff; }
 }
 
 /* ── Animation flash résultat ── */
@@ -82,8 +98,14 @@ body {
   75%  { color: #fbbf24; }
   100% { color: #f472b6; }
 }
+@keyframes monochromeText {
+  0%   { color: #ffffff; }
+  50%  { color: #6b7280; }
+  100% { color: #ffffff; }
+}
 .flash-anim   { animation: flashIn .45s cubic-bezier(.22,.68,0,1.2) forwards; }
 .rainbow-text { animation: rainbowText 1.5s linear infinite; }
+.monochrome-text { animation: monochromeText 1.5s linear infinite; text-shadow: 0 0 12px rgba(255,255,255,.6); }
 
 /* ── Bouton Roll ── */
 #rollBtn {
