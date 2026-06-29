@@ -282,12 +282,10 @@ function rendreEquipe() {
         </div>
         <div style="position:relative;display:inline-block">
           <img src="${b.brawler.img}" alt="${b.brawler.nom}"
-            style="width:48px;height:48px;object-fit:contain;opacity:${b.mort ? 0.3 : 1};
+            style="width:60px;height:60px;object-fit:contain;opacity:${b.mort ? 0.3 : 1};
               ${b.mort ? 'filter:grayscale(1)' : ''}"
             onerror="this.style.display='none'">
-          ${!b.mort ? `<div style="position:absolute;top:-4px;right:-4px;
-            background:rgba(0,0,0,.75);border-radius:4px;padding:1px;line-height:0;
-            border:1px solid rgba(255,255,255,.15)">${roleIcon(b.brawler.role,'13px')}</div>` : ''}
+          ${!b.mort ? `<div style="position:absolute;top:-6px;right:-6px;line-height:0">${roleIcon(b.brawler.role,'22px')}</div>` : ''}
         </div>
         <div style="font-size:.72rem;font-weight:800;color:${b.mort ? 'var(--text-muted)' : '#e2e8f0'};
           white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:80px">${b.brawler.nom}</div>
@@ -319,9 +317,7 @@ function rendreRobot() {
       <img src="./images/${r.image}" alt="${r.nom}" id="cb-robot-img"
         style="width:80px;height:80px;object-fit:contain"
         onerror="this.style.display='none'">
-      <div style="position:absolute;top:-4px;right:-4px;
-        background:rgba(0,0,0,.75);border-radius:5px;padding:2px;line-height:0;
-        border:1px solid rgba(255,255,255,.15)">${roleIcon(r.role,'16px')}</div>
+      <div style="position:absolute;top:-6px;right:-6px;line-height:0">${roleIcon(r.role,'22px')}</div>
     </div>
     <div style="font-weight:900;color:${r.couleur};font-size:.85rem;margin-top:.3rem">${r.nom}</div>
     <div style="font-size:.65rem;color:var(--text-muted);margin-bottom:.25rem">${r.desc}</div>
