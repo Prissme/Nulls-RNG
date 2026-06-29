@@ -134,10 +134,11 @@ async function chargerLeaderboard() {
     // Mettre à jour le score avant d'afficher
     await mettreAJourScoreLeaderboard();
 
-    // Top 10
+    // Top 10 (les comptes bannis n'apparaissent jamais dans le classement)
     const { data, error } = await client
       .from('nulls_rng_leaderboard')
       .select('user_id, username, cps')
+      .eq('banned', false)
       .order('cps', { ascending: false })
       .limit(10);
 
@@ -156,6 +157,7 @@ async function chargerLeaderboard() {
       const { data: tous } = await client
         .from('nulls_rng_leaderboard')
         .select('user_id, username, cps')
+        .eq('banned', false)
         .order('cps', { ascending: false });
       if (tous) {
         const idx = tous.findIndex(j => j.user_id === userId);
