@@ -11,7 +11,7 @@ const NAELL_COOLDOWN_MS  = 60 * 60 * 1000; // 1 heure
 
 /* ── État interne ── */
 let _naellActif         = false;
-let _naellCooldownFin   = 0;
+let _naellCooldownFin   = parseInt(localStorage.getItem('naellCooldownFin') || '0', 10);
 let _naellClicRecents   = []; // timestamps
 let _naellDebutSeuil    = null; // moment où on a commencé à maintenir 10cps
 let _naellTypingInterval = null;
@@ -341,6 +341,7 @@ function _naellEchec() {
   if (overlay) overlay.remove();
 
   _naellCooldownFin = Date.now() + NAELL_COOLDOWN_MS;
+  localStorage.setItem('naellCooldownFin', String(_naellCooldownFin));
   _naellActif = false;
 
   _naellAfficherResultat(
@@ -354,6 +355,7 @@ function _naellEchec() {
 /* ── Écran résultat ── */
 function _naellAfficherResultat(citation, sousTitre, couleur, victoire) {
   const overlay = document.createElement('div');
+  overlay.id = 'naellResultOverlay';
   overlay.style.cssText = `
     position:fixed;inset:0;z-index:99999;
     background:rgba(0,0,0,.85);backdrop-filter:blur(6px);
@@ -383,7 +385,7 @@ function _naellAfficherResultat(citation, sousTitre, couleur, victoire) {
       <div style="font-size:.8rem;font-weight:800;color:${couleur};margin-bottom:1.5rem">
         ${sousTitre}
       </div>
-      <button onclick="this.closest('div[style*=\"fixed\"]').remove()" style="
+      <button onclick="document.getElementById('naellResultOverlay').remove()" style="
         background:linear-gradient(135deg,#7c3aed,#a855f7);
         border:none;border-radius:12px;color:#fff;
         font-weight:900;font-size:.85rem;padding:.65rem 1.8rem;
