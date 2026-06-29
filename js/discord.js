@@ -204,11 +204,19 @@ async function envoyerNotifDiscord(brawler, variante, username) {
   }
 }
 
+/* ── Seuil de rareté en dessous duquel on ne spam pas le Discord
+   (l'animation in-game, elle, reste déclenchée pour tout Lucky Pull) ── */
+const DISCORD_NOTIF_SEUIL = 100_000; // 1 chance sur 100 000
+
 /* ── Point d'entrée appelé depuis roll.js ── */
 function gererLuckyPull(brawler, variante, inventaireAvant) {
   if (!estLuckyPull(brawler, variante, inventaireAvant)) return;
 
   afficherAnimationLuckyPull(brawler, variante);
+
+  // Discord : uniquement les pulls plus rares que 1/100 000, pour éviter le spam
+  const score = brawler.div * VARIANTES[variante].chanceMult;
+  if (score <= DISCORD_NOTIF_SEUIL) return;
 
   const username = localStorage.getItem('nrng_username')
     || (typeof etat !== 'undefined' && etat.username)
