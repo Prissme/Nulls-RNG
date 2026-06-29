@@ -66,6 +66,9 @@ function statMultiplierForLevel(levelInCycle) {
 /* ── État du combat ── */
 let combat = null;
 
+/* ── Level sélectionné pour le farm (null = prochain level normal) ── */
+let farmLevel = null;
+
 /* ── Créer la liste de robots pour un level donné ── */
 function creerVague(level) {
   /* level est 1-indexé. Cycle sur 15. */
@@ -101,7 +104,9 @@ function creerVague(level) {
 }
 
 function creerEtatCombat() {
-  const level = (etat.combatsGagnes || 0) + 1; // prochain level à affronter
+  const nextLevel = (etat.combatsGagnes || 0) + 1;
+  const level     = farmLevel !== null ? farmLevel : nextLevel;
+  const isFarm    = farmLevel !== null && farmLevel < nextLevel;
 
   const vague = creerVague(level);
 
@@ -123,22 +128,25 @@ function creerEtatCombat() {
 
   /* Calcul des récompenses : somme des HP de tous les robots */
   const totalHPVague = vague.reduce((s, r) => s + r.hpMax, 0);
+  /* En mode farm : pièces/XP réduits à 30%, PP réduits à 1 fixe */
+  const farmMult = isFarm ? 0.3 : 1;
 
   return {
     phase:        'combat',
     tour:         1,
     actifIndex:   0,
     brawlers,
-    vague,          // tous les robots du level
-    robotIndex:   0, // robot actuellement ciblé
+    vague,
+    robotIndex:   0,
     log:          [],
     en_cours:     false,
     victoire:     null,
-    gainPieces:   Math.round(totalHPVague * 0.5),
-    gainXP:       Math.round(totalHPVague * 0.2),
+    gainPieces:   Math.round(totalHPVague * 0.5 * farmMult),
+    gainXP:       Math.round(totalHPVague * 0.2 * farmMult),
     gainPP:       0,
     fureurStacks: 0,
     level,
+    isFarm,
   };
 }
 
@@ -182,7 +190,6 @@ function suffixeAvantage(mult) {
 function afficherCombat() {
   const zone = document.getElementById('combatZone');
   if (!zone) return;
-  // Si un combat est en cours ou terminé, ne pas le réinitialiser
   if (!combat) combat = creerEtatCombat();
   if (combat.brawlers.length === 0 && combat.phase !== 'fin') {
     zone.innerHTML = `
@@ -196,10 +203,54 @@ function afficherCombat() {
   rendreCombat();
 }
 
+function rendreFarmSelector() {
+  const maxBattu = etat.combatsGagnes || 0;
+  if (maxBattu < 2) return ''; // pas encore de levels à farmer
+
+  const currentFarm = farmLevel;
+  const nextLevel   = maxBattu + 1;
+
+  // Construit les options : levels 1 → maxBattu (déjà battus)
+  const options = [];
+  for (let i = 1; i <= maxBattu; i++) {
+    const inCycle = ((i - 1) % 15) + 1;
+    const selected = currentFarm === i ? 'selected' : '';
+    options.push(`<option value="${i}" ${selected}>Level ${inCycle}/15 (×${Math.floor((i-1)/15)+1})</option>`);
+  }
+
+  const modeActif = currentFarm !== null && currentFarm < nextLevel;
+
+  return `
+    <div style="display:flex;align-items:center;gap:.5rem;flex-wrap:wrap;
+      padding:.4rem .6rem;background:rgba(251,191,36,.06);border-radius:10px;
+      border:1px solid rgba(251,191,36,.2);margin-bottom:.5rem">
+      <span style="font-size:.7rem;font-weight:800;color:#fbbf24;white-space:nowrap">🔄 FARM</span>
+      <select id="farmLevelSelect" onchange="setFarmLevel(this.value)"
+        style="background:#1e1b2e;color:#e2e8f0;border:1px solid rgba(255,255,255,.15);
+          border-radius:8px;padding:.2rem .4rem;font-size:.7rem;font-weight:700;cursor:pointer;flex:1">
+        <option value="" ${!modeActif ? 'selected' : ''}>⚔️ Prochain level (${((nextLevel-1)%15)+1}/15)</option>
+        ${options.join('')}
+      </select>
+      ${modeActif ? `<span style="font-size:.6rem;color:#fbbf24;white-space:nowrap">récomp. ×0.3</span>` : ''}
+    </div>
+  `;
+}
+
+function setFarmLevel(val) {
+  const nextLevel = (etat.combatsGagnes || 0) + 1;
+  farmLevel = val === '' ? null : parseInt(val);
+  // Si le combat actuel n'est pas en cours, on relance
+  if (!combat || combat.phase === 'fin' || combat.phase === 'combat' && combat.tour === 1 && combat.log.length === 0) {
+    combat = creerEtatCombat();
+  }
+  rendreCombat();
+}
+
 function rendreCombat() {
   const zone = document.getElementById('combatZone');
   if (!zone || !combat) return;
   zone.innerHTML = `
+    <div id="cb-farm-selector">${rendreFarmSelector()}</div>
     <div id="cb-level-bar"></div>
     <div id="cb-team" class="cb-team"></div>
     <div id="cb-vs" class="cb-vs-row">
@@ -351,30 +402,32 @@ function rendreActions() {
   if (!el || !combat) return;
 
   if (combat.phase === 'fin') {
-    const w = combat.victoire;
+    const w    = combat.victoire;
+    const farm = combat.isFarm;
     el.innerHTML = `
       <div style="text-align:center;padding:.5rem 0">
-        <div style="font-size:1.8rem">${w ? '🏆' : '💀'}</div>
-        <div style="font-weight:900;font-size:1rem;color:${w ? '#22c55e' : '#ef4444'};margin:.2rem 0">
-          ${w ? `Level ${((combat.level - 1) % 15) + 1} terminé !` : 'Défaite…'}
+        <div style="font-size:1.8rem">${w ? (farm ? '🔄' : '🏆') : '💀'}</div>
+        <div style="font-weight:900;font-size:1rem;color:${w ? (farm ? '#fbbf24' : '#22c55e') : '#ef4444'};margin:.2rem 0">
+          ${w ? (farm ? `Farm L${((combat.level-1)%15)+1} réussi !` : `Level ${((combat.level - 1) % 15) + 1} terminé !`) : 'Défaite…'}
         </div>
         ${w ? `
           <div style="font-size:.8rem;color:#fbbf24;margin-bottom:.3rem">
             +${combat.gainPieces} 💰 &nbsp; +${combat.gainXP} XP &nbsp; +${combat.gainPP} ⚡PP
+            ${farm ? '<span style="color:#94a3b8;font-size:.65rem"> (×0.3)</span>' : ''}
           </div>
-          <div style="font-size:.7rem;color:#a855f7;margin-bottom:.5rem">
+          ${!farm ? `<div style="font-size:.7rem;color:#a855f7;margin-bottom:.5rem">
             ➡️ Prochain : Level ${((combat.level) % 15) + 1}/15
-          </div>
+          </div>` : ''}
         ` : `
           <div style="font-size:.75rem;color:var(--text-muted);margin-bottom:.5rem">
             Ton équipe a été mise hors de combat.
           </div>
         `}
         <button onclick="nouveauCombat()" style="
-          background:linear-gradient(135deg,#7c3aed,#a855f7);border:none;border-radius:12px;
+          background:${farm ? 'linear-gradient(135deg,#92400e,#f59e0b)' : 'linear-gradient(135deg,#7c3aed,#a855f7)'};border:none;border-radius:12px;
           color:#fff;font-weight:900;font-size:.85rem;padding:.7rem 1.6rem;cursor:pointer;
-          box-shadow:0 0 16px rgba(168,85,247,.4)">
-          ⚔️ ${w ? 'Level suivant' : 'Réessayer'}
+          box-shadow:0 0 16px ${farm ? 'rgba(245,158,11,.4)' : 'rgba(168,85,247,.4)'}">
+          ${w ? (farm ? '🔄 Refarm' : '⚔️ Level suivant') : '⚔️ Réessayer'}
         </button>
       </div>
     `;
@@ -500,21 +553,36 @@ async function actionCombat(action) {
 
     } else {
       /* Toute la vague est vaincue → victoire du level */
-      const winsApres = (etat.combatsGagnes || 0) + 1;
-      combat.gainPP   = 1 + (winsApres % 5 === 0 ? 2 : 0); // +2 bonus tous les 5 levels
-      etat.pieces        += combat.gainPieces;
-      etat.combatsGagnes  = winsApres;
-      /* Distribuer les PP à chaque brawler de l'équipe ayant participé */
-      combat.brawlers.forEach(b => {
-        const k = cle(b.brawler.id, b.variante);
-        if (!etat.brawlerPP) etat.brawlerPP = {};
-        etat.brawlerPP[k] = (etat.brawlerPP[k] || 0) + combat.gainPP;
-      });
-      if (typeof gagnerXP === 'function') gagnerXP(combat.gainXP);
-      if (typeof mettreAJourCompteurs === 'function') mettreAJourCompteurs();
-      if (typeof sauvegarderEtatCloud  === 'function') sauvegarderEtatCloud();
-      if (typeof checkAchievementsVictoire === 'function') checkAchievementsVictoire('level');
-      logCombat(`🏆 <b style="color:#22c55e">Level ${((combat.level - 1) % 15) + 1} terminé !</b>`, 'cb-log-victoire');
+      if (combat.isFarm) {
+        /* Mode farm : pas de progression, 1 PP fixe, récompenses réduites */
+        combat.gainPP = 1;
+        etat.pieces  += combat.gainPieces;
+        combat.brawlers.forEach(b => {
+          const k = cle(b.brawler.id, b.variante);
+          if (!etat.brawlerPP) etat.brawlerPP = {};
+          etat.brawlerPP[k] = (etat.brawlerPP[k] || 0) + combat.gainPP;
+        });
+        if (typeof gagnerXP === 'function') gagnerXP(combat.gainXP);
+        if (typeof mettreAJourCompteurs === 'function') mettreAJourCompteurs();
+        if (typeof sauvegarderEtatCloud  === 'function') sauvegarderEtatCloud();
+        logCombat(`🔄 <b style="color:#fbbf24">Farm terminé ! (×0.3 récomp.)</b>`, 'cb-log-victoire');
+      } else {
+        /* Mode normal : progression */
+        const winsApres = (etat.combatsGagnes || 0) + 1;
+        combat.gainPP   = 1 + (winsApres % 5 === 0 ? 2 : 0);
+        etat.pieces        += combat.gainPieces;
+        etat.combatsGagnes  = winsApres;
+        combat.brawlers.forEach(b => {
+          const k = cle(b.brawler.id, b.variante);
+          if (!etat.brawlerPP) etat.brawlerPP = {};
+          etat.brawlerPP[k] = (etat.brawlerPP[k] || 0) + combat.gainPP;
+        });
+        if (typeof gagnerXP === 'function') gagnerXP(combat.gainXP);
+        if (typeof mettreAJourCompteurs === 'function') mettreAJourCompteurs();
+        if (typeof sauvegarderEtatCloud  === 'function') sauvegarderEtatCloud();
+        if (typeof checkAchievementsVictoire === 'function') checkAchievementsVictoire('level');
+        logCombat(`🏆 <b style="color:#22c55e">Level ${((combat.level - 1) % 15) + 1} terminé !</b>`, 'cb-log-victoire');
+      }
       combat.victoire  = true;
       combat.phase     = 'fin';
       combat.en_cours  = false;
