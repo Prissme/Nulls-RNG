@@ -47,6 +47,12 @@
   const cloudTs = await initCloudSave();
   if (cloudTs) tsReference = cloudTs; // le cloud, si dispo, prime sur le local
 
+  // FIX : redemarrerAutoRoll() n'était appelée que dans le chemin cloud
+  // (chargerEtatCloud). Un joueur sans cloud (ou en attendant l'init cloud)
+  // qui avait Auto-Roll actif à la fermeture ne le retrouvait jamais actif
+  // au rechargement local. Idempotent si déjà relancé côté cloud.
+  if (typeof redemarrerAutoRoll === 'function') redemarrerAutoRoll();
+
   // ── Progression hors-ligne (rolls + farm) ──
   // Calculée une seule fois ici, après avoir déterminé la sauvegarde la plus
   // à jour (locale ou cloud), pour éviter tout double-comptage.
