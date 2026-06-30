@@ -22,9 +22,11 @@ function setCloudStatus(text, color) {
   txt.style.color = color;
 }
 
-/* ── Initialisation : connexion anonyme + chargement ── */
-async function initCloudSave() {
-  if (!cloudConfigure()) return;
+/* ── Initialisation : connexion anonyme + chargement ──
+   Retourne le timestamp de la sauvegarde cloud chargée (ou null si le
+   cloud n'est pas configuré / pas de sauvegarde / échec). */
+async function initCloudSave(_estRetry) {
+  if (!cloudConfigure()) return null;
 
   setCloudStatus('🔄 Connexion…', '#94a3b8');
   sb = window.supabase.createClient(window.SUPABASE_URL, window.SUPABASE_ANON_KEY);
@@ -47,12 +49,22 @@ async function initCloudSave() {
     });
 
     afficherTransferId(); // FIX: afficher l'UUID dès qu'il est disponible
-    await chargerEtatCloud();
+    const ts = await chargerEtatCloud();
     setCloudStatus('☁️ Cloud actif', '#22c55e');
     demarrerAutoSaveCloud();
+    return ts;
   } catch (err) {
     console.error('[cloudsave] Échec initialisation :', err);
-    setCloudStatus('⚠️ Cloud indisponible', '#f87171');
+    // FIX "cloud déco" : un échec transitoire (réseau lent, cold-start
+    // Koyeb/Supabase) ne doit pas condamner le joueur à rester en mode
+    // local pour toute la session. Une seule tentative de reconnexion.
+    if (!_estRetry) {
+      setCloudStatus('🔄 Reconnexion…', '#94a3b8');
+      await new Promise(r => setTimeout(r, 3000));
+      return initCloudSave(true);
+    }
+    setCloudStatus('⚠️ Cloud indisponible (mode local)', '#f87171');
+    return null;
   }
 }
 
@@ -107,6 +119,10 @@ function serialiserEtat() {
     goldenFin:    etat.goldenFin,
     /* ── Easter egg Naell ── */
     naellSpeedUnlocked: etat.naellSpeedUnlocked || false,
+
+    /* ── Horodatage de cette sauvegarde : sert au calcul de la
+       progression hors-ligne au prochain chargement. ── */
+    dernierTimestamp: Date.now(),
   };
 }
 
@@ -167,9 +183,12 @@ function appliquerEtatSauvegarde(saved) {
   }
 }
 
-/* ── Charger l'état depuis Supabase ── */
+/* ── Charger l'état depuis Supabase ──
+   Retourne le timestamp de la sauvegarde chargée (ou null), pour que
+   main.js puisse centraliser le calcul de progression hors-ligne une
+   seule fois, après avoir tranché entre sauvegarde locale et cloud. */
 async function chargerEtatCloud() {
-  if (!sb || !cloudUserId) return;
+  if (!sb || !cloudUserId) return null;
 
   const { data, error } = await sb
     .from('game_saves')
@@ -177,8 +196,8 @@ async function chargerEtatCloud() {
     .eq('user_id', cloudUserId)
     .maybeSingle();
 
-  if (error) { console.error('[cloudsave] Erreur chargement :', error); return; }
-  if (!data || !data.state) return;
+  if (error) { console.error('[cloudsave] Erreur chargement :', error); return null; }
+  if (!data || !data.state) return null;
 
   appliquerEtatSauvegarde(data.state);
 
@@ -195,6 +214,8 @@ async function chargerEtatCloud() {
   
   // FIX leaderboard : envoyer le vrai CPS après restauration des pets
   if (typeof mettreAJourScoreLeaderboard === 'function') mettreAJourScoreLeaderboard();
+
+  return (typeof data.state.dernierTimestamp === 'number') ? data.state.dernierTimestamp : null;
 }
 
 /* ── Sauvegarder l'état vers Supabase ── */
@@ -316,4 +337,52 @@ function copierTransferId() {
       btn.style.color = '#3b82f6';
     }, 2000);
   });
+}
+
+/* ════════════════════════════════════════════════
+   SAUVEGARDE LOCALE (localStorage)
+   ────────────────────────────────────────────────
+   FIX "cloud déco" : jusqu'ici le jeu reposait à 100% sur Supabase —
+   aucune persistance locale n'existait. La moindre coupure cloud
+   (cold-start Koyeb, RLS mal configurée pour un joueur, session
+   anonyme qui ne se restaure pas dans un navigateur agressif sur le
+   storage, etc.) faisait perdre TOUTE la progression au moindre
+   refresh, puisque rien n'était sauvegardé ailleurs.
+   Cette couche locale tourne en permanence, indépendamment du cloud :
+   le jeu reste jouable et persistant même si Supabase est injoignable,
+   et sert aussi de source pour le calcul de farm/rolls hors-ligne
+   quand le cloud n'est pas configuré.
+════════════════════════════════════════════════ */
+
+const LOCAL_SAVE_KEY = 'nullsrng_save_v1';
+let _localSaveInterval = null;
+
+function sauvegarderLocal() {
+  try {
+    localStorage.setItem(LOCAL_SAVE_KEY, JSON.stringify(serialiserEtat()));
+  } catch (e) {
+    // Storage plein / navigation privée : on ignore silencieusement,
+    // le cloud (si configuré) reste le filet de sécurité principal.
+  }
+}
+
+function chargerLocal() {
+  try {
+    const raw = localStorage.getItem(LOCAL_SAVE_KEY);
+    return raw ? JSON.parse(raw) : null;
+  } catch (e) {
+    return null;
+  }
+}
+
+function demarrerSauvegardeLocale() {
+  clearInterval(_localSaveInterval);
+  _localSaveInterval = setInterval(sauvegarderLocal, 10000);
+
+  document.addEventListener('visibilitychange', () => {
+    if (document.visibilityState === 'hidden') sauvegarderLocal();
+  });
+  // localStorage est synchrone : contrairement au cloud (réseau), cette
+  // sauvegarde est garantie même si l'onglet se ferme brutalement.
+  window.addEventListener('beforeunload', sauvegarderLocal);
 }

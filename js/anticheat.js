@@ -2,6 +2,20 @@
    anticheat.js — Anti Auto-Clicker + Anti-Exploit Console
 ════════════════════════════════════════════════ */
 
+/* ── FIX SÉCURITÉ ──
+   Tout le fichier est encapsulé dans une IIFE, comme roll.js.
+   Avant ce fix, _invWriteAllowed, _acBloque, _exploitDetecte, etc.
+   étaient déclarées avec `let` au niveau racine du script. Dans un
+   <script> classique (non-module), ces bindings restent visibles et
+   RÉASSIGNABLES depuis la console DevTools (même scope global lexical
+   que la page) : un joueur pouvait taper `_invWriteAllowed = true`
+   dans la console pour désactiver entièrement la protection inventaire
+   puis injecter ce qu'il voulait. En les enfermant dans cette IIFE,
+   elles deviennent de vraies variables privées de closure, inaccessibles
+   depuis la console. Seules les fonctions réellement appelées depuis
+   l'extérieur (onclick HTML, main.js) sont exposées sur window. */
+(function () {
+
 /* ══════════════════════════════════════════════
    SECTION 1 : PROTECTION INVENTAIRE
    Bloque les injections directes via la console
@@ -313,9 +327,17 @@ function acRollAutorise() {
 ══════════════════════════════════════════════ */
 
 const ROLL_RATELIMIT = {
-  INTERVALLE_MIN_MS:  45,   // < plancher auto-roll légitime (80ms sans potion, 30ms avec Wished)
-  BURST_MAX:           3,   // tolérance : 3 appels simultanés (même ms) = script
-  FENETRE_BURST_MS:    5,   // fenêtre "même tick" en pratique
+  // FIX faux positifs : delaiAutoRollBase() plancher à 80ms, et autoroll.js
+  // descend jusqu'à Math.max(30, base/6.7) avec la potion Wished, soit 30ms
+  // dans le pire cas légitime (et 40ms avec le speed Naël ×2, 26.7ms avec
+  // Speed×3). L'ancien seuil de 45ms était donc PLUS STRICT que le jeu
+  // légitime lui-même : tout joueur avec Wished/Speed/Naël actif et un
+  // auto-roll au plancher se faisait bloquer à tort. On descend sous le
+  // plancher réel (30ms) avec une marge de sécurité raisonnable.
+  INTERVALLE_MIN_MS:  18,   // < 30ms (plancher légitime le plus rapide)
+  BURST_MAX:           5,   // tolérance accrue pour le jitter du navigateur
+                             // (throttling d'onglet, retour de visibilité, etc.)
+  FENETRE_BURST_MS:    12,  // fenêtre "même tick" élargie en pratique
 };
 
 let _rrDernierAppel  = 0;
@@ -356,3 +378,19 @@ function initProtectionRoll() {
     return _rollOriginal.apply(this, args);
   };
 }
+
+/* ── Exposition contrôlée sur window ──
+   Uniquement les fonctions appelées depuis l'extérieur de ce fichier
+   (onclick dans index.html, main.js). Tout le reste reste privé. */
+window.initProtectionInventaire = initProtectionInventaire;
+window.initProtectionRoll       = initProtectionRoll;
+window.acEnregistrerClic        = acEnregistrerClic;
+window.acRollAutorise           = acRollAutorise;
+// _invMutation doit rester accessible : roll.js, craft.js, inventory.js,
+// prestige.js, cloudsave.js et offline.js l'appellent toutes pour leurs
+// mutations légitimes d'inventaire. L'exposer ne réintroduit pas la faille :
+// c'est juste la fonction qui pose le flag de façon synchrone (0ms), pas le
+// flag lui-même — la faille corrigée était l'accès direct à _invWriteAllowed.
+window._invMutation             = _invMutation;
+
+})(); // fin IIFE anticheat.js

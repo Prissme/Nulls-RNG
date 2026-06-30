@@ -198,12 +198,19 @@ function activerBoostHugeWished() {
 function redemarrerAutoRollHW() {
   if (!etat.autoRollActif) return;
   clearInterval(etat.autoInterval);
-  const base  = delaiAutoRollBase();
-  const delai = Math.max(30, Math.round(base / HUGEWISHED.BOOST_MULT));
+  const base = delaiAutoRollBase();
+
+  // FIX : le speed Naël (×2 permanent) se cumule aussi avec le boost HugeWished
+  const naellMult = etat.naellSpeedUnlocked ? 2 : 1;
+  const mult  = HUGEWISHED.BOOST_MULT * naellMult;
+  const delai = Math.max(
+    (typeof AUTOROLL_DELAI_PLANCHER_MS === 'number') ? AUTOROLL_DELAI_PLANCHER_MS : 30,
+    Math.round(base / mult)
+  );
   etat.autoInterval = setInterval(effectuerRoll, delai);
   const badge = document.getElementById('autoSpeedBadge');
   if (badge) {
-    badge.textContent = `×${HUGEWISHED.BOOST_MULT}`;
+    badge.textContent = naellMult > 1 ? `×${HUGEWISHED.BOOST_MULT} ×2 👑` : `×${HUGEWISHED.BOOST_MULT}`;
     badge.classList.remove('hidden');
     badge.style.background  = 'rgba(251,191,36,.2)';
     badge.style.color       = '#fbbf24';

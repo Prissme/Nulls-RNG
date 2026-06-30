@@ -28,6 +28,12 @@ function delaiAutoRollBase() {
   return Math.max(80, Math.round(1000 * vitesseAutoMult()));
 }
 
+/* Plancher absolu de délai entre deux rolls auto, tous boosts cumulés
+   confondus. Partagé avec hugewished.js et avec ROLL_RATELIMIT dans
+   anticheat.js (qui doit toujours rester EN DESSOUS de ce plancher,
+   sinon on recrée le même faux-positif qu'avant). */
+const AUTOROLL_DELAI_PLANCHER_MS = 25;
+
 function redemarrerAutoRoll() {
   if (!etat.autoRollActif) return;
   // Si le boost HugeWished est actif, déléguer à sa propre fonction
@@ -36,20 +42,30 @@ function redemarrerAutoRoll() {
     return;
   }
   clearInterval(etat.autoInterval);
-  const base  = delaiAutoRollBase();
-  // Wished (×6.7) > Speed (×3) ; on prend le meilleur actif
-  let delai = base;
-  let badgeText = '';
+  const base = delaiAutoRollBase();
+
+  // FIX : le speed Naël (×2 permanent) doit se CUMULER avec le boost
+  // potion actif (Wished ×6.7 ou Speed ×3), pas être ignoré dès qu'une
+  // potion est active. On multiplie tous les boosts actifs ensemble.
+  let mult = 1;
+  const badges = [];
   if (etat.wishedActive) {
-    delai = Math.max(30, Math.round(base / POTIONS.wished.speedMult));
-    badgeText = `×${POTIONS.wished.speedMult}`;
+    mult *= POTIONS.wished.speedMult;
+    badges.push(`×${POTIONS.wished.speedMult}`);
   } else if (etat.speedActive) {
-    delai = Math.round(base / 3);
-    badgeText = 'x3';
-  } else if (etat.naellSpeedUnlocked) {
-    delai = Math.round(base / 2);
-    badgeText = '×2 👑';
+    mult *= 3;
+    badges.push('×3');
   }
+  if (etat.naellSpeedUnlocked) {
+    mult *= 2;
+    badges.push('×2 👑');
+  }
+
+  const delai = mult > 1
+    ? Math.max(AUTOROLL_DELAI_PLANCHER_MS, Math.round(base / mult))
+    : base;
+  const badgeText = badges.join(' ');
+
   etat.autoInterval = setInterval(effectuerRoll, delai);
   const badge = document.getElementById('autoSpeedBadge');
   if (badge) {
