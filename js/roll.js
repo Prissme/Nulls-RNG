@@ -38,9 +38,19 @@
 
     const luckMult = luckMultiplierTotal();
 
+    // FIX : on doit tester les brawlers du PLUS RARE au PLUS COMMUN à
+    // l'intérieur de chaque palier de variante. C'est un tirage séquentiel
+    // "premier qui passe gagne, sinon on continue" : si on teste le plus
+    // commun en premier (Shelly, div=5 → ~20%+ de chance par roll), il
+    // gagne presque systématiquement la branche "normal" avant même que
+    // Colt/Nita/etc. soient évalués, ce qui écrasait quasiment tous les
+    // brawlers communs/rares au profit de Shelly. En testant du plus rare
+    // (div élevé, faible chance) au plus commun (div faible, forte chance),
+    // chaque brawler a sa vraie chance d'être tiré avant que le plus
+    // commun n'absorbe le reste du tirage en dernier recours.
     for (const vKey of ORDRE_VARIANTES) {
       const v = VARIANTES[vKey];
-      for (const b of [...BRAWLERS].sort((a, b2) => a.div - b2.div)) {
+      for (const b of [...BRAWLERS].sort((a, b2) => b2.div - a.div)) {
         const chanceBase      = 1 / b.div;
         const chanceEffective = (chanceBase * luckMult) / v.chanceMult;
         if (Math.random() < chanceEffective) {
