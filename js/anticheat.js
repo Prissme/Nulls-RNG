@@ -77,20 +77,34 @@ function _recalcSnapshot() {
  * Vérification périodique : si le total des items a augmenté sans passer
  * par une mutation légitime, c'est un exploit.
  * (Ne couvre pas les cas où le tricheur enlève des items, ce qui n'a pas d'intérêt.)
+ *
+ * FIX : l'ancienne tolérance de "+1" par tick (3s) supposait un auto-roll au
+ * mieux à 1 roll/sec. Depuis la correction du rate-limit (qui bloquait à tort
+ * les rolls rapides), l'auto-roll légitime peut atteindre AUTOROLL_DELAI_PLANCHER_MS
+ * (25ms) avec les boosts cumulés, soit jusqu'à ~120 rolls en 3s — ce qui
+ * dépassait l'ancienne tolérance et déclenchait un blocage instantané sur un
+ * autoroll parfaitement normal. La vraie protection contre l'injection directe
+ * est le Proxy synchrone (SECTION 1, plus haut) : ce check périodique n'est
+ * qu'un filet de sécurité redondant pour un cas résiduel (remplacement de la
+ * référence d'objet avant l'installation du Proxy). On peut donc se permettre
+ * une tolérance large, calée sur le pire débit légitime possible.
  */
+const INV_CHECK_INTERVALLE_MS = 3000;
+const INV_CHECK_TOLERANCE = Math.ceil(INV_CHECK_INTERVALLE_MS / 25) + 20; // ~140
+
 let _invCheckInterval = null;
 function _demarrerVerificationInventaire() {
   _recalcSnapshot();
   _invCheckInterval = setInterval(() => {
     const total = Object.values(etat.inventaire).reduce((a, b) => a + (b || 0), 0);
-    if (total > _invSnapshot + 1) { // +1 de tolérance pour la latence
+    if (total > _invSnapshot + INV_CHECK_TOLERANCE) {
       _signalExploit(`total inventaire passé de ${_invSnapshot} à ${total} sans mutation légitime`);
       // Rollback impossible sans backup — on bloque le jeu
       _bloquerJeu();
     }
     // Resync si la valeur a légitimement baissé (vente/craft) ou est correcte
-    if (total <= _invSnapshot + 1) _invSnapshot = total;
-  }, 3000);
+    if (total <= _invSnapshot + INV_CHECK_TOLERANCE) _invSnapshot = total;
+  }, INV_CHECK_INTERVALLE_MS);
 }
 
 /* ── Protection etat global ──
