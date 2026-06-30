@@ -29,9 +29,10 @@
      dans l'immense majorité des cas, et qu'on ne veut pas pouvoir abuser
      en partant juste après les avoir activées). */
   function _tirageHorsLigne(luckMult) {
+    // Même fix que roll.js : du plus rare au plus commun (voir commentaire détaillé là-bas).
     for (const vKey of ORDRE_VARIANTES) {
       const v = VARIANTES[vKey];
-      for (const b of [...BRAWLERS].sort((a, b2) => a.div - b2.div)) {
+      for (const b of [...BRAWLERS].sort((a, b2) => b2.div - a.div)) {
         const chanceBase      = 1 / b.div;
         const chanceEffective = (chanceBase * luckMult) / v.chanceMult;
         if (Math.random() < chanceEffective) {
