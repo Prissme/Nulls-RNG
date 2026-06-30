@@ -120,6 +120,11 @@ function serialiserEtat() {
     /* ── Easter egg Naell ── */
     naellSpeedUnlocked: etat.naellSpeedUnlocked || false,
 
+    /* FIX : autoRollActif n'était jamais sauvegardé, donc le calcul de
+       progression hors-ligne ne déclenchait jamais les rolls (toujours
+       considéré "off" au rechargement), seulement le gain de pièces (CPS). */
+    autoRollActif: etat.autoRollActif || false,
+
     /* ── Horodatage de cette sauvegarde : sert au calcul de la
        progression hors-ligne au prochain chargement. ── */
     dernierTimestamp: Date.now(),
@@ -158,6 +163,16 @@ function appliquerEtatSauvegarde(saved) {
 
   /* ── Easter egg Naell ── */
   if (saved.naellSpeedUnlocked === true) etat.naellSpeedUnlocked = true;
+
+  /* FIX : restaurer l'état Auto-Roll (sinon toujours "off" au chargement,
+     ce qui empêchait le calcul des rolls hors-ligne de se déclencher). */
+  if (saved.autoRollActif === true) {
+    etat.autoRollActif = true;
+    const toggle = document.getElementById('autoToggle');
+    const label  = document.getElementById('autoLabel');
+    if (toggle) toggle.classList.add('on');
+    if (label) { label.textContent = 'ON'; label.style.color = '#a855f7'; }
+  }
 
   /* ── Restaurer les potions encore actives (temps restant > 0) ── */
   const now = Date.now();
