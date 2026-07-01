@@ -25,7 +25,7 @@ function setCloudStatus(text, color) {
 /* ── Initialisation : connexion anonyme + chargement ──
    Retourne le timestamp de la sauvegarde cloud chargée (ou null si le
    cloud n'est pas configuré / pas de sauvegarde / échec). */
-async function initCloudSave(_estRetry) {
+async function initCloudSave(_estRetry, _localTs) {
   if (!cloudConfigure()) return null;
 
   setCloudStatus('🔄 Connexion…', '#94a3b8');
@@ -49,7 +49,11 @@ async function initCloudSave(_estRetry) {
     });
 
     afficherTransferId(); // FIX: afficher l'UUID dès qu'il est disponible
-    const ts = await chargerEtatCloud();
+    // FIX "perte de progression au reco" : on transmet le timestamp de la
+    // sauvegarde locale déjà appliquée, pour que chargerEtatCloud() puisse
+    // refuser d'écraser un état local plus récent avec une sauvegarde cloud
+    // périmée (cloud en échec silencieux pendant la session précédente, etc.)
+    const ts = await chargerEtatCloud(_localTs);
     setCloudStatus('☁️ Cloud actif', '#22c55e');
     demarrerAutoSaveCloud();
     return ts;
@@ -61,7 +65,7 @@ async function initCloudSave(_estRetry) {
     if (!_estRetry) {
       setCloudStatus('🔄 Reconnexion…', '#94a3b8');
       await new Promise(r => setTimeout(r, 3000));
-      return initCloudSave(true);
+      return initCloudSave(true, _localTs);
     }
     setCloudStatus('⚠️ Cloud indisponible (mode local)', '#f87171');
     return null;
@@ -206,7 +210,7 @@ function appliquerEtatSauvegarde(saved) {
    Retourne le timestamp de la sauvegarde chargée (ou null), pour que
    main.js puisse centraliser le calcul de progression hors-ligne une
    seule fois, après avoir tranché entre sauvegarde locale et cloud. */
-async function chargerEtatCloud() {
+async function chargerEtatCloud(_localTs) {
   if (!sb || !cloudUserId) return null;
 
   const { data, error } = await sb
@@ -217,6 +221,22 @@ async function chargerEtatCloud() {
 
   if (error) { console.error('[cloudsave] Erreur chargement :', error); return null; }
   if (!data || !data.state) return null;
+
+  // FIX "perte de progression au reco" : si une sauvegarde locale plus
+  // récente a déjà été appliquée (cf. main.js, chargement local-first),
+  // on NE remplace PAS l'état courant par une sauvegarde cloud plus vieille.
+  // Sans ce garde-fou, une sauvegarde cloud périmée (échec silencieux d'un
+  // upload précédent, etc.) écrasait systématiquement des heures de
+  // progression locale au moindre rechargement/reconnexion.
+  const cloudTs = (typeof data.state.dernierTimestamp === 'number') ? data.state.dernierTimestamp : 0;
+  if (typeof _localTs === 'number' && _localTs > cloudTs) {
+    console.warn('[cloudsave] Sauvegarde locale plus récente que le cloud — cloud ignoré pour ce chargement.');
+    setCloudStatus('☁️ Cloud actif (sync en attente)', '#22c55e');
+    // On force un envoi immédiat de l'état local vers le cloud pour que les
+    // deux redeviennent cohérents dès que possible (au lieu d'attendre 15s).
+    setTimeout(() => { if (typeof sauvegarderEtatCloud === 'function') sauvegarderEtatCloud(); }, 500);
+    return _localTs;
+  }
 
   appliquerEtatSauvegarde(data.state);
 
