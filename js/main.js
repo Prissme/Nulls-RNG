@@ -58,8 +58,11 @@
   demarrerCPS();
   initialiserQuetes();
 
-  const cloudTs = await initCloudSave();
-  if (cloudTs) tsReference = cloudTs; // le cloud, si dispo, prime sur le local
+  // FIX "perte de progression au reco" : on transmet tsReference (timestamp
+  // de la sauvegarde locale) pour que le cloud ne puisse écraser l'état
+  // courant que s'il est réellement plus récent (voir chargerEtatCloud).
+  const cloudTs = await initCloudSave(false, tsReference);
+  if (cloudTs) tsReference = cloudTs; // le cloud, si plus récent, prime sur le local
 
   // FIX : redemarrerAutoRoll() n'était appelée que dans le chemin cloud
   // (chargerEtatCloud). Un joueur sans cloud (ou en attendant l'init cloud)
