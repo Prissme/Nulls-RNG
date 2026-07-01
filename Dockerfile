@@ -97,6 +97,11 @@ COPY PiperNormal.webp    /usr/share/nginx/html/PiperNormal.webp
 COPY PamNormal.webp      /usr/share/nginx/html/PamNormal.webp
 COPY FrankNormal.webp    /usr/share/nginx/html/FrankNormal.webp
 COPY BibiNormal.webp     /usr/share/nginx/html/BibiNormal.webp
+COPY BeaNormal.webp      /usr/share/nginx/html/BeaNormal.webp
+COPY NaniNormal.webp     /usr/share/nginx/html/NaniNormal.webp
+COPY GaleNormal.webp     /usr/share/nginx/html/GaleNormal.webp
+COPY EmzNormal.webp      /usr/share/nginx/html/EmzNormal.webp
+COPY ColetteNormal.webp  /usr/share/nginx/html/ColetteNormal.webp
 
 # Easter egg Naell
 COPY Naell.webp            /usr/share/nginx/html/Naell.webp
