@@ -26,6 +26,11 @@
       83%  { box-shadow: 0 0 0 2.5px #f43f5e, 0 0 6px 1px #f43f5eaa; }
       100% { box-shadow: 0 0 0 2.5px #e879f9, 0 0 6px 1px #e879f9aa; }
     }
+    @keyframes monochromeOutline {
+      0%   { box-shadow: 0 0 0 2.5px #000000, 0 0 6px 1px #000000aa; }
+      50%  { box-shadow: 0 0 0 2.5px #ffffff, 0 0 6px 1px #ffffffaa; }
+      100% { box-shadow: 0 0 0 2.5px #000000, 0 0 6px 1px #000000aa; }
+    }
   `;
   document.head.appendChild(style);
 
