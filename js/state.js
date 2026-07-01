@@ -16,7 +16,7 @@ const etat = {
   /* ── Prestige (Renaissance) : persiste à travers les resets ── */
   prestige:         0,
   cristaux:         0,
-  prestigeUpgrades: { luck: 0, cps: 0, vente: 0, slot: 0, vitesse: 0 },
+  prestigeUpgrades: { luck: 0, cps: 0, vente: 0, slot: 0, vitesse: 0, xp: 0, cristaux: 0, multidrop: 0, recyclage: 0, luckroll: 0 },
 
   /* ── Index : bonus de luck débloqués, persistants après Renaissance ── */
   indexUnlocks: {},  // clé: "rarityKey_variante" → true
@@ -49,9 +49,11 @@ const etat = {
 
   cpsInterval: null,
 
-  quetes:           [],
-  quetesRefreshFin: 0,
-  quetesInterval:   null,
+  quetes:               [],
+  quetesRefreshFin:     0,
+  quetesInterval:       null,
+  quetesDiff:           [],
+  quetesDiffRefreshFin: 0,
 
   /* ── Progression du robot : nombre de victoires en combat ── */
   combatsGagnes: 0,
@@ -74,11 +76,18 @@ const parseKey = key => { const [a, b] = key.split('_'); return { brawlerId: +a,
 /* ── Bonus permanents de Prestige (achetés avec les Cristaux,
    ils restent acquis même après une Renaissance) ── */
 const niveauUpgradePrestige = (id) => (etat.prestigeUpgrades && etat.prestigeUpgrades[id]) || 0;
-const luckBonusPrestige     = () => 1 + niveauUpgradePrestige('luck')  * 0.05;
-const cpsBonusPrestige      = () => 1 + niveauUpgradePrestige('cps')   * 0.10;
-const venteBonusPrestige    = () => 1 + niveauUpgradePrestige('vente') * 0.10;
+const luckBonusPrestige     = () => 1 + niveauUpgradePrestige('luck')      * 0.05;
+const cpsBonusPrestige      = () => 1 + niveauUpgradePrestige('cps')       * 0.10;
+const venteBonusPrestige    = () => 1 + niveauUpgradePrestige('vente')     * 0.10;
 const nbSlotsMax            = () => 3 + niveauUpgradePrestige('slot');
 const vitesseAutoMult       = () => Math.max(0.3, 1 - niveauUpgradePrestige('vitesse') * 0.05);
+
+// Nouvelles améliorations
+const xpBonusPrestige       = () => 1 + niveauUpgradePrestige('xp')        * 0.08;   // +8% XP/niveau
+const cristauxBonusPrestige = () => 1 + niveauUpgradePrestige('cristaux')  * 0.10;   // +10% cristaux/niveau
+const multidropChance       = () =>     niveauUpgradePrestige('multidrop') * 0.005;  // +0.5% brawler bonus/niveau
+const recyclageBonusPrestige= () => 1 + niveauUpgradePrestige('recyclage') * 0.15;   // +15% vente/niveau
+const luckrollChance        = () =>     niveauUpgradePrestige('luckroll')  * 0.03;   // +3% chance Shiny/niveau
 
 const calcCPS  = (b, vKey) => b.cpsBase * VARIANTES[vKey].cpsMult * cpsBonusPrestige();
 const totalCPS = ()        => Math.round(etat.petsEquipes.reduce((sum, pet) =>
@@ -106,7 +115,7 @@ const xpRequisPourNiveau = (niveau) => Math.round(100 * Math.pow(1.15, niveau - 
 
 function gagnerXP(montant) {
   if (montant <= 0) return;
-  etat.xp += montant;
+  etat.xp += Math.round(montant * xpBonusPrestige());
 
   let aLevelUp = false;
   while (etat.xp >= xpRequisPourNiveau(etat.niveau)) {

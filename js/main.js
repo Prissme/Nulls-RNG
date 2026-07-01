@@ -17,6 +17,15 @@
       60%  { opacity:1; transform:translateX(-50%) scale(1.05) translateY(2px); }
       100% { opacity:1; transform:translateX(-50%) scale(1) translateY(0); }
     }
+    @keyframes rainbowOutline {
+      0%   { box-shadow: 0 0 0 2.5px #e879f9, 0 0 6px 1px #e879f9aa; }
+      16%  { box-shadow: 0 0 0 2.5px #f59e0b, 0 0 6px 1px #f59e0baa; }
+      33%  { box-shadow: 0 0 0 2.5px #22c55e, 0 0 6px 1px #22c55eaa; }
+      50%  { box-shadow: 0 0 0 2.5px #38bdf8, 0 0 6px 1px #38bdf8aa; }
+      66%  { box-shadow: 0 0 0 2.5px #a855f7, 0 0 6px 1px #a855f7aa; }
+      83%  { box-shadow: 0 0 0 2.5px #f43f5e, 0 0 6px 1px #f43f5eaa; }
+      100% { box-shadow: 0 0 0 2.5px #e879f9, 0 0 6px 1px #e879f9aa; }
+    }
   `;
   document.head.appendChild(style);
 

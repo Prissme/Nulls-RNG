@@ -91,8 +91,10 @@ function serialiserEtat() {
     petsEquipes:       etat.petsEquipes.map(p => p ? { brawlerId: p.brawler.id, variante: p.variante } : null),
     niveau:            etat.niveau,
     xp:                etat.xp,
-    quetes:            etat.quetes,
-    quetesRefreshFin:  etat.quetesRefreshFin,
+    quetes:               etat.quetes,
+    quetesRefreshFin:     etat.quetesRefreshFin,
+    quetesDiff:           etat.quetesDiff           || [],
+    quetesDiffRefreshFin: etat.quetesDiffRefreshFin || 0,
     prestige:          etat.prestige,
     combatsGagnes:     etat.combatsGagnes  || 0,
     brawlerPP:         etat.brawlerPP      || {},
@@ -143,6 +145,8 @@ function appliquerEtatSauvegarde(saved) {
   if (typeof saved.xp     === 'number') etat.xp     = saved.xp;
   if (Array.isArray(saved.quetes)) etat.quetes = saved.quetes;
   if (typeof saved.quetesRefreshFin === 'number') etat.quetesRefreshFin = saved.quetesRefreshFin;
+  if (Array.isArray(saved.quetesDiff)) etat.quetesDiff = saved.quetesDiff;
+  if (typeof saved.quetesDiffRefreshFin === 'number') etat.quetesDiffRefreshFin = saved.quetesDiffRefreshFin;
 
   if (typeof saved.prestige === 'number') etat.prestige = saved.prestige;
   if (typeof saved.combatsGagnes === 'number') etat.combatsGagnes = saved.combatsGagnes;

@@ -21,7 +21,7 @@ function afficherResultat(b, vKey) {
   zone.classList.add('flash-anim');
 
   // Image au lieu de l'emoji
-  emoji.innerHTML = brawlerImg(b, 'w-24 h-24', vKey === 'monochrome' ? 'filter:grayscale(1) contrast(1.15)' : '');
+  emoji.innerHTML = brawlerImg(b, 'w-24 h-24', vKey === 'monochrome' ? 'filter:grayscale(1) contrast(1.15)' : '', vKey);
 
   if (vKey === 'monochrome') {
     name.className   = 'monochrome-text';
@@ -80,7 +80,7 @@ function afficherPets() {
       };
       slot.innerHTML = `
         <span class="unequip-x" onclick="desequiper(${i})">✕</span>
-        ${brawlerImg(pet.brawler, 'w-12 h-12')}
+        ${brawlerImg(pet.brawler, 'w-12 h-12', '', pet.variante)}
         <span class="text-xs font-bold" style="color:${color}">${pet.brawler.nom}</span>
         <span style="margin-top:.1rem">${rarityBadge(pet.brawler.rarity)}</span>
         <span style="font-family:var(--font-mono);font-size:.58rem;font-weight:700;color:#5eead4">🎲 1/${(pet.brawler.div * VARIANTES[pet.variante].chanceMult).toLocaleString('fr-FR')}</span>

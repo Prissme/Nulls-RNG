@@ -62,8 +62,13 @@
   }
 
   function effectuerRoll() {
-    const { brawler, variante } = effectuerTirage();
+    let { brawler, variante } = effectuerTirage();
     etat.totalRolls++;
+
+    // ── Roulette Bénie : chance de upgrader un roll normal en Shiny ──
+    if (variante === 'normal' && Math.random() < luckrollChance()) {
+      variante = 'shiny';
+    }
 
     // ── Snapshot inventaire AVANT d'incrémenter (pour détecter les lucky pulls)
     const inventaireAvant = Object.assign({}, etat.inventaire);
@@ -92,6 +97,24 @@
     afficherInventaire();
     afficherHistorique();
     afficherCraft();
+
+    // ── Multi-Drop : chance d'obtenir un brawler bonus supplémentaire ──
+    if (Math.random() < multidropChance()) {
+      const { brawler: b2, variante: v2 } = effectuerTirage();
+      const k2 = cle(b2.id, v2);
+      _invMutation(() => { etat.inventaire[k2] = (etat.inventaire[k2] || 0) + 1; });
+      etat.totalRolls++;
+      progresserQuete('roll', { brawlerId: b2.id, variante: v2 });
+      // Petite notif discrète en haut à droite
+      const notif = document.createElement('div');
+      notif.style.cssText = `position:fixed;top:70px;right:16px;
+        background:rgba(249,115,22,.18);border:1px solid #f9731666;
+        color:#f97316;font-weight:800;font-size:.72rem;padding:.35rem .75rem;
+        border-radius:9px;z-index:999;animation:craftIn .3s ease forwards`;
+      notif.textContent = `🎯 Multi-Drop ! ${b2.emoji} ${v2 !== 'normal' ? VARIANTES[v2].emoji : ''}`;
+      document.body.appendChild(notif);
+      setTimeout(() => notif.remove(), 1800);
+    }
 
     // Rafraîchir l'index si ouvert
     if (document.getElementById('modalIndex') &&

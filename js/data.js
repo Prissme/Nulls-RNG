@@ -47,9 +47,14 @@ const BRAWLERS = [
   /* ── Épique ── (plus dur à obtenir que toutes les Super Rare, mais rapportent beaucoup plus) */
   { id:20, nom:"Bo",       div:5000,  couleur:"#c026d3", emoji:"🏹", img:"BoNormal.webp",     cpsBase:45,  sellValue:36, bgClass:"rarity-bg-epic", rarity:"epic", role:"poke"    },
   { id:21, nom:"Piper",    div:6500,  couleur:"#c026d3", emoji:"🌂", img:"PiperNormal.webp",  cpsBase:55,  sellValue:44, bgClass:"rarity-bg-epic", rarity:"epic", role:"poke"    },
-  { id:22, nom:"Pam",      div:8000,  couleur:"#c026d3", emoji:"🛠️", img:"PamNormal.webp",    cpsBase:68,  sellValue:54, bgClass:"rarity-bg-epic", rarity:"epic", role:"soutien" },
-  { id:23, nom:"Frank",    div:10000, couleur:"#c026d3", emoji:"🔨", img:"FrankNormal.webp",  cpsBase:85,  sellValue:68, bgClass:"rarity-bg-epic", rarity:"epic", role:"tank"    },
-  { id:24, nom:"Bibi",     div:13000, couleur:"#c026d3", emoji:"⚾", img:"BibiNormal.webp",   cpsBase:105, sellValue:84, bgClass:"rarity-bg-epic", rarity:"epic", role:"burst"   },
+  { id:22, nom:"Pam",      div:8000,  couleur:"#c026d3", emoji:"🛠️", img:"PamNormal.webp",    cpsBase:68,  sellValue:54,  bgClass:"rarity-bg-epic", rarity:"epic", role:"soutien" },
+  { id:23, nom:"Frank",    div:10000, couleur:"#c026d3", emoji:"🔨", img:"FrankNormal.webp",  cpsBase:85,  sellValue:68,  bgClass:"rarity-bg-epic", rarity:"epic", role:"tank"    },
+  { id:24, nom:"Bibi",     div:13000, couleur:"#c026d3", emoji:"⚾", img:"BibiNormal.webp",   cpsBase:105, sellValue:84,  bgClass:"rarity-bg-epic", rarity:"epic", role:"burst"   },
+  { id:25, nom:"Bea",      div:15000, couleur:"#c026d3", emoji:"🐝", img:"BeaNormal.webp",    cpsBase:120, sellValue:96,  bgClass:"rarity-bg-epic", rarity:"epic", role:"poke"    },
+  { id:26, nom:"Nani",     div:17000, couleur:"#c026d3", emoji:"🤖", img:"NaniNormal.webp",   cpsBase:138, sellValue:110, bgClass:"rarity-bg-epic", rarity:"epic", role:"poke"    },
+  { id:27, nom:"Gale",     div:18500, couleur:"#c026d3", emoji:"🌬️", img:"GaleNormal.webp",   cpsBase:150, sellValue:120, bgClass:"rarity-bg-epic", rarity:"epic", role:"burst"   },
+  { id:28, nom:"Emz",      div:20000, couleur:"#c026d3", emoji:"💇", img:"EmzNormal.webp",    cpsBase:165, sellValue:132, bgClass:"rarity-bg-epic", rarity:"epic", role:"burst"   },
+  { id:29, nom:"Colette",  div:22000, couleur:"#c026d3", emoji:"🖤", img:"ColetteNormal.webp", cpsBase:182, sellValue:146, bgClass:"rarity-bg-epic", rarity:"epic", role:"burst"   },
 ];
 
 /* ════════════════════════════════════════════════
@@ -154,12 +159,29 @@ const POTIONS = {
 };
 
 /* ── Helper : génère le HTML d'image d'un brawler ──
-   size  : classe CSS de taille (ex. "w-10 h-10")
-   extra : styles inline supplémentaires              */
-function brawlerImg(brawler, size = 'w-10 h-10', extra = '') {
+   size    : classe CSS de taille (ex. "w-10 h-10")
+   extra   : styles inline supplémentaires
+   variante: si fournie, ajoute un outline de la couleur de la mutation  */
+function brawlerImg(brawler, size = 'w-10 h-10', extra = '', variante = null) {
+  let outlineStyle = '';
+  if (variante && variante !== 'normal') {
+    if (variante === 'rainbow') {
+      // Rainbow : outline animé via box-shadow multi-couleur rotatif
+      // (outline ne supporte pas les dégradés, on simule avec un wrapper)
+      outlineStyle = `
+        outline: 2.5px solid transparent;
+        border-radius: 6px;
+        box-shadow: 0 0 0 2.5px #e879f9, 0 0 6px 1px #e879f9aa;
+        animation: rainbowOutline 1.8s linear infinite;
+      `;
+    } else {
+      const color = couleurVariante(brawler, variante);
+      outlineStyle = `outline: 2.5px solid ${color}; border-radius: 6px; box-shadow: 0 0 5px 0px ${color}88;`;
+    }
+  }
   return `<img src="${brawler.img}" alt="${brawler.nom}"
     class="${size} object-contain"
-    style="image-rendering:auto;${extra}"
+    style="image-rendering:auto;${outlineStyle}${extra}"
     onerror="this.style.display='none';this.insertAdjacentText('afterend','${brawler.emoji}')" />`;
 }
 

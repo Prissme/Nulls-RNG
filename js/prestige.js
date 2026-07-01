@@ -8,30 +8,57 @@
 const PRESTIGE_NIVEAU_MIN = 10; // niveau minimum requis pour pouvoir renaître
 
 const PRESTIGE_UPGRADES = [
+  // ── Améliorations existantes (limites augmentées) ──
   {
     id: 'luck', nom: 'Luck Éternelle', icone: '✨', couleur: '#a855f7',
     desc: '+5% de Luck permanent par niveau',
-    maxNiveau: 20, coutBase: 3, coutFacteur: 1.35,
+    maxNiveau: 40, coutBase: 3, coutFacteur: 1.35,
   },
   {
     id: 'cps', nom: 'Productivité', icone: '💰', couleur: '#fbbf24',
     desc: '+10% de pièces/s permanent par niveau',
-    maxNiveau: 15, coutBase: 4, coutFacteur: 1.4,
+    maxNiveau: 30, coutBase: 4, coutFacteur: 1.4,
   },
   {
     id: 'vente', nom: 'Sens du Commerce', icone: '🏷️', couleur: '#22c55e',
     desc: '+10% de valeur de vente permanent par niveau',
-    maxNiveau: 10, coutBase: 3, coutFacteur: 1.4,
+    maxNiveau: 25, coutBase: 3, coutFacteur: 1.4,
   },
   {
     id: 'slot', nom: 'Emplacement Bonus', icone: '🐾', couleur: '#38bdf8',
     desc: '+1 slot de pet équipable (permanent)',
-    maxNiveau: 2, coutBase: 15, coutFacteur: 3,
+    maxNiveau: 5, coutBase: 15, coutFacteur: 3,
   },
   {
     id: 'vitesse', nom: 'Vélocité', icone: '⚡', couleur: '#ec4899',
     desc: '-5% délai Auto-Roll permanent par niveau',
-    maxNiveau: 10, coutBase: 5, coutFacteur: 1.45,
+    maxNiveau: 18, coutBase: 5, coutFacteur: 1.45,
+  },
+  // ── Nouvelles améliorations ──
+  {
+    id: 'xp', nom: 'Soif d\'Apprentissage', icone: '📚', couleur: '#6366f1',
+    desc: '+8% d\'XP gagné permanent par niveau',
+    maxNiveau: 20, coutBase: 4, coutFacteur: 1.38,
+  },
+  {
+    id: 'cristaux', nom: 'Alchimie des Cristaux', icone: '🔮', couleur: '#e879f9',
+    desc: '+10% de cristaux gagnés à chaque Renaissance',
+    maxNiveau: 15, coutBase: 8, coutFacteur: 1.5,
+  },
+  {
+    id: 'multidrop', nom: 'Multi-Drop', icone: '🎯', couleur: '#f97316',
+    desc: 'Chaque roll a +0.5% de chance de donner un brawler bonus',
+    maxNiveau: 10, coutBase: 12, coutFacteur: 1.6,
+  },
+  {
+    id: 'recyclage', nom: 'Recyclage Expert', icone: '♻️', couleur: '#84cc16',
+    desc: '+15% de pièces lors de chaque vente de brawler',
+    maxNiveau: 20, coutBase: 5, coutFacteur: 1.42,
+  },
+  {
+    id: 'luckroll', nom: 'Roulette Bénie', icone: '🍀', couleur: '#2dd4bf',
+    desc: '+3% de chance qu\'un roll normal devienne Shiny',
+    maxNiveau: 10, coutBase: 10, coutFacteur: 1.55,
   },
 ];
 
@@ -44,7 +71,8 @@ function coutUpgradePrestige(up) {
 
 /* ── Cristaux qu'on obtiendrait en renaissant maintenant ── */
 function cristauxPotentiels() {
-  return Math.max(0, Math.floor(totalCPS() * 0.5 + etat.niveau * 2));
+  const base = Math.max(0, Math.floor(totalCPS() * 0.5 + etat.niveau * 2));
+  return Math.floor(base * cristauxBonusPrestige());
 }
 
 function peutPrestige() {

@@ -21,7 +21,7 @@ function vendreItem(brawlerId, variante) {
 
   const b       = BRAWLERS.find(b => b.id === brawlerId);
   const v       = VARIANTES[variante];
-  const prix    = Math.round(b.sellValue * v.sellMult * venteBonusPrestige());
+  const prix    = Math.round(b.sellValue * v.sellMult * venteBonusPrestige() * recyclageBonusPrestige());
   _invMutation(() => {
     etat.pieces  += prix;
     etat.inventaire[k]--;
@@ -100,7 +100,7 @@ function afficherInventaire() {
 
     const b     = BRAWLERS.find(b => b.id === brawlerId);
     const v     = VARIANTES[variante];
-    const prix  = Math.round(b.sellValue * v.sellMult * venteBonusPrestige());
+    const prix  = Math.round(b.sellValue * v.sellMult * venteBonusPrestige() * recyclageBonusPrestige());
     const cps   = Math.round(calcCPS(b, variante) * 10) / 10;
     const color = couleurVariante(b, variante);
     const proba = (b.div * v.chanceMult).toLocaleString('fr-FR');
@@ -165,7 +165,7 @@ function afficherInventaire() {
         onclick="ouvrirSkillTreeBrawler(${brawlerId},'${variante}')">
         <div style="width:50px;height:50px;display:flex;align-items:center;justify-content:center;
           border-radius:10px;background:rgba(0,0,0,.3);border:1px solid ${color}30">
-          ${brawlerImg(b, 'w-10 h-10', `filter:${imgFilter}`)}
+          ${brawlerImg(b, 'w-10 h-10', `filter:${imgFilter}`, variante)}
         </div>
         <div style="position:absolute;top:-4px;right:-4px;
           background:rgba(0,0,0,.7);border-radius:4px;padding:1px;
