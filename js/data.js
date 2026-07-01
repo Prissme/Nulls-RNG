@@ -164,20 +164,30 @@ const POTIONS = {
    variante: si fournie, ajoute un outline de la couleur de la mutation  */
 function brawlerImg(brawler, size = 'w-10 h-10', extra = '', variante = null) {
   let outlineStyle = '';
-  if (variante && variante !== 'normal') {
-    if (variante === 'rainbow') {
-      // Rainbow : outline animé via box-shadow multi-couleur rotatif
-      // (outline ne supporte pas les dégradés, on simule avec un wrapper)
-      outlineStyle = `
-        outline: 2.5px solid transparent;
-        border-radius: 6px;
-        box-shadow: 0 0 0 2.5px #e879f9, 0 0 6px 1px #e879f9aa;
-        animation: rainbowOutline 1.8s linear infinite;
-      `;
-    } else {
-      const color = couleurVariante(brawler, variante);
-      outlineStyle = `outline: 2.5px solid ${color}; border-radius: 6px; box-shadow: 0 0 5px 0px ${color}88;`;
-    }
+  if (variante === 'rainbow') {
+    // Rainbow : outline animé via box-shadow multi-couleur rotatif
+    // (outline ne supporte pas les dégradés, on simule avec un wrapper)
+    outlineStyle = `
+      outline: 2.5px solid transparent;
+      border-radius: 6px;
+      box-shadow: 0 0 0 2.5px #e879f9, 0 0 6px 1px #e879f9aa;
+      animation: rainbowOutline 1.8s linear infinite;
+    `;
+  } else if (variante === 'monochrome') {
+    // Monochrome : même principe que rainbow, mais l'outline oscille
+    // entre le noir et le blanc au lieu de tourner dans les couleurs
+    outlineStyle = `
+      outline: 2.5px solid transparent;
+      border-radius: 6px;
+      box-shadow: 0 0 0 2.5px #ffffff, 0 0 6px 1px #ffffffaa;
+      animation: monochromeOutline 1.8s linear infinite;
+    `;
+  } else if (variante && variante !== 'normal') {
+    const color = couleurVariante(brawler, variante);
+    outlineStyle = `outline: 2.5px solid ${color}; border-radius: 6px; box-shadow: 0 0 5px 0px ${color}88;`;
+  } else if (variante === 'normal') {
+    // Pas de mutation : simple outline blanc fixe
+    outlineStyle = `outline: 2.5px solid #ffffff; border-radius: 6px; box-shadow: 0 0 5px 0px #ffffff55;`;
   }
   // Wrapper de taille fixe (${size}) qui centre l'image ; l'image elle-même
   // n'a pas de largeur/hauteur forcée (width/height:auto + max-width/max-height:100%)
