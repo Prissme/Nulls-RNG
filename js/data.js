@@ -179,10 +179,16 @@ function brawlerImg(brawler, size = 'w-10 h-10', extra = '', variante = null) {
       outlineStyle = `outline: 2.5px solid ${color}; border-radius: 6px; box-shadow: 0 0 5px 0px ${color}88;`;
     }
   }
-  return `<img src="${brawler.img}" alt="${brawler.nom}"
-    class="${size} object-contain"
-    style="image-rendering:auto;${outlineStyle}${extra}"
-    onerror="this.style.display='none';this.insertAdjacentText('afterend','${brawler.emoji}')" />`;
+  // Wrapper de taille fixe (${size}) qui centre l'image ; l'image elle-même
+  // n'a pas de largeur/hauteur forcée (width/height:auto + max-width/max-height:100%)
+  // afin qu'elle ne prenne QUE la taille réelle de son contenu visible une fois
+  // le ratio respecté. L'outline étant posé sur l'<img> et non sur le wrapper,
+  // il colle donc pile à la taille de l'image affichée, plus de gros carré vide.
+  return `<span class="${size} inline-flex items-center justify-center overflow-visible" style="line-height:0;">
+    <img src="${brawler.img}" alt="${brawler.nom}"
+      style="display:block;width:auto;height:auto;max-width:100%;max-height:100%;image-rendering:auto;${outlineStyle}${extra}"
+      onerror="this.style.display='none';this.insertAdjacentText('afterend','${brawler.emoji}')" />
+  </span>`;
 }
 
 /* ── Helper : badge HTML de rareté ── */
