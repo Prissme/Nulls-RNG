@@ -135,6 +135,7 @@ function lancerRenaissance() {
   ['luck', 'speed', 'shiny', 'wished', 'golden', 'richesse'].forEach(type => {
     clearInterval(etat[`${type}Interval`]);
     etat[`${type}Active`] = false;
+    etat[`${type}DureeTotale`] = 0;
     document.getElementById(`${type}BarWrap`)?.classList.add('hidden');
     document.getElementById(`${type}Countdown`)?.classList.add('hidden');
     document.getElementById(`${type}TimerHdr`)?.classList.add('hidden');
