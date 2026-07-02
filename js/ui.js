@@ -27,14 +27,21 @@ function potionSpeedImg(classes = 'w-4 h-4') {
 }
 
 /* ── Zone résultat après un roll ── */
-/* En dessous de ce délai entre deux rolls, on saute le replay de
-   l'animation flash-anim (scale + translateY) : à l'auto-roll rapide
-   (jusqu'à un roll toutes les 25ms), la relancer à chaque fois faisait
-   "trembler" toute la zone de résultat. Le contenu (image/nom) est
-   toujours mis à jour normalement, seul le replay d'animation est
-   throttle. */
-const FLASH_ANIM_MIN_INTERVAL_MS = 90;
-let _dernierFlashTs = 0;
+/* FIX "écran qui tremble" : un simple throttle à 90ms ne suffisait pas —
+   à 25ms/roll (vélocité max + Wished/Naël), l'animation flashIn (scale +
+   translateY, 450ms) se rejouait quand même 10+ fois/seconde, ce qui donne
+   visuellement l'impression que toute la zone tremble en continu. En plus,
+   `void zone.offsetWidth` force un reflow synchrone à chaque replay, ce qui
+   alourdit le thread principal pendant l'auto-roll rapide (et contribuait
+   aux faux positifs de l'anticheat sur les gros bursts).
+
+   Au-delà de FLASH_ANIM_VITESSE_SEUIL_MS entre deux rolls, on ne rejoue
+   plus l'animation DU TOUT : à ce rythme, personne ne peut de toute façon
+   distinguer les pop-in individuels. Le contenu (image/nom du brawler)
+   continue lui à se mettre à jour à chaque roll, normalement — seul le
+   replay du scale/translate est coupé. */
+const FLASH_ANIM_VITESSE_SEUIL_MS = 150;
+let _dernierRollTs  = 0;
 
 function afficherResultat(b, vKey) {
   const v     = VARIANTES[vKey];
@@ -43,12 +50,16 @@ function afficherResultat(b, vKey) {
   const name  = document.getElementById('resultName');
   const sub   = document.getElementById('resultSub');
 
-  const maintenant = Date.now();
-  if (maintenant - _dernierFlashTs >= FLASH_ANIM_MIN_INTERVAL_MS) {
+  const maintenant   = Date.now();
+  const ecartRoll    = _dernierRollTs > 0 ? maintenant - _dernierRollTs : Infinity;
+  _dernierRollTs      = maintenant;
+
+  // Auto-roll rapide (< 150ms entre deux rolls) → pas de replay d'animation,
+  // seul le contenu se met à jour, pour éviter l'effet de tremblement.
+  if (ecartRoll >= FLASH_ANIM_VITESSE_SEUIL_MS) {
     zone.classList.remove('flash-anim');
     void zone.offsetWidth;
     zone.classList.add('flash-anim');
-    _dernierFlashTs = maintenant;
   }
 
   // Image au lieu de l'emoji
