@@ -64,6 +64,10 @@
   const cloudTs = await initCloudSave(false, tsReference);
   if (cloudTs) tsReference = cloudTs; // le cloud, si plus récent, prime sur le local
 
+  // Liaison Discord (OAuth) : dispo dès que le client cloud est prêt.
+  // Gère aussi le nettoyage d'URL + rafraîchissement du badge au retour d'OAuth.
+  if (typeof initDiscordLink === 'function') initDiscordLink();
+
   // FIX : redemarrerAutoRoll() n'était appelée que dans le chemin cloud
   // (chargerEtatCloud). Un joueur sans cloud (ou en attendant l'init cloud)
   // qui avait Auto-Roll actif à la fermeture ne le retrouvait jamais actif

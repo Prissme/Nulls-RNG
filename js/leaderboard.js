@@ -56,6 +56,7 @@ function ouvrirLeaderboard() {
   const input  = document.getElementById('pseudoInput');
   if (input) input.value = pseudo;
   chargerLeaderboard();
+  if (typeof rafraichirStatutDiscordLink === 'function') rafraichirStatutDiscordLink();
 }
 
 /* ── Upsert score : clé = user_id, username = champ libre ── */
