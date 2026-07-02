@@ -349,6 +349,11 @@ function afficherHistorique() {
     chip.innerHTML = `${brawlerImg(brawler, 'w-5 h-5')}${v.emoji} ${brawler.nom}`;
     list.appendChild(chip);
   }
+
+  // Centre les chips tant qu'ils tiennent tous sur la ligne ; dès que ça
+  // déborde, on repasse en alignement gauche pour un défilement horizontal
+  // naturel (la hauteur de .history-strip, elle, ne bouge jamais).
+  list.style.justifyContent = list.scrollWidth > list.clientWidth ? 'flex-start' : 'center';
 }
 
 /* ── Animation secouement bouton (erreur achat) ── */
