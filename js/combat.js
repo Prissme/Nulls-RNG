@@ -554,6 +554,19 @@ async function actionCombat(action) {
 
     } else {
       /* Toute la vague est vaincue → victoire du level */
+
+      // FIX succès "Exterminateur" : l'ancien code appelait
+      // checkAchievementsVictoire('level') — une chaîne littérale, jamais
+      // un vrai id de robot — donc etat.robotsBattus['robot']/['boxer']/
+      // ['sniper']/['big_robot'] n'étaient jamais renseignés et le succès
+      // était strictement impossible à débloquer. On enregistre ici
+      // chaque TYPE de robot réellement présent dans la vague vaincue
+      // (farm inclus : les robots sont bel et bien battus dans ce mode aussi).
+      if (typeof checkAchievementsVictoire === 'function') {
+        const typesVaincus = [...new Set(combat.vague.map(r => r.id))];
+        typesVaincus.forEach(t => checkAchievementsVictoire(t));
+      }
+
       if (combat.isFarm) {
         /* Mode farm : pas de progression, 1 PP fixe, récompenses réduites */
         combat.gainPP = 1;
@@ -581,7 +594,6 @@ async function actionCombat(action) {
         if (typeof gagnerXP === 'function') gagnerXP(combat.gainXP);
         if (typeof mettreAJourCompteurs === 'function') mettreAJourCompteurs();
         if (typeof sauvegarderEtatCloud  === 'function') sauvegarderEtatCloud();
-        if (typeof checkAchievementsVictoire === 'function') checkAchievementsVictoire('level');
         logCombat(`🏆 <b style="color:#22c55e">Level ${((combat.level - 1) % 15) + 1} terminé !</b>`, 'cb-log-victoire');
       }
       combat.victoire  = true;
