@@ -127,14 +127,14 @@ function lancerRenaissance() {
   // Stoppe un combat en cours, le cas échéant
   if (typeof combat !== 'undefined') combat = null;
 
-  // Coupe les timers de potions actives
-  clearInterval(etat.luckInterval);
-  clearInterval(etat.speedInterval);
-  clearInterval(etat.shinyInterval);
-  etat.luckActive  = false;
-  etat.speedActive = false;
-  etat.shinyActive = false;
-  ['luck', 'speed', 'shiny'].forEach(type => {
+  // Coupe les timers de TOUTES les potions actives
+  // FIX : cette liste ne couvrait avant que luck/speed/shiny — wished,
+  // golden et richesse gardaient leur Interval actif et leur flag Active
+  // à true après la Renaissance (ex: Wished ×6.7 vitesse ou Richesse ×2
+  // pièces continuaient de s'appliquer gratuitement sur le nouveau run).
+  ['luck', 'speed', 'shiny', 'wished', 'golden', 'richesse'].forEach(type => {
+    clearInterval(etat[`${type}Interval`]);
+    etat[`${type}Active`] = false;
     document.getElementById(`${type}BarWrap`)?.classList.add('hidden');
     document.getElementById(`${type}Countdown`)?.classList.add('hidden');
     document.getElementById(`${type}TimerHdr`)?.classList.add('hidden');
