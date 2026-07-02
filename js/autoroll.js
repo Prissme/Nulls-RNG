@@ -79,7 +79,7 @@ function redemarrerAutoRoll() {
 function demarrerCPS() {
   clearInterval(etat.cpsInterval);
   etat.cpsInterval = setInterval(() => {
-    const gain = totalCPS();
+    const gain = totalCPS() * (typeof doubleGainMultiplier === 'function' ? doubleGainMultiplier() : 1);
     if (gain > 0) {
       etat.pieces += gain;
       mettreAJourCompteurs();

@@ -25,10 +25,11 @@ function setCloudStatus(text, color) {
 /* ── Initialisation : connexion anonyme + chargement ──
    Retourne le timestamp de la sauvegarde cloud chargée (ou null si le
    cloud n'est pas configuré / pas de sauvegarde / échec). */
-async function initCloudSave(_estRetry, _localTs) {
+async function initCloudSave(_tentative, _localTs) {
   if (!cloudConfigure()) return null;
+  const tentative = _tentative || 0;
 
-  setCloudStatus('🔄 Connexion…', '#94a3b8');
+  setCloudStatus(tentative === 0 ? '🔄 Connexion…' : `🔄 Reconnexion… (${tentative}/3)`, '#94a3b8');
   sb = window.supabase.createClient(window.SUPABASE_URL, window.SUPABASE_ANON_KEY);
 
   try {
@@ -58,14 +59,17 @@ async function initCloudSave(_estRetry, _localTs) {
     demarrerAutoSaveCloud();
     return ts;
   } catch (err) {
-    console.error('[cloudsave] Échec initialisation :', err);
+    console.error(`[cloudsave] Échec initialisation (tentative ${tentative + 1}/4) :`, err);
     // FIX "cloud déco" : un échec transitoire (réseau lent, cold-start
-    // Koyeb/Supabase) ne doit pas condamner le joueur à rester en mode
-    // local pour toute la session. Une seule tentative de reconnexion.
-    if (!_estRetry) {
-      setCloudStatus('🔄 Reconnexion…', '#94a3b8');
-      await new Promise(r => setTimeout(r, 3000));
-      return initCloudSave(true, _localTs);
+    // Koyeb/Supabase — l'instance qui héberge Supabase peut se mettre en
+    // veille et prendre plus de quelques secondes à se réveiller) ne doit
+    // pas condamner le joueur à rester en mode local pour toute la session.
+    // Backoff progressif sur 3 tentatives au lieu d'une seule (3s → 6s → 10s),
+    // pour laisser le temps à une instance endormie de redémarrer.
+    const delais = [3000, 6000, 10000];
+    if (tentative < delais.length) {
+      await new Promise(r => setTimeout(r, delais[tentative]));
+      return initCloudSave(tentative + 1, _localTs);
     }
     setCloudStatus('⚠️ Cloud indisponible (mode local)', '#f87171');
     return null;
@@ -123,6 +127,8 @@ function serialiserEtat() {
     wishedFin:    etat.wishedFin,
     goldenActive: etat.goldenActive,
     goldenFin:    etat.goldenFin,
+    richesseActive: etat.richesseActive,
+    richesseFin:    etat.richesseFin,
     /* ── Easter egg Naell ── */
     naellSpeedUnlocked: etat.naellSpeedUnlocked || false,
 
@@ -184,7 +190,7 @@ function appliquerEtatSauvegarde(saved) {
 
   /* ── Restaurer les potions encore actives (temps restant > 0) ── */
   const now = Date.now();
-  ['luck', 'speed', 'shiny', 'wished', 'golden'].forEach(type => {
+  ['luck', 'speed', 'shiny', 'wished', 'golden', 'richesse'].forEach(type => {
     const fin = saved[`${type}Fin`];
     if (saved[`${type}Active`] && typeof fin === 'number' && fin > now) {
       etat[`${type}Active`] = true;

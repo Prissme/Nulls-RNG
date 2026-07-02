@@ -44,6 +44,10 @@ const etat = {
   goldenFin:      0,
   goldenInterval: null,
 
+  richesseActive:   false,
+  richesseFin:      0,
+  richesseInterval: null,
+
   filtreVariante: 'all',
   triInventaire:  'rarete',
 
@@ -102,6 +106,9 @@ const luckBonusNiveau = () => 1 + Math.max(0, etat.niveau - 1) * 0.02;
 /* Multiplicateur de luck total = potion × bonus de niveau (run actuel) × bonus de Prestige (permanent) × bonus Index */
 let luckMultiplierTotal = () =>
   (etat.luckActive ? POTIONS.luck.luckMult : 1) * luckBonusNiveau() * luckBonusPrestige() * (1 + (typeof luckBonusIndex === 'function' ? luckBonusIndex() : 0));
+
+/* Multiplicateur de monnaie gagnée (Potion de Richesse : ×2 pendant 1h) */
+const doubleGainMultiplier = () => etat.richesseActive ? POTIONS.richesse.doubleMult : 1;
 
 const couleurVariante = (brawler, variante) => {
   if (variante === 'monochrome') return '#f8fafc';

@@ -23,10 +23,12 @@ function vendreItem(brawlerId, variante) {
   const v       = VARIANTES[variante];
   const prix    = Math.round(b.sellValue * v.sellMult * venteBonusPrestige() * recyclageBonusPrestige());
   _invMutation(() => {
-    etat.pieces  += prix;
+    etat.cristaux += prix;
     etat.inventaire[k]--;
     if (etat.inventaire[k] === 0) delete etat.inventaire[k];
   });
+
+  if (typeof checkAchievementsCristaux === 'function') checkAchievementsCristaux();
 
   Sound.coin();
   mettreAJourCompteurs();
@@ -201,7 +203,7 @@ function afficherInventaire() {
           style="flex:1;font-size:.56rem;padding:.18rem 0"
           onclick="vendreItem(${brawlerId},'${variante}')"
           ${!peutVendre ? 'disabled' : ''}>
-          ${prixFmt}💰
+          ${prixFmt}🔮
         </button>
       </div>
 

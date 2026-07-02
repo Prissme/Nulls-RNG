@@ -156,6 +156,15 @@ const POTIONS = {
     color: "#fbbf24",
     barId: "goldenBar",
   },
+  richesse: {
+    cout:       10_000,
+    devise:     'cristaux',   // ← se paie en Cristaux, pas en Pièces
+    duree:      3_600_000,    // 1 heure
+    doubleMult: 2,
+    label:      "Potion de Richesse",
+    color:      "#22c55e",
+    barId:      "richesseBar",
+  },
 };
 
 /* ── Helper : génère le HTML d'image d'un brawler ──

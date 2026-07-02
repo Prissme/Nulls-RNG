@@ -67,7 +67,8 @@
 
     /* ── Farm hors-ligne : CPS des pets équipés ── */
     const cps = (typeof totalCPS === 'function') ? totalCPS() : 0;
-    if (cps > 0) gainPieces += Math.round(cps * elapsedSec * OFFLINE.EFFICACITE);
+    const doubleGain = (typeof doubleGainMultiplier === 'function') ? doubleGainMultiplier() : 1;
+    if (cps > 0) gainPieces += Math.round(cps * elapsedSec * OFFLINE.EFFICACITE * doubleGain);
 
     /* ── Rolls hors-ligne : uniquement si l'Auto-Roll était actif au départ ── */
     if (etat.autoRollActif) {
