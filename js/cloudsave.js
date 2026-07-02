@@ -116,6 +116,9 @@ function serialiserEtat() {
     shellyStreak:      etat.shellyStreak,
     robotsBattus:      etat.robotsBattus,
     indexUnlocks:      etat.indexUnlocks,
+    /* ── Lucky Pull : mémoire permanente, ne doit jamais être reset ── */
+    dejaObtenus:        etat.dejaObtenus     || {},
+    meilleurScoreVu:     etat.meilleurScoreVu || 0,
     /* ── Potions : on sauvegarde le timestamp de fin pour restaurer au refresh ── */
     luckActive:   etat.luckActive,
     luckFin:      etat.luckFin,
@@ -174,6 +177,8 @@ function appliquerEtatSauvegarde(saved) {
   if (typeof saved.shellyStreak === 'number') etat.shellyStreak = saved.shellyStreak;
   if (saved.robotsBattus && typeof saved.robotsBattus === 'object') etat.robotsBattus = saved.robotsBattus;
   if (saved.indexUnlocks && typeof saved.indexUnlocks === 'object') etat.indexUnlocks = saved.indexUnlocks;
+  if (saved.dejaObtenus  && typeof saved.dejaObtenus  === 'object') etat.dejaObtenus   = saved.dejaObtenus;
+  if (typeof saved.meilleurScoreVu === 'number') etat.meilleurScoreVu = saved.meilleurScoreVu;
 
   /* ── Easter egg Naell ── */
   if (saved.naellSpeedUnlocked === true) etat.naellSpeedUnlocked = true;
