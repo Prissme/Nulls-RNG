@@ -405,70 +405,50 @@
     }
 
     .toolbar-card {
+      --tc-col: var(--accent-purple);
+      --tc-tint: rgba(139,92,246,.10);
       position: relative;
       display: flex;
       flex-direction: column;
       align-items: center;
       justify-content: center;
       gap: .4rem;
-      padding: .9rem .5rem;
-      background: var(--bg-card);
+      padding: 1.15rem .5rem;
+      background: linear-gradient(135deg, var(--tc-tint), transparent 70%), var(--bg-card);
       backdrop-filter: var(--glass-blur);
       -webkit-backdrop-filter: var(--glass-blur);
-      border: 1px solid var(--border);
+      border: 1px solid color-mix(in srgb, var(--tc-col) 38%, var(--border));
       border-radius: 12px;
       cursor: pointer;
-      transition: border-color .15s, background .15s, transform .15s;
+      transition: border-color .15s, background .15s, transform .15s, box-shadow .15s;
       font-family: var(--font-ui);
       box-shadow: inset 0 1px 0 rgba(255,255,255,.05), 0 6px 20px rgba(0,0,0,.25);
     }
     .toolbar-card:hover {
-      border-color: var(--border-hi);
-      background: rgba(32,32,50,.6);
+      border-color: var(--tc-col);
+      background: linear-gradient(135deg, var(--tc-tint), transparent 85%), rgba(32,32,50,.6);
       transform: translateY(-1px);
-    }
-
-    .toolbar-card-icon {
-      font-size: 1.3rem;
-      line-height: 1;
-      /* if using image-based icons later, size them here */
+      box-shadow: inset 0 1px 0 rgba(255,255,255,.05), 0 6px 20px rgba(0,0,0,.25), 0 0 0 1px color-mix(in srgb, var(--tc-col) 45%, transparent);
     }
 
     .toolbar-card-label {
-      font-size: .72rem;
-      font-weight: 600;
-      letter-spacing: .06em;
+      font-size: .74rem;
+      font-weight: 700;
+      letter-spacing: .05em;
       text-transform: uppercase;
       color: var(--text-muted);
     }
     .toolbar-card:hover .toolbar-card-label { color: var(--text); }
 
-    /* icon swaps — replace emojis with SVG letters/shapes */
-    .icon-inv::before   { content: "INV"; }
-    .icon-shop::before  { content: "SHOP"; }
-    .icon-quest::before { content: "QTE"; }
-    .icon-craft::before { content: "CRF"; }
-    .icon-rarity::before{ content: "RNG"; }
-    .icon-combat::before{ content: "ARENE"; }
-    .icon-lb::before    { content: "TOP"; }
-    .icon-prestige::before{ content: "REN"; }
+    /* Plus d'icône/emoji ni de tag texte cryptique : la distinction entre
+       catégories se fait uniquement via l'outline colorée de la carte
+       (data-color) et le libellé. */
 
-    .toolbar-icon-text {
-      font-family: var(--font-mono);
-      font-size: .62rem;
-      font-weight: 700;
-      letter-spacing: .06em;
-      color: var(--accent-purple);
-      background: rgba(139,92,246,.12);
-      border: 1px solid rgba(139,92,246,.25);
-      border-radius: 5px;
-      padding: .2rem .4rem;
-      line-height: 1;
-    }
-    .toolbar-card[data-color="gold"] .toolbar-icon-text   { color: var(--accent-gold); background: rgba(212,168,67,.1); border-color: rgba(212,168,67,.2); }
-    .toolbar-card[data-color="sky"] .toolbar-icon-text    { color: var(--accent-sky);  background: rgba(56,189,248,.1); border-color: rgba(56,189,248,.2); }
-    .toolbar-card[data-color="pink"] .toolbar-icon-text   { color: var(--accent-pink); background: rgba(192,132,252,.1); border-color: rgba(192,132,252,.2); }
-    .toolbar-card[data-color="green"] .toolbar-icon-text  { color: var(--accent-green);background: rgba(74,222,128,.1);  border-color: rgba(74,222,128,.2); }
+    .toolbar-card[data-color="purple"] { --tc-col: var(--accent-purple); --tc-tint: rgba(139,92,246,.10); }
+    .toolbar-card[data-color="gold"]   { --tc-col: var(--accent-gold);   --tc-tint: rgba(212,168,67,.10); }
+    .toolbar-card[data-color="sky"]    { --tc-col: var(--accent-sky);    --tc-tint: rgba(56,189,248,.10); }
+    .toolbar-card[data-color="pink"]   { --tc-col: var(--accent-pink);   --tc-tint: rgba(192,132,252,.10); }
+    .toolbar-card[data-color="green"]  { --tc-col: var(--accent-green); --tc-tint: rgba(74,222,128,.10); }
 
     /* badge dot */
     .badge-dot {
@@ -509,6 +489,15 @@
       box-shadow: 0 24px 70px rgba(0,0,0,.6);
     }
     .modal-box-sm { max-width: 420px; }
+
+    /* Outline colorée par catégorie, assortie à la carte de la toolbar
+       qui ouvre le modal — remplace les anciens tags texte "SHOP"/"QTE". */
+    #modalInventaire .modal-box, #modalCraft .modal-box            { border-top: 3px solid var(--accent-purple); }
+    #modalBoutique .modal-box, #modalLeaderboard .modal-box,
+    #modalAchievements .modal-box                                  { border-top: 3px solid var(--accent-gold); }
+    #modalQuetes .modal-box, #modalIndex .modal-box                { border-top: 3px solid var(--accent-green); }
+    #modalRaretes .modal-box                                       { border-top: 3px solid var(--accent-sky); }
+    #modalCombat .modal-box, #modalPrestige .modal-box             { border-top: 3px solid var(--accent-pink); }
 
     .modal-header {
       display: flex;
@@ -644,7 +633,7 @@
        en dessous, le décompte reste visible dans le header / la boutique. */
     .fx-panel {
       position: fixed;
-      top: 96px;
+      top: calc(var(--header-h, 96px) + 14px);
       right: 18px;
       width: 208px;
       display: flex;
@@ -903,53 +892,42 @@
 
     <!-- TOOLBAR -->
     <nav class="toolbar-grid">
-      <button class="toolbar-card" onclick="ouvrirModal('modalInventaire')">
-        <span class="toolbar-icon-text">INV</span>
+      <button class="toolbar-card" data-color="purple" onclick="ouvrirModal('modalInventaire')">
         <span class="toolbar-card-label">Inventaire</span>
         <span class="badge-dot hidden" id="quetesBadge_inv" style="display:none"></span>
       </button>
       <button class="toolbar-card" data-color="gold" onclick="ouvrirModal('modalBoutique'); if (typeof mettreAJourPrixPotions === 'function') mettreAJourPrixPotions()">
-        <span class="toolbar-icon-text">SHOP</span>
         <span class="toolbar-card-label">Boutique</span>
       </button>
       <button class="toolbar-card" data-color="green" onclick="ouvrirModal('modalQuetes')">
-        <span class="toolbar-icon-text">QTE</span>
         <span class="toolbar-card-label">Quêtes</span>
         <span class="badge-dot hidden" id="quetesBadge"></span>
       </button>
-      <button class="toolbar-card" onclick="ouvrirModal('modalCraft')">
-        <span class="toolbar-icon-text">CRAFT</span>
+      <button class="toolbar-card" data-color="purple" onclick="ouvrirModal('modalCraft')">
         <span class="toolbar-card-label">Craft</span>
         <span class="badge-dot hidden" id="craftBadge"></span>
       </button>
       <button class="toolbar-card" data-color="sky" onclick="ouvrirModal('modalRaretes')">
-        <span class="toolbar-icon-text">DROP</span>
         <span class="toolbar-card-label">Raretés</span>
       </button>
       <button class="toolbar-card" data-color="pink" onclick="ouvrirModal('modalCombat')">
-        <span class="toolbar-icon-text">ARENA</span>
         <span class="toolbar-card-label">Combat</span>
       </button>
       <button class="toolbar-card" data-color="sky" onclick="ouvrirSkillTreeGlobal()">
-        <span class="toolbar-icon-text">⚡</span>
         <span class="toolbar-card-label">Pouvoirs</span>
         <span class="badge-dot hidden" id="skillTreeBadge"></span>
       </button>
       <button class="toolbar-card" data-color="gold" onclick="ouvrirModal('modalLeaderboard');afficherTransferId();chargerLeaderboard()">
-        <span class="toolbar-icon-text">TOP</span>
         <span class="toolbar-card-label">Top CPS</span>
       </button>
       <button class="toolbar-card" data-color="pink" onclick="ouvrirModal('modalPrestige')">
-        <span class="toolbar-icon-text">REN</span>
         <span class="toolbar-card-label">Renaissance</span>
         <span class="badge-dot hidden" id="prestigeBadge"></span>
       </button>
       <button class="toolbar-card" data-color="green" onclick="ouvrirModal('modalIndex');afficherIndex()">
-        <span class="toolbar-icon-text">IDX</span>
         <span class="toolbar-card-label">Index</span>
       </button>
       <button class="toolbar-card" data-color="gold" onclick="ouvrirModal('modalAchievements');afficherAchievements()">
-        <span class="toolbar-icon-text">🏆</span>
         <span class="toolbar-card-label">Succès</span>
         <span class="badge-dot hidden" id="achievementsBadge"></span>
       </button>
@@ -1278,7 +1256,7 @@
 <div class="modal-overlay" id="modalIndex" onclick="fermerModalOverlay(event,'modalIndex')">
   <div class="modal-box modal-box-sm">
     <div class="modal-header">
-      <h2>📖 Index des Brawlers</h2>
+      <h2>Index des Brawlers</h2>
       <button class="modal-close" onclick="fermerModal('modalIndex')">✕</button>
     </div>
     <div class="modal-body">
@@ -1304,7 +1282,7 @@
 <div class="modal-overlay" id="modalAchievements" onclick="fermerModalOverlay(event,'modalAchievements')">
   <div class="modal-box modal-box-sm">
     <div class="modal-header">
-      <h2>🏆 Succès</h2>
+      <h2>Succès</h2>
       <button class="modal-close" onclick="fermerModal('modalAchievements')">✕</button>
     </div>
     <div class="modal-body">
