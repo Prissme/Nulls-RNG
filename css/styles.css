@@ -227,7 +227,17 @@ body {
   min-height: 150px; display: flex; flex-direction: column;
   align-items: center; justify-content: center; gap: .4rem;
 }
-#resultName { font-size: 2.2rem; font-weight: 900; letter-spacing: .05em; line-height: 1; }
+/* FIX "carte qui change de taille très vite" : les noms en 2 mots
+   (ex. "El Primo") passaient parfois à la ligne car #resultName n'avait
+   aucune hauteur réservée pour 2 lignes — la carte grandissait/rétrécissait
+   d'un coup à chaque roll selon la longueur du nom. On réserve désormais
+   toujours la hauteur de 2 lignes (min-height en em, lié au line-height)
+   et on centre verticalement, donc la hauteur ne bouge plus jamais. */
+#resultName {
+  font-size: 2.2rem; font-weight: 900; letter-spacing: .05em; line-height: 1.15;
+  min-height: 2.3em; display: flex; align-items: center; justify-content: center;
+  text-align: center; width: 100%;
+}
 #resultSub  { font-size: .85rem; color: var(--text-muted); letter-spacing: .08em; }
 
 /* ── Fond photo (image fournie par l'utilisateur, à la racine du site) ──
@@ -310,10 +320,24 @@ body {
 .hub-pets .pet-slot .text-2xl { font-size: 1.9rem; }
 
 /* ── Bande d'historique compacte ── */
+/* FIX "ça tremble" : avec flex-wrap: wrap, dès qu'un chip (souvent un nom
+   long comme "El Primo") ne tenait plus sur la ligne, toute la bande
+   passait sur 2 lignes → sa hauteur doublait d'un coup et poussait le
+   reste du layout, donnant une impression de tremblement à chaque roll.
+   On force maintenant une seule ligne avec défilement horizontal : la
+   hauteur de la bande ne bouge plus jamais, quel que soit le nombre ou
+   la longueur des chips affichés. */
 .history-strip {
-  display: flex; gap: .5rem; flex-wrap: wrap; justify-content: center;
-  min-height: 1.7rem; max-width: 48rem;
+  display: flex; gap: .5rem; flex-wrap: nowrap; justify-content: flex-start;
+  align-items: center;
+  height: 2rem; min-height: 2rem;
+  max-width: 48rem; margin: 0 auto;
+  overflow-x: auto; overflow-y: hidden;
+  scrollbar-width: thin; scrollbar-color: rgba(255,255,255,.25) transparent;
 }
+.history-strip::-webkit-scrollbar        { height: 4px; }
+.history-strip::-webkit-scrollbar-thumb  { background: rgba(255,255,255,.25); border-radius: 999px; }
+.history-strip > * { flex: 0 0 auto; }
 
 /* ════════════════════════════════════════════════
    ── BARRE D'OUTILS — boutons en cartes ──
