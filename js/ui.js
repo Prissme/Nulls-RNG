@@ -22,6 +22,15 @@ function potionSpeedImg(classes = 'w-4 h-4') {
 }
 
 /* ── Zone résultat après un roll ── */
+/* En dessous de ce délai entre deux rolls, on saute le replay de
+   l'animation flash-anim (scale + translateY) : à l'auto-roll rapide
+   (jusqu'à un roll toutes les 25ms), la relancer à chaque fois faisait
+   "trembler" toute la zone de résultat. Le contenu (image/nom) est
+   toujours mis à jour normalement, seul le replay d'animation est
+   throttle. */
+const FLASH_ANIM_MIN_INTERVAL_MS = 90;
+let _dernierFlashTs = 0;
+
 function afficherResultat(b, vKey) {
   const v     = VARIANTES[vKey];
   const zone  = document.getElementById('resultZone');
@@ -29,9 +38,13 @@ function afficherResultat(b, vKey) {
   const name  = document.getElementById('resultName');
   const sub   = document.getElementById('resultSub');
 
-  zone.classList.remove('flash-anim');
-  void zone.offsetWidth;
-  zone.classList.add('flash-anim');
+  const maintenant = Date.now();
+  if (maintenant - _dernierFlashTs >= FLASH_ANIM_MIN_INTERVAL_MS) {
+    zone.classList.remove('flash-anim');
+    void zone.offsetWidth;
+    zone.classList.add('flash-anim');
+    _dernierFlashTs = maintenant;
+  }
 
   // Image au lieu de l'emoji
   emoji.innerHTML = brawlerImg(b, 'w-24 h-24', vKey === 'monochrome' ? 'filter:grayscale(1) contrast(1.15)' : '', vKey);

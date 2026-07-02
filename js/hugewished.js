@@ -97,7 +97,7 @@ function afficherHugeWished() {
         100% { background-position: 200% 0%; }
       }
       #hwBoostNotif {
-        position: fixed; top: 70px; left: 50%; transform: translateX(-50%);
+        position: fixed; top: calc(var(--header-h, 96px) + 10px); left: 50%; transform: translateX(-50%);
         background: linear-gradient(135deg, #92400e, #b45309);
         border: 2px solid #fbbf24;
         color: #fef3c7; font-weight: 900; font-size: .95rem;

@@ -293,7 +293,7 @@ function _acDeclencher() {
   const notif = document.createElement('div');
   notif.id = 'acNotif';
   notif.style.cssText = `
-    position:fixed;top:70px;left:50%;transform:translateX(-50%);
+    position:fixed;top:calc(var(--header-h, 96px) + 10px);left:50%;transform:translateX(-50%);
     background:rgba(239,68,68,.15);border:1px solid rgba(239,68,68,.5);
     color:#fca5a5;font-weight:800;font-size:.85rem;
     padding:.65rem 1.4rem;border-radius:14px;z-index:9999;

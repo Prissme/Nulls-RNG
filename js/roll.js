@@ -114,7 +114,7 @@
       progresserQuete('roll', { brawlerId: b2.id, variante: v2, pause: false });
       // Petite notif discrète en haut à droite
       const notif = document.createElement('div');
-      notif.style.cssText = `position:fixed;top:70px;right:16px;
+      notif.style.cssText = `position:fixed;top:calc(var(--header-h, 96px) + 10px);right:16px;
         background:rgba(249,115,22,.18);border:1px solid #f9731666;
         color:#f97316;font-weight:800;font-size:.72rem;padding:.35rem .75rem;
         border-radius:9px;z-index:999;animation:craftIn .3s ease forwards`;

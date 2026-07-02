@@ -34,6 +34,25 @@
   `;
   document.head.appendChild(style);
 
+  // ── Hauteur réelle du header, exposée en variable CSS ──
+  // Le header peut changer de hauteur (wrap des chips sur petit écran,
+  // ajout futur de contenu, etc.) : plutôt que des offsets fixes en dur
+  // (qui finissent cachés dessous), tout ce qui doit se positionner sous
+  // le header (panneau "Effets actifs", toasts) lit --header-h.
+  function _syncHeaderHeight() {
+    const header = document.querySelector('.nr-header');
+    if (header) {
+      document.documentElement.style.setProperty('--header-h', header.offsetHeight + 'px');
+    }
+  }
+  _syncHeaderHeight();
+  window.addEventListener('resize', _syncHeaderHeight);
+  window.addEventListener('load', _syncHeaderHeight);
+  if (window.ResizeObserver) {
+    const header = document.querySelector('.nr-header');
+    if (header) new ResizeObserver(_syncHeaderHeight).observe(header);
+  }
+
   // ── Chargement local-first ──
   // FIX "cloud déco" : on applique d'abord la sauvegarde locale (instantanée,
   // ne dépend d'aucun réseau), pour garantir que le joueur retrouve toujours
