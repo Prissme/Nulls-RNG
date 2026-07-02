@@ -80,8 +80,8 @@ function roleIcon(role, size = '16px', style = '') {
   return `<span id="${id}" style="display:inline-flex;align-items:center;justify-content:center;width:${size};height:${size};${style}">` +
     `<img src="./${r.img}" alt="${r.label}" ` +
     `style="width:100%;height:100%;object-fit:contain" ` +
-    `onload="document.getElementById('${id}').querySelector('span')&&(document.getElementById('${id}').querySelector('span').style.display='none')" ` +
-    `onerror="this.style.display='none';var fb=document.getElementById('${id}').querySelector('span');if(fb)fb.style.display='inline'">` +
+    `onload="var el=document.getElementById('${id}');if(el){var s=el.querySelector('span');if(s)s.style.display='none'}" ` +
+    `onerror="this.style.display='none';var el=document.getElementById('${id}');if(el){var fb=el.querySelector('span');if(fb)fb.style.display='inline'}">` +
     `<span style="display:none;font-size:calc(${size} * 0.75);line-height:1">${r.emoji}</span>` +
     `</span>`;
 }
