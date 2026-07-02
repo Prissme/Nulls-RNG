@@ -3,35 +3,35 @@
                 Notification Discord via proxy serveur
 ════════════════════════════════════════════════ */
 
-/* ── Récupère le score de rareté le plus élevé déjà possédé ── */
-function getMeilleurScoreRareteInventaire(excludeKey) {
-  let best = 0;
-  for (const [k, count] of Object.entries(etat.inventaire)) {
-    if (k === excludeKey) continue;
-    if (!count || count < 1) continue;
-    const { brawlerId, variante } = parseKey(k);
-    const b = BRAWLERS.find(x => x.id === brawlerId);
-    const v = VARIANTES[variante];
-    if (!b || !v) continue;
-    const score = b.div * v.chanceMult;
-    if (score > best) best = score;
-  }
-  return best;
-}
-
-/* ── Vérifie si ce tirage mérite une animation Lucky Pull ── */
-function estLuckyPull(brawler, variante, inventaireAvant) {
+/* ── Vérifie si ce tirage mérite une animation Lucky Pull ──
+   FIX "spam au prestige" : cette détection se basait avant sur
+   l'inventaire COURANT (etat.inventaire / inventaireAvant), qui est vidé
+   à chaque Renaissance — donc après un reset, absolument chaque roll
+   redevenait "jamais obtenu" et redéclenchait l'overlay plein écran en
+   boucle, y compris en Auto-Roll boosté. On se base maintenant sur
+   etat.dejaObtenus / etat.meilleurScoreVu (state.js), une mémoire
+   PERMANENTE qui ne suit pas les resets de la Renaissance : le Lucky
+   Pull ne redevient pertinent qu'au sens "jamais vu de toute la partie". */
+function estLuckyPull(brawler, variante) {
   const v     = VARIANTES[variante];
   const k     = cle(brawler.id, variante);
   const score = brawler.div * v.chanceMult;
 
-  // Cas 1 : jamais obtenu auparavant
-  const jamaisObtenu = !inventaireAvant[k] || inventaireAvant[k] === 0;
-  if (jamaisObtenu) return true;
+  if (!etat.dejaObtenus) etat.dejaObtenus = {};
 
-  // Cas 2 : plus rare que tout ce qu'on avait déjà
-  const meilleurScore = getMeilleurScoreRareteInventaire(k);
-  if (score > meilleurScore) return true;
+  // Cas 1 : jamais obtenu de toute la partie (persiste après Renaissance)
+  const jamaisObtenu = !etat.dejaObtenus[k];
+  if (jamaisObtenu) {
+    etat.dejaObtenus[k] = true;
+    if (score > (etat.meilleurScoreVu || 0)) etat.meilleurScoreVu = score;
+    return true;
+  }
+
+  // Cas 2 : plus rare que tout ce qu'on a jamais obtenu (à vie)
+  if (score > (etat.meilleurScoreVu || 0)) {
+    etat.meilleurScoreVu = score;
+    return true;
+  }
 
   return false;
 }
@@ -211,9 +211,11 @@ async function envoyerNotifDiscord(brawler, variante, username) {
    (l'animation in-game, elle, reste déclenchée pour tout Lucky Pull) ── */
 const DISCORD_NOTIF_SEUIL = 100_000; // 1 chance sur 100 000
 
-/* ── Point d'entrée appelé depuis roll.js ── */
+/* ── Point d'entrée appelé depuis roll.js ──
+   (inventaireAvant conservé dans la signature pour compat d'appel, plus
+   utilisé en interne depuis le fix de spam au prestige — voir estLuckyPull) */
 function gererLuckyPull(brawler, variante, inventaireAvant) {
-  if (!estLuckyPull(brawler, variante, inventaireAvant)) return;
+  if (!estLuckyPull(brawler, variante)) return;
 
   afficherAnimationLuckyPull(brawler, variante);
 
