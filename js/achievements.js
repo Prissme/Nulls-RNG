@@ -125,7 +125,11 @@ function checkAchievementsRoll(brawlerId, variante) {
 }
 
 function checkIndexComplet() {
-  const variantes = ['normal', 'shiny', 'golden', 'rainbow'];
+  // FIX : la description du succès dit "toutes variantes", mais la liste
+  // ci-dessous oubliait 'monochrome' (pourtant bien une variante définie
+  // dans VARIANTES/ORDRE_VARIANTES) — le succès pouvait donc se débloquer
+  // sans jamais avoir obtenu le moindre Monochrome.
+  const variantes = ['normal', 'shiny', 'golden', 'rainbow', 'monochrome'];
   const complet = BRAWLERS.every(b =>
     variantes.every(v => (etat.inventaire[cle(b.id, v)] || 0) >= 1)
   );
