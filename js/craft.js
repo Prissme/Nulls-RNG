@@ -151,6 +151,13 @@ function afficherCraft() {
 
       const row = document.createElement('div');
       row.className = 'craft-row';
+      // FIX badge Craft trompeur : sert de marqueur fiable pour compter le
+      // nombre de combos brawler+recette réellement craftables (voir
+      // rafraichirBadgeCraft dans modals.js), plutôt que de compter tous
+      // les <button> actifs — qui comptait 2 boutons par ligne (×1 et ALL)
+      // plus le bouton "Craft ALL (recette)" du header, soit jusqu'à 3
+      // pour un seul item réellement craftable.
+      if (peutCrafter) row.dataset.craftable = '1';
       row.style.cssText = `display:flex;align-items:center;justify-content:space-between;
         gap:.5rem;padding:.4rem .5rem;border-radius:8px;margin-top:.25rem;
         background:${peutCrafter ? recette.couleur + '12' : 'rgba(255,255,255,.03)'};
