@@ -54,14 +54,26 @@
       position: sticky;
       top: 0;
       z-index: 50;
-      background: rgba(9,9,15,.92);
-      backdrop-filter: blur(12px);
+      background:
+        radial-gradient(140% 220% at 0% 0%, rgba(139,92,246,.20), transparent 55%),
+        radial-gradient(140% 220% at 100% 0%, rgba(56,189,248,.16), transparent 55%),
+        rgba(10,10,17,.68);
+      backdrop-filter: blur(22px) saturate(160%);
+      -webkit-backdrop-filter: blur(22px) saturate(160%);
       border-bottom: 1px solid var(--border);
-      padding: .6rem 1.25rem;
+      box-shadow: 0 1px 0 rgba(255,255,255,.05) inset, 0 10px 30px -12px rgba(0,0,0,.6);
+      padding: .65rem 1.25rem;
       display: flex;
       align-items: center;
-      gap: .75rem;
+      gap: .85rem;
       flex-wrap: wrap;
+    }
+    .nr-header::after {
+      content: '';
+      position: absolute;
+      left: 0; right: 0; bottom: -1px; height: 1px;
+      background: linear-gradient(90deg, transparent, rgba(139,92,246,.7), rgba(56,189,248,.6), rgba(192,132,252,.6), transparent);
+      opacity: .55;
     }
 
     .nr-logo {
@@ -73,14 +85,25 @@
       flex-shrink: 0;
       display: flex;
       align-items: center;
-      gap: .5rem;
+      gap: .55rem;
     }
     .nr-logo-mark {
-      width: 24px; height: 24px;
-      background: var(--accent-purple);
-      border-radius: 5px;
+      width: 26px; height: 26px;
+      background: linear-gradient(135deg, var(--accent-purple), var(--accent-sky));
+      border-radius: 8px;
       display: inline-flex; align-items: center; justify-content: center;
-      font-size: .7rem; font-weight: 700; color: #fff;
+      font-size: .72rem; font-weight: 700; color: #fff;
+      box-shadow: 0 3px 12px -2px rgba(139,92,246,.6), inset 0 1px 0 rgba(255,255,255,.3);
+    }
+
+    /* ── cluster utilitaire (cloud / discord / son) — regroupé, discret ── */
+    .nr-utility {
+      display: flex;
+      align-items: center;
+      gap: .4rem;
+      padding-right: .6rem;
+      margin-right: .2rem;
+      border-right: 1px solid var(--border);
     }
 
     .nr-stats {
@@ -95,17 +118,22 @@
       display: inline-flex;
       align-items: center;
       gap: .4rem;
-      padding: .3rem .7rem;
-      border-radius: 8px;
-      background: var(--bg-card);
+      padding: .32rem .7rem;
+      border-radius: 10px;
+      background:
+        linear-gradient(135deg, var(--chip-tint, rgba(255,255,255,.05)), transparent 70%),
+        var(--bg-card);
       backdrop-filter: var(--glass-blur);
       -webkit-backdrop-filter: var(--glass-blur);
-      border: 1px solid var(--border);
-      box-shadow: inset 0 1px 0 rgba(255,255,255,.05), 0 4px 14px rgba(0,0,0,.25);
+      border: 1px solid var(--chip-border, var(--border));
+      box-shadow: inset 0 1px 0 rgba(255,255,255,.06), 0 4px 14px rgba(0,0,0,.25);
       font-size: .78rem;
       font-family: var(--font-ui);
       white-space: nowrap;
+      position: relative;
+      transition: border-color .15s, transform .15s;
     }
+    .stat-chip:hover { border-color: var(--chip-border-hi, var(--border-hi)); }
     .stat-chip .val {
       font-weight: 700;
       font-family: var(--font-mono);
@@ -119,6 +147,14 @@
       flex-shrink: 0;
       filter: drop-shadow(0 0 5px rgba(0,0,0,.5));
     }
+
+    /* teintes couleur par chip */
+    #coinChip       { --chip-tint: rgba(212,168,67,.16);  --chip-border: rgba(212,168,67,.28);  --chip-border-hi: rgba(212,168,67,.55); }
+    .chip-cristaux  { --chip-tint: rgba(192,132,252,.16); --chip-border: rgba(192,132,252,.28); --chip-border-hi: rgba(192,132,252,.55); }
+    .chip-rolls     { --chip-tint: rgba(255,255,255,.06); }
+    .chip-luck      { --chip-tint: rgba(139,92,246,.18);  --chip-border: rgba(139,92,246,.3);   --chip-border-hi: rgba(139,92,246,.6); }
+    .chip-speed     { --chip-tint: rgba(56,189,248,.16);  --chip-border: rgba(56,189,248,.28);  --chip-border-hi: rgba(56,189,248,.55); }
+    .chip-xp        { --chip-tint: rgba(212,168,67,.14);  --chip-border: rgba(212,168,67,.3); }
 
     /* XP chip special */
     .xp-chip {
@@ -136,66 +172,65 @@
     }
     .xp-track .timer-bar { height: 100%; border-radius: 2px; }
 
-    /* icon-btn (mute) — bigger + high-contrast so it never disappears visually */
+    /* icon-btn (mute) */
     .icon-btn {
-      height: 34px;
-      min-width: 34px;
-      padding: 0 .6rem;
-      border: 1px solid var(--border-hi);
-      border-radius: 8px;
+      height: 32px;
+      min-width: 32px;
+      padding: 0 .55rem;
+      border: 1px solid var(--border);
+      border-radius: 9px;
       background: var(--bg-card);
       backdrop-filter: var(--glass-blur);
       -webkit-backdrop-filter: var(--glass-blur);
-      color: var(--text);
+      color: var(--text-muted);
       font-size: .8rem;
       cursor: pointer;
       display: flex; align-items: center; justify-content: center; gap: .35rem;
       transition: border-color .15s, color .15s, background .15s;
-      box-shadow: inset 0 1px 0 rgba(255,255,255,.06), 0 4px 14px rgba(0,0,0,.25);
+      box-shadow: inset 0 1px 0 rgba(255,255,255,.06), 0 3px 10px rgba(0,0,0,.2);
     }
-    .icon-btn svg { flex-shrink: 0; filter: drop-shadow(0 1px 2px rgba(0,0,0,.6)); }
+    .icon-btn svg { flex-shrink: 0; }
     .icon-btn .icon-btn-label {
-      font-size: .68rem; font-weight: 700; letter-spacing: .04em;
+      font-size: .66rem; font-weight: 700; letter-spacing: .04em;
       text-transform: uppercase; color: var(--text-muted);
     }
-    .icon-btn:hover { border-color: var(--accent-purple); color: #fff; background: rgba(139,92,246,.18); }
+    .icon-btn:hover { border-color: var(--accent-purple); color: #fff; background: rgba(139,92,246,.16); }
     .icon-btn:hover .icon-btn-label { color: #fff; }
 
-    /* ── Bouton Discord (header) ── */
+    /* ── Bouton Discord (header) — pill discret, plus de gros cercle qui déborde ── */
     .discord-btn {
-      width: 30px; height: 30px; flex-shrink: 0; padding: 0; margin: 0;
-      border-radius: 50%; border: 1.5px solid var(--border);
-      background: var(--bg-card); cursor: pointer; position: relative;
-      display: flex; align-items: center; justify-content: center;
-      transition: border-color .15s, transform .15s, box-shadow .15s;
+      height: 32px; flex-shrink: 0; padding: 0 .6rem; margin: 0;
+      max-width: 150px;
+      border-radius: 9px; border: 1px solid rgba(88,101,242,.28);
+      background: rgba(88,101,242,.12);
+      backdrop-filter: var(--glass-blur);
+      -webkit-backdrop-filter: var(--glass-blur);
+      cursor: pointer; position: relative;
+      display: inline-flex; align-items: center; justify-content: center; gap: .35rem;
+      transition: border-color .15s, background .15s, transform .15s;
       font: inherit; outline: none;
+      box-shadow: inset 0 1px 0 rgba(255,255,255,.06), 0 3px 10px rgba(0,0,0,.2);
     }
-    .discord-btn:hover { transform: scale(1.07); }
+    .discord-btn:hover { border-color: #5865F2; background: rgba(88,101,242,.2); transform: translateY(-1px); }
     .discord-btn img {
-      width: 100%; height: 100%; border-radius: 50%;
-      object-fit: cover; display: block;
+      width: 17px; height: 17px; border-radius: 50%;
+      object-fit: cover; display: block; flex-shrink: 0;
     }
-    .discord-btn svg { width: 16px; height: 16px; }
-    .discord-btn .dbtn-dot {
-      position: absolute; bottom: -2px; right: -2px;
-      width: 11px; height: 11px; border-radius: 50%;
-      border: 2px solid var(--bg-panel, #0f0f17);
-      background: #22c55e;
-    }
-    .discord-btn.is-unlinked {
-      background: #5865F2; border-color: #5865F2;
-      animation: discordPulse 2.4s ease-in-out infinite;
-    }
-    .discord-btn.is-unlinked svg { fill: #fff; }
-    .discord-btn.is-linked { border-color: rgba(88,101,242,.55); }
-    .discord-btn.is-error { background: rgba(248,113,113,.14); border-color: rgba(248,113,113,.6); }
-    @keyframes discordPulse {
-      0%, 100% { box-shadow: 0 0 0 0 rgba(88,101,242,.45); }
-      50%      { box-shadow: 0 0 0 5px rgba(88,101,242,0); }
+    .discord-btn svg { width: 15px; height: 15px; flex-shrink: 0; }
+    .discord-btn .lbl {
+      overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
+      font-size: .72rem; font-weight: 700;
     }
 
-    /* cloud chip */
-    #cloudStatusChip { font-size: .72rem; color: var(--text-muted); }
+    /* ── indicateur cloud — juste un point discret + tooltip natif ── */
+    .cloud-dot {
+      width: 9px; height: 9px; border-radius: 50%;
+      flex-shrink: 0; cursor: default;
+      background: #94a3b8;
+      box-shadow: 0 0 0 3px rgba(255,255,255,.05), 0 0 8px 1px currentColor;
+      transition: background .3s;
+    }
+    #cloudStatusText { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); }
 
     /* ── MAIN ── */
     .nr-main {
@@ -692,10 +727,11 @@
       Null's RNG
     </div>
 
-    <div class="nr-stats">
-      <!-- cloud status -->
-      <div class="stat-chip" id="cloudStatusChip" style="display:none">
-        <span id="cloudStatusText" class="lbl">Sync…</span>
+    <!-- cluster utilitaire : cloud (discret) / discord / son -->
+    <div class="nr-utility">
+      <!-- cloud status : simple point de couleur + tooltip natif -->
+      <div class="cloud-dot" id="cloudStatusChip" style="display:none" title="Sync…">
+        <span id="cloudStatusText">Sync…</span>
       </div>
 
       <!-- discord link status -->
@@ -713,9 +749,11 @@
         </svg>
         <span class="icon-btn-label" id="muteLabel">Son</span>
       </button>
+    </div>
 
+    <div class="nr-stats">
       <!-- level / XP -->
-      <div class="stat-chip xp-chip" style="border-color:rgba(212,168,67,.3)">
+      <div class="stat-chip xp-chip chip-xp">
         <div class="xp-chip-row">
           <span class="val" id="levelLabel" style="color:var(--accent-gold)">Niv. 1</span>
           <span class="lbl text-xs" id="xpLabel">0/100 XP</span>
@@ -736,20 +774,20 @@
       </div>
 
       <!-- cristaux -->
-      <div class="stat-chip" style="border-color:rgba(192,132,252,.3)">
+      <div class="stat-chip chip-cristaux">
         <img src="./images/Crystal.webp" alt="" class="stat-icon" onerror="this.outerHTML='🔮'">
         <span class="val" id="cristauxDisplay" style="color:var(--accent-pink)">0</span>
         <span class="lbl">cristaux</span>
       </div>
 
       <!-- rolls -->
-      <div class="stat-chip">
+      <div class="stat-chip chip-rolls">
         <span class="val" id="rollsDisplay">0</span>
         <span class="lbl">rolls</span>
       </div>
 
       <!-- luck / potion -->
-      <div class="stat-chip" style="border-color:rgba(139,92,246,.3)">
+      <div class="stat-chip chip-luck">
         <img src="./images/PotionLuck.webp" alt="" class="stat-icon" onerror="this.outerHTML='🍀'">
         <span class="val" id="luckLabel" style="color:var(--accent-purple)">x1</span>
         <span class="lbl">Potion</span>
@@ -757,7 +795,7 @@
       </div>
 
       <!-- vitesse -->
-      <div class="stat-chip" style="border-color:rgba(56,189,248,.3)">
+      <div class="stat-chip chip-speed">
         <img src="./images/PotionSpeed.webp" alt="" class="stat-icon" onerror="this.outerHTML='⚡'">
         <span class="val" id="speedLabel" style="color:var(--accent-sky)">x1</span>
         <span class="lbl">vitesse</span>
