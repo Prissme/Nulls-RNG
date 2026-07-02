@@ -29,13 +29,24 @@ function getRarityGroups() {
   return groups;
 }
 
+/* FIX perf : luckBonusIndex() est appelée à chaque roll (via
+   luckMultiplierTotal() dans state.js), et faisait jusqu'à 20 appels à
+   isRarityCompleteNow() — chacun recalculant un `[...new Set(...)]` et un
+   `BRAWLERS.filter(...)` à partir de zéro. Ces regroupements sont
+   pourtant constants (BRAWLERS ne change jamais après le chargement) :
+   on les précalcule une seule fois ici, en Auto-Roll boosté (jusqu'à
+   ~40 rolls/s) ça évite un travail redondant à chaque tick pour rien. */
+const _RARITY_GROUPS_CACHE = getRarityGroups();
+const _RARITY_KEYS_CACHE   = Object.keys(_RARITY_GROUPS_CACHE);
+const _INDEX_LUCK_ENTRIES  = Object.entries(INDEX_LUCK_BONUS);
+
 /* Clé de stockage d'un unlock d'index */
 function indexKey(rarityKey, variante) { return `${rarityKey}_${variante}`; }
 
 /* Vérifie si le joueur a au moins 1 exemplaire de chaque brawler
    d'une rareté donnée, dans une variante donnée (inventaire actuel) */
 function isRarityCompleteNow(rarityKey, variante) {
-  const group = BRAWLERS.filter(b => b.rarity === rarityKey);
+  const group = _RARITY_GROUPS_CACHE[rarityKey] || [];
   return group.every(b => (etat.inventaire[cle(b.id, variante)] || 0) >= 1);
 }
 
@@ -55,9 +66,8 @@ function isRarityComplete(rarityKey, variante) {
 function luckBonusIndex() {
   if (!etat.indexUnlocks) etat.indexUnlocks = {};
   let bonus = 0;
-  const rarityKeys = [...new Set(BRAWLERS.map(b => b.rarity))];
-  for (const rarityKey of rarityKeys) {
-    for (const [variante, pct] of Object.entries(INDEX_LUCK_BONUS)) {
+  for (const rarityKey of _RARITY_KEYS_CACHE) {
+    for (const [variante, pct] of _INDEX_LUCK_ENTRIES) {
       if (isRarityComplete(rarityKey, variante)) {
         bonus += pct;
       }
