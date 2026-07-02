@@ -158,6 +158,26 @@ function robotActuel(c) {
 /* ── Utilitaires ── */
 function brawlerVivant(c) { return c.brawlers.filter(b => !b.mort); }
 
+/* ── Brawler actif courant ──
+   FIX désync des tours : l'ancienne logique faisait
+   `vivants[combat.actifIndex % vivants.length]`, où `vivants` est
+   recalculé (tableau des survivants). Dès qu'un brawler meurt, ce
+   tableau rétrécit et le modulo change de "cible" pour le même
+   actifIndex → un brawler pouvait rejouer immédiatement ou un autre se
+   faire sauter son tour, juste au moment d'une mort.
+   Ici, actifIndex est un index FIXE dans combat.brawlers (jamais
+   recalculé) : on avance dedans en sautant les morts, ce qui garantit
+   une rotation stable et équitable quel que soit l'ordre des morts. */
+function brawlerActifCourant(c) {
+  if (!c || !c.brawlers || c.brawlers.length === 0) return null;
+  const n = c.brawlers.length;
+  for (let i = 0; i < n; i++) {
+    const idx = (c.actifIndex + i) % n;
+    if (!c.brawlers[idx].mort) return { brawler: c.brawlers[idx], index: idx };
+  }
+  return null; // plus personne en vie
+}
+
 function logCombat(msg, classe = '') {
   combat.log.unshift({ msg, classe, id: Date.now() + Math.random() });
   if (combat.log.length > 20) combat.log.pop();
@@ -319,9 +339,9 @@ function rendreLevelBar() {
 function rendreEquipe() {
   const el = document.getElementById('cb-team');
   if (!el) return;
+  const actif = brawlerActifCourant(combat);
   el.innerHTML = combat.brawlers.map((b, i) => {
-    const vivants  = brawlerVivant(combat);
-    const estActif = !b.mort && vivants.indexOf(b) === (combat.actifIndex % vivants.length);
+    const estActif = !b.mort && !!actif && actif.index === i;
     const color    = couleurVarianteLocal(b.brawler, b.variante);
     const pct      = Math.max(0, Math.round((b.hp / b.hpMax) * 100));
     const barColor = pct > 50 ? '#22c55e' : pct > 20 ? '#f59e0b' : '#ef4444';
@@ -435,8 +455,8 @@ function rendreActions() {
     return;
   }
 
-  const vivants    = brawlerVivant(combat);
-  const bActif     = vivants[combat.actifIndex % vivants.length];
+  const actif      = brawlerActifCourant(combat);
+  const bActif     = actif ? actif.brawler : null;
   const bloque     = combat.en_cours || !bActif;
   const estSoutien = bActif && bActif.brawler.role === 'soutien';
 
@@ -471,13 +491,14 @@ function rendreActions() {
 
 async function actionCombat(action) {
   if (!combat || combat.en_cours || combat.phase === 'fin') return;
-  const vivants = brawlerVivant(combat);
-  if (vivants.length === 0) return;
+  const actif = brawlerActifCourant(combat);
+  if (!actif) return;
 
   combat.en_cours = true;
   rendreActions();
 
-  const bActif = vivants[combat.actifIndex % vivants.length];
+  const bActif = actif.brawler;
+  const vivants = brawlerVivant(combat); // utilisé plus bas pour le soin du Soutien
   const robot  = robotActuel(combat);
   if (!robot) { combat.en_cours = false; return; }
 
@@ -621,7 +642,7 @@ async function actionCombat(action) {
 
   bActif.hp -= degatRobot;
   logCombat(cibleMsg, 'cb-log-robot');
-  flashElement(`cb-br-${combat.brawlers.indexOf(bActif)}`, '#f59e0b');
+  flashElement(`cb-br-${actif.index}`, '#f59e0b');
 
   if (bActif.hp <= 0) {
     bActif.hp = 0; bActif.mort = true;
@@ -636,7 +657,7 @@ async function actionCombat(action) {
       logCombat(`🔥 <b style="color:#f59e0b">Fureur</b> +${combat.fureurStacks * 10}% ATK`, '');
   }
 
-  combat.actifIndex++;
+  combat.actifIndex = (actif.index + 1) % combat.brawlers.length;
   combat.tour++;
 
   /* ── Défaite ── */
