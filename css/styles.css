@@ -230,11 +230,25 @@ body {
 #resultName { font-size: 2.2rem; font-weight: 900; letter-spacing: .05em; line-height: 1; }
 #resultSub  { font-size: .85rem; color: var(--text-muted); letter-spacing: .08em; }
 
-/* ── Fond photo (image fournie par l'utilisateur, à la racine du site) ── */
+/* ── Fond photo (image fournie par l'utilisateur, à la racine du site) ──
+   Léger "drift" continu (zoom + pan très lent) façon écrans de menu
+   Brawl Stars, pour que le fond ne soit jamais totalement figé.
+   background-size volontairement > 100% pour avoir de la marge de
+   panoramique sans jamais montrer les bords de l'image. */
 .bg-photo {
   position: fixed; top: 0; left: 0; right: 0; bottom: 0;
   z-index: -2; pointer-events: none;
-  background: url('../BackgroundNRNG.webp') center center / cover no-repeat;
+  background: url('../BackgroundNRNG.webp') center center / 120% 120% no-repeat;
+  animation: bgDrift 36s ease-in-out infinite alternate;
+  will-change: background-position, transform;
+}
+@keyframes bgDrift {
+  0%   { background-position: 42% 40%; transform: scale(1); }
+  50%  { background-position: 58% 55%; transform: scale(1.03); }
+  100% { background-position: 46% 62%; transform: scale(1); }
+}
+@media (prefers-reduced-motion: reduce) {
+  .bg-photo { animation: none; }
 }
 
 /* ── Grille BG + voile sombre pour garder le texte lisible
