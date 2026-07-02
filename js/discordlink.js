@@ -35,6 +35,7 @@
 ════════════════════════════════════════════════ */
 
 let _discordLinkEnCours = false;
+let _dernierIdentiteDiscord = null; // cache pour le clic sur le badge header
 
 /* ── Client Supabase déjà initialisé par cloudsave.js ── */
 function _dlClient() {
@@ -130,6 +131,9 @@ async function rafraichirStatutDiscordLink() {
 }
 
 function afficherStatutDiscordLink(identite, messageErreur) {
+  _dernierIdentiteDiscord = identite || null;
+  _majBadgeHeaderDiscord(identite);
+
   const zone = document.getElementById('discordLinkZone');
   if (!zone) return;
 
@@ -170,6 +174,48 @@ function afficherStatutDiscordLink(identite, messageErreur) {
         🔗 Lier mon compte Discord
       </button>
     `;
+  }
+}
+
+/* ── Badge permanent dans le header : visible dès que le cloud est prêt,
+   montre l'avatar Discord si lié (pour qu'on SACHE qu'on est connecté),
+   sinon une invite discrète à lier. Cliquable dans les deux cas. ── */
+function _majBadgeHeaderDiscord(identite) {
+  const chip = document.getElementById('discordHeaderChip');
+  const content = document.getElementById('discordHeaderContent');
+  if (!chip || !content) return;
+
+  // Le cloud doit être prêt pour proposer quoi que ce soit
+  if (!_dlClient()) { chip.style.display = 'none'; return; }
+
+  chip.style.display = 'flex';
+
+  if (identite) {
+    const pseudo = _pseudoDepuisIdentite(identite) || 'Discord';
+    const avatar = _avatarDepuisIdentite(identite);
+    chip.style.borderColor = 'rgba(88,101,242,.5)';
+    chip.title = `Connecté à Discord — ${pseudo} (clique pour gérer)`;
+    content.innerHTML = `
+      ${avatar
+        ? `<img src="${avatar}" alt="" style="width:18px;height:18px;border-radius:50%;vertical-align:middle;margin-right:.35rem" />`
+        : '🔗 '}
+      <span class="lbl" style="color:#5865F2;font-weight:700">${pseudo}</span>
+    `;
+  } else {
+    chip.style.borderColor = 'rgba(88,101,242,.4)';
+    chip.title = 'Lier mon compte Discord';
+    content.innerHTML = `<span class="lbl" style="color:#5865F2">🔗 Lier Discord</span>`;
+  }
+}
+
+/* ── Clic sur le badge header : gère direct si pas encore lié,
+   sinon ouvre le modal (où se trouve le bouton "Délier") ── */
+async function onClickDiscordHeaderChip() {
+  if (_dernierIdentiteDiscord) {
+    if (typeof ouvrirModal === 'function') ouvrirModal('modalLeaderboard');
+    if (typeof ouvrirLeaderboard === 'function') ouvrirLeaderboard();
+  } else {
+    lierCompteDiscord();
   }
 }
 
