@@ -61,7 +61,12 @@ function rafraichirBadgeQuetes() {
 }
 
 function rafraichirBadgeCraft() {
-  const n = document.querySelectorAll('#craftList button:not([disabled])').length;
+  // FIX : comptait tous les <button> actifs (×1, ALL, + le bouton "Craft
+  // ALL (recette)" du header) — jusqu'à 3 boutons pour un seul item
+  // réellement craftable, gonflant artificiellement le badge. On compte
+  // maintenant les lignes marquées `data-craftable` par craft.js, soit le
+  // nombre réel de combos brawler+recette disponibles au craft.
+  const n = document.querySelectorAll('#craftList .craft-row[data-craftable="1"]').length;
   majBadge('craftBadge', n);
 }
 
