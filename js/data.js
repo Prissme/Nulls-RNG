@@ -57,6 +57,16 @@ const BRAWLERS = [
   { id:29, nom:"Colette",  div:22000, couleur:"#c026d3", emoji:"🖤", img:"ColetteNormal.webp", cpsBase:182, sellValue:146, bgClass:"rarity-bg-epic", rarity:"epic", role:"burst"   },
 ];
 
+/* FIX perf : BRAWLERS trié du plus rare (div élevé) au plus commun,
+   précalculé UNE SEULE FOIS ici plutôt que refait à chaque appel de
+   effectuerTirage() (roll.js) et _tirageHorsLigne() (offline.js) via
+   `[...BRAWLERS].sort(...)`. Cet ordre est constant (BRAWLERS ne change
+   jamais après le chargement), donc le retrier à chaque roll — et jusqu'à
+   6000 fois d'affilée lors du calcul de la progression hors-ligne au
+   chargement — était un travail répété pour rien, avec un vrai risque de
+   freeze de l'UI au retour d'une longue absence. */
+const BRAWLERS_PAR_RARETE_DESC = [...BRAWLERS].sort((a, b) => b.div - a.div);
+
 /* ════════════════════════════════════════════════
    Rôles de combat — triangle de contre (façon pierre-feuille-ciseaux)
 
