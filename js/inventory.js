@@ -203,7 +203,7 @@ function afficherInventaire() {
           style="flex:1;font-size:.56rem;padding:.18rem 0"
           onclick="vendreItem(${brawlerId},'${variante}')"
           ${!peutVendre ? 'disabled' : ''}>
-          ${prixFmt}🔮
+          ${prixFmt}${crystalImg('w-3 h-3 inline-block')}
         </button>
       </div>
 

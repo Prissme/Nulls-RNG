@@ -30,7 +30,7 @@ const ACHIEVEMENTS_DEF = [
   },
   {
     id: 'all_cristaux_max',
-    icone: '🔮',
+    icone: crystalImg('w-5 h-5'),
     nom: 'Maître des Cristaux',
     desc: 'Maxer toutes les améliorations de cristaux',
     couleur: '#a855f7',

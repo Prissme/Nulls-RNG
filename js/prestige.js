@@ -41,7 +41,7 @@ const PRESTIGE_UPGRADES = [
     maxNiveau: 20, coutBase: 4, coutFacteur: 1.38,
   },
   {
-    id: 'cristaux', nom: 'Alchimie des Cristaux', icone: '🔮', couleur: '#e879f9',
+    id: 'cristaux', nom: 'Alchimie des Cristaux', icone: crystalImg('w-4 h-4'), couleur: '#e879f9',
     desc: '+10% de cristaux gagnés à chaque Renaissance',
     maxNiveau: 15, coutBase: 8, coutFacteur: 1.5,
   },
@@ -136,10 +136,11 @@ function lancerRenaissance() {
     clearInterval(etat[`${type}Interval`]);
     etat[`${type}Active`] = false;
     etat[`${type}DureeTotale`] = 0;
-    document.getElementById(`${type}BarWrap`)?.classList.add('hidden');
-    document.getElementById(`${type}Countdown`)?.classList.add('hidden');
-    document.getElementById(`${type}TimerHdr`)?.classList.add('hidden');
+    document.querySelectorAll(`[data-potion-barwrap="${type}"]`).forEach(el => el.classList.add('hidden'));
+    document.querySelectorAll(`[data-potion-countdown="${type}"]`).forEach(el => el.classList.add('hidden'));
+    document.querySelectorAll(`[data-potion-hdr="${type}"]`).forEach(el => el.classList.add('hidden'));
   });
+  if (typeof _fxPanelSync === 'function') _fxPanelSync();
 
   // Reset de la progression d'un "run" (les stats lifetime et les bonus de prestige restent)
   etat.pieces      = 0;
@@ -178,7 +179,7 @@ function afficherRenaissanceNotif(gain) {
     box-shadow:0 0 24px rgba(232,121,249,.5);
     animation: craftIn .4s cubic-bezier(.22,.68,0,1.2) forwards;
   `;
-  notif.innerHTML = `🔮 Renaissance #${etat.prestige}<br><span style="font-size:.8rem">+${gain} cristaux</span>`;
+  notif.innerHTML = `${crystalImg('w-4 h-4 inline-block')} Renaissance #${etat.prestige}<br><span style="font-size:.8rem">+${gain} cristaux</span>`;
   document.body.appendChild(notif);
   setTimeout(() => notif.remove(), 2400);
 }
@@ -201,7 +202,7 @@ function afficherPrestige() {
 
   zone.innerHTML = `
     <div class="rounded-lg p-3 mb-3" style="background:rgba(192,38,211,.08);border:1px solid rgba(192,38,211,.3)">
-      <div class="text-sm font-bold" style="color:#e879f9">🔮 Renaissance #${etat.prestige}</div>
+      <div class="text-sm font-bold" style="color:#e879f9;display:flex;align-items:center;gap:.35rem">${crystalImg('w-4 h-4')} Renaissance #${etat.prestige}</div>
       <div class="text-xs mt-1" style="color:var(--text-muted)">
         ${eligible
           ? `Renaître réinitialise pièces, inventaire, pets équipés et niveau — mais tes améliorations permanentes ci-dessous restent acquises pour toujours.`
@@ -214,7 +215,7 @@ function afficherPrestige() {
           box-shadow:0 0 14px rgba(232,121,249,.35);
           cursor:${eligible ? 'pointer' : 'not-allowed'};opacity:${eligible ? '1' : '.4'}"
         ${!eligible ? 'disabled' : ''}>
-        🔮 Renaître (+${gain} cristaux)
+        ${crystalImg('w-4 h-4 inline-block')} Renaître (+${gain} cristaux)
       </button>
     </div>
 
@@ -223,7 +224,7 @@ function afficherPrestige() {
         Améliorations permanentes
       </span>
       <span class="text-xs font-bold flex items-center gap-1" style="color:#e879f9">
-        🔮 ${etat.cristaux}
+        ${crystalImg('w-4 h-4')} ${etat.cristaux}
       </span>
     </div>
     <div id="prestigeUpgradesList" class="flex flex-col gap-2"></div>
@@ -258,7 +259,7 @@ function afficherPrestige() {
           color:${peut ? up.couleur : 'var(--text-muted)'};
           cursor:${peut ? 'pointer' : 'not-allowed'};opacity:${peut ? '1' : '.5'}"
         ${!peut ? 'disabled' : ''}>
-        ${maxed ? 'MAX' : `${cout} 🔮`}
+        ${maxed ? 'MAX' : `${cout} ${crystalImg('w-4 h-4 inline-block')}`}
       </button>
     `;
     list.appendChild(row);

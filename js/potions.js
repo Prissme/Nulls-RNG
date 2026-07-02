@@ -74,16 +74,30 @@ function acheterPotion(type) {
   sauvegarderEtatCloud();
 }
 
+/* Affiche/masque le titre du panneau "Effets actifs" (sidebar) selon
+   qu'au moins une potion est active — évite un panneau vide flottant. */
+function _fxPanelSync() {
+  const title = document.getElementById('fxPanelTitle');
+  if (!title) return;
+  const actif = document.querySelector('.fx-card:not(.hidden)');
+  title.style.display = actif ? '' : 'none';
+}
+
+/* Timers de potions — met à jour TOUTES les zones qui affichent l'effet
+   (chip du header, carte boutique, panneau "Effets actifs" latéral) via
+   des sélecteurs data-* au lieu d'un id unique, pour rester synchronisées
+   partout où l'effet est représenté à l'écran. */
 function demarrerTimer(type) {
-  const potion  = POTIONS[type];
+  const potion = POTIONS[type];
 
-  const barWrap = document.getElementById(`${type}BarWrap`);
-  const bar     = document.getElementById(`${type}Bar`);
-  const cd      = document.getElementById(`${type}Countdown`);
-  const hdr     = document.getElementById(`${type}TimerHdr`);
+  const barWraps = document.querySelectorAll(`[data-potion-barwrap="${type}"]`);
+  const bars     = document.querySelectorAll(`[data-potion-bar="${type}"]`);
+  const cds      = document.querySelectorAll(`[data-potion-countdown="${type}"]`);
+  const hdrs     = document.querySelectorAll(`[data-potion-hdr="${type}"]`);
 
-  barWrap.classList.remove('hidden');
-  cd.classList.remove('hidden');
+  barWraps.forEach(el => el.classList.remove('hidden'));
+  cds.forEach(el => el.classList.remove('hidden'));
+  _fxPanelSync();
 
   const prop = `${type}Interval`;
   clearInterval(etat[prop]);
@@ -99,12 +113,12 @@ function demarrerTimer(type) {
     const pct     = Math.min(100, (restant / dureeRef) * 100);
     const secs    = Math.ceil(restant / 1000);
 
-    bar.style.width = pct + '%';
-    cd.textContent  = `⏳ ${secs}s`;
-    if (hdr) {
+    bars.forEach(bar => { bar.style.width = pct + '%'; });
+    cds.forEach(cd => { cd.textContent = `⏳ ${secs}s`; });
+    hdrs.forEach(hdr => {
       hdr.textContent = `${secs}s`;
       hdr.classList.remove('hidden');
-    }
+    });
 
     if (restant <= 0) {
       clearInterval(etat[prop]);
@@ -112,9 +126,10 @@ function demarrerTimer(type) {
       etat[`${type}DureeTotale`] = 0;
       if (type === 'speed' || type === 'wished') redemarrerAutoRoll();
 
-      barWrap.classList.add('hidden');
-      cd.classList.add('hidden');
-      if (hdr) hdr.classList.add('hidden');
+      barWraps.forEach(el => el.classList.add('hidden'));
+      cds.forEach(el => el.classList.add('hidden'));
+      hdrs.forEach(el => el.classList.add('hidden'));
+      _fxPanelSync();
 
       mettreAJourCompteurs();
       afficherTableRarites();

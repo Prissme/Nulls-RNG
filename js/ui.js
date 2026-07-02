@@ -8,6 +8,19 @@ function coinImg(classes = 'w-5 h-5') {
   return `<img src="./images/Coins.webp" alt="Coins" class="${classes} object-contain inline-block align-middle" onerror="this.style.display='none'">`;
 }
 
+// Icône cristal (remplace l'ancien emoji 🔮 partout où la monnaie "cristaux" est affichée)
+function crystalImg(classes = 'w-4 h-4') {
+  return `<img src="./images/Crystal.webp" alt="Cristal" class="${classes} object-contain inline-block align-middle" onerror="this.outerHTML='🔮'">`;
+}
+
+// Icônes des potions Chance / Vitesse (fallback emoji si l'image n'est pas encore présente)
+function potionLuckImg(classes = 'w-4 h-4') {
+  return `<img src="./images/PotionLuck.webp" alt="Potion Chance" class="${classes} object-contain inline-block align-middle" onerror="this.outerHTML='🍀'">`;
+}
+function potionSpeedImg(classes = 'w-4 h-4') {
+  return `<img src="./images/PotionSpeed.webp" alt="Potion Vitesse" class="${classes} object-contain inline-block align-middle" onerror="this.outerHTML='⚡'">`;
+}
+
 /* ── Zone résultat après un roll ── */
 function afficherResultat(b, vKey) {
   const v     = VARIANTES[vKey];
