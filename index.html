@@ -293,9 +293,19 @@
       font-size: 1.05rem;
       font-weight: 600;
       letter-spacing: .02em;
+      line-height: 1.3;
       color: var(--text-muted);
       width: 100%;
       text-align: center;
+      /* FIX carte qui grandit/rétrécit : ce bloc dupliquait #resultName de
+         styles.css sans reprendre le min-height qui réserve la place pour
+         2 lignes (noms courts type "Colt" vs longs type "El Primo"). Comme
+         ce <style> est chargé APRÈS css/styles.css, il l'écrasait — d'où
+         le "tremblement" vertical à chaque roll malgré le fix existant. */
+      min-height: 2.6em;
+      display: flex;
+      align-items: center;
+      justify-content: center;
     }
 
     #resultSub {
@@ -304,6 +314,16 @@
       font-family: var(--font-mono);
       width: 100%;
       text-align: center;
+      line-height: 1.4;
+      /* Même correctif : réserve la hauteur des 2 lignes (badge rareté +
+         variante, puis proba/CPS) qui n'ont jamais la même largeur/contenu
+         d'un roll à l'autre. */
+      min-height: 2.9em;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      gap: .15rem;
     }
 
     /* ROLL BUTTON */
