@@ -11,15 +11,18 @@ function cloudConfigure() {
   return !!(window.supabase && window.SUPABASE_URL && window.SUPABASE_ANON_KEY);
 }
 
-/* ── Badge de statut (header) ── */
+/* ── Badge de statut (header) — un simple point discret, coloré selon
+   l'état, avec le détail dispo au survol (title) plutôt qu'en texte
+   affiché en permanence. ── */
 function setCloudStatus(text, color) {
   const chip = document.getElementById('cloudStatusChip');
   const txt  = document.getElementById('cloudStatusText');
   if (!chip || !txt) return;
-  chip.style.display     = 'flex';
-  chip.style.borderColor = `${color}66`;
+  chip.style.display = 'inline-block';
+  chip.style.background = color;
+  chip.style.color = color; // pour le glow via currentColor
+  chip.title = text;
   txt.textContent = text;
-  txt.style.color = color;
 }
 
 /* ── Initialisation : connexion anonyme + chargement ──
