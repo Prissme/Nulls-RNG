@@ -35,7 +35,8 @@
 ════════════════════════════════════════════════ */
 
 let _discordLinkEnCours = false;
-let _dernierIdentiteDiscord = null; // cache pour le clic sur le badge header
+let _dernierIdentiteDiscord = null;   // cache pour le clic sur le badge header
+let _derniereErreurDiscord = null;    // idem, pour ouvrir le modal plutôt que relancer direct
 
 /* ── Client Supabase déjà initialisé par cloudsave.js ── */
 function _dlClient() {
@@ -127,12 +128,15 @@ async function rafraichirStatutDiscordLink() {
 
   zone.innerHTML = `<div style="font-size:.65rem;color:var(--text-dim)">Vérification…</div>`;
   const identite = await obtenirIdentiteDiscord();
-  afficherStatutDiscordLink(identite);
+  // Si toujours pas d'identité et qu'une erreur avait été détectée au retour
+  // d'OAuth, on la garde affichée plutôt que de l'effacer silencieusement.
+  afficherStatutDiscordLink(identite, identite ? null : _derniereErreurDiscord);
 }
 
 function afficherStatutDiscordLink(identite, messageErreur) {
   _dernierIdentiteDiscord = identite || null;
-  _majBadgeHeaderDiscord(identite);
+  _derniereErreurDiscord  = (!identite && messageErreur) ? messageErreur : null;
+  _majBadgeHeaderDiscord(identite, messageErreur);
 
   const zone = document.getElementById('discordLinkZone');
   if (!zone) return;
@@ -180,7 +184,7 @@ function afficherStatutDiscordLink(identite, messageErreur) {
 /* ── Badge permanent dans le header : visible dès que le cloud est prêt,
    montre l'avatar Discord si lié (pour qu'on SACHE qu'on est connecté),
    sinon une invite discrète à lier. Cliquable dans les deux cas. ── */
-function _majBadgeHeaderDiscord(identite) {
+function _majBadgeHeaderDiscord(identite, messageErreur) {
   const chip = document.getElementById('discordHeaderChip');
   const content = document.getElementById('discordHeaderContent');
   if (!chip || !content) return;
@@ -189,6 +193,13 @@ function _majBadgeHeaderDiscord(identite) {
   if (!_dlClient()) { chip.style.display = 'none'; return; }
 
   chip.style.display = 'flex';
+
+  if (messageErreur && !identite) {
+    chip.style.borderColor = 'rgba(248,113,113,.6)';
+    chip.title = `${messageErreur} (clique pour ouvrir le détail)`;
+    content.innerHTML = `<span class="lbl" style="color:#f87171">⚠️ Erreur Discord</span>`;
+    return;
+  }
 
   if (identite) {
     const pseudo = _pseudoDepuisIdentite(identite) || 'Discord';
@@ -211,7 +222,7 @@ function _majBadgeHeaderDiscord(identite) {
 /* ── Clic sur le badge header : gère direct si pas encore lié,
    sinon ouvre le modal (où se trouve le bouton "Délier") ── */
 async function onClickDiscordHeaderChip() {
-  if (_dernierIdentiteDiscord) {
+  if (_dernierIdentiteDiscord || _derniereErreurDiscord) {
     if (typeof ouvrirModal === 'function') ouvrirModal('modalLeaderboard');
     if (typeof ouvrirLeaderboard === 'function') ouvrirLeaderboard();
   } else {
@@ -223,12 +234,28 @@ async function onClickDiscordHeaderChip() {
    (Supabase les consomme automatiquement pour créer la session, mais
    les laisse traîner dans l'URL sinon) ── */
 function _nettoyerUrlApresOAuth() {
-  if (window.location.hash.includes('access_token') || window.location.search.includes('code=')) {
-    const url = new URL(window.location.href);
+  const url = new URL(window.location.href);
+  const aDesParams = url.hash.includes('access_token') || url.hash.includes('error')
+    || url.search.includes('code=') || url.searchParams.has('error');
+  if (aDesParams) {
     url.hash   = '';
     url.search = '';
     window.history.replaceState({}, document.title, url.toString());
   }
+}
+
+/* ── Lit error / error_description dans l'URL de retour, AVANT nettoyage.
+   Supabase les pose en query params (?error=...&error_description=...)
+   ou parfois dans le hash selon le type d'échec. Le cas typique ici :
+   "Manual linking" pas activé côté dashboard → linkIdentity redirige
+   quand même vers Discord, mais revient en erreur après coup. ── */
+function _lireErreurRetourOAuth() {
+  const url = new URL(window.location.href);
+  const hashParams = new URLSearchParams(url.hash.replace(/^#/, ''));
+  const error            = url.searchParams.get('error')             || hashParams.get('error');
+  const errorDescription = url.searchParams.get('error_description') || hashParams.get('error_description');
+  if (!error) return null;
+  return decodeURIComponent(errorDescription || error).replace(/\+/g, ' ');
 }
 
 /* ── Point d'entrée, appelé depuis main.js après initCloudSave() ── */
@@ -236,8 +263,15 @@ function initDiscordLink() {
   const client = _dlClient();
   if (!client) return;
 
+  const erreurRetour = _lireErreurRetourOAuth();
   _nettoyerUrlApresOAuth();
-  rafraichirStatutDiscordLink();
+
+  if (erreurRetour) {
+    console.error('[discordlink] Retour OAuth en erreur :', erreurRetour);
+    afficherStatutDiscordLink(null, `⚠️ Discord : ${erreurRetour}`);
+  } else {
+    rafraichirStatutDiscordLink();
+  }
 
   // Rafraîchit le badge automatiquement au retour d'OAuth (nouvelle
   // identité détectée) ou à tout changement de session.
