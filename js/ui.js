@@ -83,13 +83,13 @@ function afficherResultat(b, vKey) {
   const rarityHtml = rarityBadge(b.rarity);
   const probaVal   = (b.div * v.chanceMult).toLocaleString('fr-FR');
   sub.innerHTML = `
-    <span style="display:flex;align-items:center;justify-content:center;gap:.4rem;flex-wrap:wrap;margin-bottom:.25rem">
+    <span style="display:flex;align-items:center;justify-content:center;gap:.4rem;flex-wrap:nowrap;white-space:nowrap;margin-bottom:.25rem">
       ${rarityHtml}
-      ${vKey !== 'normal' ? `<span style="font-size:.7rem;color:${couleurVariante(b, vKey)}">${v.label}</span>` : ''}
+      ${vKey !== 'normal' ? `<span style="font-size:.7rem;color:${couleurVariante(b, vKey)};white-space:nowrap">${v.label}</span>` : ''}
     </span>
-    <span style="font-family:var(--font-mono);font-weight:700;color:#5eead4;font-size:.78rem">🎲 1/${probaVal}</span>
+    <span style="font-family:var(--font-mono);font-weight:700;color:#5eead4;font-size:.78rem;white-space:nowrap">🎲 1/${probaVal}</span>
     &nbsp;•&nbsp;
-    <span style="color:#fbbf24;font-size:.75rem">${Math.round(calcCPS(b, vKey) * 10) / 10} ${coinImg('w-5 h-5')}/s</span>
+    <span style="color:#fbbf24;font-size:.75rem;white-space:nowrap">${Math.round(calcCPS(b, vKey) * 10) / 10} ${coinImg('w-5 h-5')}/s</span>
   `;
 
   const glowColor = couleurVariante(b, vKey);
