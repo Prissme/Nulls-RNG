@@ -238,7 +238,23 @@ body {
   min-height: 2.3em; display: flex; align-items: center; justify-content: center;
   text-align: center; width: 100%;
 }
-#resultSub  { font-size: .85rem; color: var(--text-muted); letter-spacing: .08em; }
+/* FIX "la carte de roll change de taille très vite" (partie 2, la
+   principale) : la ligne badge-rareté + label-variante était en
+   flex-wrap:wrap dans ui.js, et sa largeur totale change à CHAQUE roll
+   (le nom de la rareté et le label de variante n'ont jamais la même
+   longueur : "Rare" vs "Chromatique", variante absente en "normal" vs
+   présente sinon...). Résultat : cette ligne bascule sans arrêt entre
+   1 et 2 lignes, donc #resultSub — et donc toute la carte — changeait de
+   hauteur à chaque roll, ce qui donnait l'effet de tremblement. On force
+   maintenant ces lignes à ne jamais wrapper (white-space/flex-wrap:nowrap
+   côté ui.js) ET on réserve une hauteur fixe ici, donc la hauteur ne
+   bouge plus jamais quel que soit le contenu. */
+#resultSub  {
+  font-size: .85rem; color: var(--text-muted); letter-spacing: .08em;
+  min-height: 2.6em; display: flex; flex-direction: column;
+  align-items: center; justify-content: center; gap: .1rem;
+  width: 100%;
+}
 
 /* ── Fond photo (image fournie par l'utilisateur, à la racine du site) ──
    Léger "drift" continu (zoom + pan très lent) façon écrans de menu
