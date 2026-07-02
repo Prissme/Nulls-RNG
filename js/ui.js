@@ -85,6 +85,24 @@ function afficherResultat(b, vKey) {
   zone.style.filter = `drop-shadow(0 0 ${vKey !== 'normal' ? 22 : 10}px ${glowColor})`;
 }
 
+/* ── Petit indicateur Multi-Drop ──
+   Juste un mini visuel du brawler bonus + "x2!" collé au coin de l'image
+   de résultat — pas de carte, pas de fond, rien au milieu de l'écran.
+   Discret et bref (disparaît de lui-même, ou dès le prochain roll qui
+   réécrit #resultEmoji). */
+function afficherBadgeMultiDrop(b2, v2) {
+  const emoji = document.getElementById('resultEmoji');
+  if (!emoji) return;
+  emoji.style.position = 'relative';
+
+  const badge = document.createElement('span');
+  badge.style.cssText = `position:absolute;bottom:-2px;right:-14px;display:inline-flex;
+    align-items:center;gap:.15rem;pointer-events:none;z-index:2`;
+  badge.innerHTML = `${brawlerImg(b2, 'w-6 h-6', '', v2)}<span style="font-size:.68rem;font-weight:800;color:#f97316">x2!</span>`;
+  emoji.appendChild(badge);
+  setTimeout(() => badge.remove(), 1200);
+}
+
 /* ── Slots pets équipés ── */
 function afficherPets() {
   const container = document.getElementById('petSlots');
