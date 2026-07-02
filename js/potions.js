@@ -44,14 +44,23 @@ function acheterPotion(type) {
 
   const activeProp = `${type}Active`;
   const finProp     = `${type}Fin`;
+  // FIX barre de progression : l'ancien code utilisait toujours potion.duree
+  // (durée d'UNE seule dose) comme dénominateur du %, même quand on rachète
+  // une potion déjà active (dejaActive) et que etat[finProp] est repoussé de
+  // plusieurs doses d'un coup. Résultat : la barre restait bloquée à 100%
+  // pendant un long moment avant de bouger. On garde ici la durée TOTALE
+  // réellement cumulée pour ce timer, utilisée par demarrerTimer() ci-dessous.
+  const dureeTotaleProp = `${type}DureeTotale`;
   const dejaActive  = etat[activeProp];
   const dureeTotale = potion.duree * qte;
 
   if (dejaActive) {
     etat[finProp] += dureeTotale;
+    etat[dureeTotaleProp] = (etat[dureeTotaleProp] || potion.duree) + dureeTotale;
   } else {
     etat[activeProp] = true;
     etat[finProp]    = Date.now() + dureeTotale;
+    etat[dureeTotaleProp] = dureeTotale;
     if (type === 'speed' || type === 'wished') redemarrerAutoRoll();
   }
 
@@ -67,7 +76,6 @@ function acheterPotion(type) {
 
 function demarrerTimer(type) {
   const potion  = POTIONS[type];
-  const duree   = potion.duree;
 
   const barWrap = document.getElementById(`${type}BarWrap`);
   const bar     = document.getElementById(`${type}Bar`);
@@ -83,7 +91,12 @@ function demarrerTimer(type) {
   etat[prop] = setInterval(() => {
     const finProp = `${type}Fin`;
     const restant = Math.max(0, etat[finProp] - Date.now());
-    const pct     = Math.min(100, (restant / duree) * 100);
+    // FIX : durée totale cumulée (multi-doses), pas potion.duree fixe —
+    // sinon la barre reste bloquée à 100% tant que restant > potion.duree.
+    // Repli sur potion.duree si absent (ex: état restauré depuis une
+    // ancienne sauvegarde cloud sans ce champ).
+    const dureeRef = etat[`${type}DureeTotale`] || potion.duree;
+    const pct     = Math.min(100, (restant / dureeRef) * 100);
     const secs    = Math.ceil(restant / 1000);
 
     bar.style.width = pct + '%';
@@ -96,6 +109,7 @@ function demarrerTimer(type) {
     if (restant <= 0) {
       clearInterval(etat[prop]);
       etat[`${type}Active`] = false;
+      etat[`${type}DureeTotale`] = 0;
       if (type === 'speed' || type === 'wished') redemarrerAutoRoll();
 
       barWrap.classList.add('hidden');
