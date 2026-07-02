@@ -120,6 +120,11 @@ COPY BigRobot.webp       /usr/share/nginx/html/images/BigRobot.webp
 COPY SniperRobot.webp    /usr/share/nginx/html/images/SniperRobot.webp
 COPY BoxerRobot.webp     /usr/share/nginx/html/images/BoxerRobot.webp
 
+# Icônes UI reworkées (potions + monnaie cristaux) — à placer à la racine du repo
+COPY Crystal.webp        /usr/share/nginx/html/images/Crystal.webp
+COPY PotionLuck.webp     /usr/share/nginx/html/images/PotionLuck.webp
+COPY PotionSpeed.webp    /usr/share/nginx/html/images/PotionSpeed.webp
+
 COPY nginx.conf /etc/nginx/conf.d/default.conf
 
 COPY docker-entrypoint.sh /docker-entrypoint.sh

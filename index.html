@@ -12,13 +12,15 @@
     /* ── DESIGN TOKENS ── */
     :root {
       --bg:           #09090f;
-      --bg-card:      #10101a;
-      --bg-panel:     #14141f;
-      --border:       #1e1e2e;
-      --border-hi:    #2a2a3f;
+      --bg-card:      rgba(20,20,32,.52);
+      --bg-panel:     rgba(24,24,38,.5);
+      --bg-solid:     #10101a;
+      --border:       rgba(255,255,255,.08);
+      --border-hi:    rgba(255,255,255,.16);
       --text:         #e2e2f0;
-      --text-muted:   #5a5a7a;
-      --text-dim:     #3a3a58;
+      --text-muted:   #9a9ac2;
+      --text-dim:     #6b6b96;
+      --glass-blur:   blur(18px) saturate(150%);
 
       --accent-gold:  #d4a843;
       --accent-purple:#8b5cf6;
@@ -96,7 +98,10 @@
       padding: .3rem .7rem;
       border-radius: 8px;
       background: var(--bg-card);
+      backdrop-filter: var(--glass-blur);
+      -webkit-backdrop-filter: var(--glass-blur);
       border: 1px solid var(--border);
+      box-shadow: inset 0 1px 0 rgba(255,255,255,.05), 0 4px 14px rgba(0,0,0,.25);
       font-size: .78rem;
       font-family: var(--font-ui);
       white-space: nowrap;
@@ -105,8 +110,15 @@
       font-weight: 700;
       font-family: var(--font-mono);
       font-size: .82rem;
+      text-shadow: 0 1px 3px rgba(0,0,0,.5);
     }
     .stat-chip .lbl { color: var(--text-muted); }
+    .stat-icon {
+      width: 18px; height: 18px;
+      object-fit: contain;
+      flex-shrink: 0;
+      filter: drop-shadow(0 0 5px rgba(0,0,0,.5));
+    }
 
     /* XP chip special */
     .xp-chip {
@@ -124,19 +136,30 @@
     }
     .xp-track .timer-bar { height: 100%; border-radius: 2px; }
 
-    /* icon-btn (mute) */
+    /* icon-btn (mute) — bigger + high-contrast so it never disappears visually */
     .icon-btn {
-      width: 30px; height: 30px;
-      border: 1px solid var(--border);
-      border-radius: 7px;
+      height: 34px;
+      min-width: 34px;
+      padding: 0 .6rem;
+      border: 1px solid var(--border-hi);
+      border-radius: 8px;
       background: var(--bg-card);
-      color: var(--text-muted);
+      backdrop-filter: var(--glass-blur);
+      -webkit-backdrop-filter: var(--glass-blur);
+      color: var(--text);
       font-size: .8rem;
       cursor: pointer;
-      display: flex; align-items: center; justify-content: center;
-      transition: border-color .15s, color .15s;
+      display: flex; align-items: center; justify-content: center; gap: .35rem;
+      transition: border-color .15s, color .15s, background .15s;
+      box-shadow: inset 0 1px 0 rgba(255,255,255,.06), 0 4px 14px rgba(0,0,0,.25);
     }
-    .icon-btn:hover { border-color: var(--border-hi); color: var(--text); }
+    .icon-btn svg { flex-shrink: 0; filter: drop-shadow(0 1px 2px rgba(0,0,0,.6)); }
+    .icon-btn .icon-btn-label {
+      font-size: .68rem; font-weight: 700; letter-spacing: .04em;
+      text-transform: uppercase; color: var(--text-muted);
+    }
+    .icon-btn:hover { border-color: var(--accent-purple); color: #fff; background: rgba(139,92,246,.18); }
+    .icon-btn:hover .icon-btn-label { color: #fff; }
 
     /* ── Bouton Discord (header) ── */
     .discord-btn {
@@ -187,8 +210,11 @@
     /* ── CARD ── */
     .card {
       background: var(--bg-card);
+      backdrop-filter: var(--glass-blur);
+      -webkit-backdrop-filter: var(--glass-blur);
       border: 1px solid var(--border);
       border-radius: 14px;
+      box-shadow: inset 0 1px 0 rgba(255,255,255,.05), 0 8px 28px rgba(0,0,0,.3);
     }
 
     /* ── ROLL HUB ── */
@@ -352,15 +378,19 @@
       gap: .4rem;
       padding: .9rem .5rem;
       background: var(--bg-card);
+      backdrop-filter: var(--glass-blur);
+      -webkit-backdrop-filter: var(--glass-blur);
       border: 1px solid var(--border);
       border-radius: 12px;
       cursor: pointer;
-      transition: border-color .15s, background .15s;
+      transition: border-color .15s, background .15s, transform .15s;
       font-family: var(--font-ui);
+      box-shadow: inset 0 1px 0 rgba(255,255,255,.05), 0 6px 20px rgba(0,0,0,.25);
     }
     .toolbar-card:hover {
       border-color: var(--border-hi);
-      background: var(--bg-panel);
+      background: rgba(32,32,50,.6);
+      transform: translateY(-1px);
     }
 
     .toolbar-card-icon {
@@ -430,7 +460,9 @@
     .modal-overlay.open { display: flex; }
 
     .modal-box {
-      background: var(--bg-card);
+      background: rgba(16,16,26,.75);
+      backdrop-filter: var(--glass-blur);
+      -webkit-backdrop-filter: var(--glass-blur);
       border: 1px solid var(--border-hi);
       border-radius: 16px;
       width: 100%;
@@ -439,6 +471,7 @@
       display: flex;
       flex-direction: column;
       overflow: hidden;
+      box-shadow: 0 24px 70px rgba(0,0,0,.6);
     }
     .modal-box-sm { max-width: 420px; }
 
@@ -529,12 +562,18 @@
       border-radius: 10px;
       padding: .85rem 1rem;
       border: 1px solid var(--border);
-      background: var(--bg-panel);
+      background: rgba(255,255,255,.03);
+      backdrop-filter: blur(8px);
+      -webkit-backdrop-filter: blur(8px);
       display: flex;
       flex-direction: column;
       gap: .35rem;
     }
-    .potion-card-title { font-size: .85rem; font-weight: 700; }
+    .potion-card-title {
+      font-size: .85rem; font-weight: 700;
+      display: flex; align-items: center; gap: .4rem;
+    }
+    .potion-card-title img { width: 20px; height: 20px; object-fit: contain; filter: drop-shadow(0 0 5px rgba(0,0,0,.5)); }
     .potion-card-desc  { font-size: .73rem; color: var(--text-muted); }
     .potion-buy-btn {
       width: 100%;
@@ -562,6 +601,78 @@
       border-radius: 999px;
       transition: width .1s linear;
     }
+
+    /* ── EFFETS ACTIFS (sidebar) ──
+       Utilise l'espace libre sur le côté droit pour afficher le temps
+       restant des potions actives (chance, vitesse, shiny, golden,
+       wished, richesse). N'apparaît que si l'écran est assez large ;
+       en dessous, le décompte reste visible dans le header / la boutique. */
+    .fx-panel {
+      position: fixed;
+      top: 96px;
+      right: 18px;
+      width: 208px;
+      display: flex;
+      flex-direction: column;
+      gap: .55rem;
+      z-index: 40;
+      pointer-events: none;
+    }
+    .fx-panel-title {
+      font-size: .68rem;
+      font-weight: 700;
+      letter-spacing: .1em;
+      text-transform: uppercase;
+      color: var(--text-dim);
+      padding-left: .2rem;
+    }
+    @media (max-width: 1280px) {
+      .fx-panel { display: none; }
+    }
+    .fx-card {
+      pointer-events: auto;
+      display: flex;
+      flex-direction: column;
+      gap: .4rem;
+      padding: .55rem .65rem;
+      border-radius: 12px;
+      background: var(--bg-card);
+      backdrop-filter: var(--glass-blur);
+      -webkit-backdrop-filter: var(--glass-blur);
+      border: 1px solid var(--border-hi);
+      box-shadow: inset 0 1px 0 rgba(255,255,255,.06), 0 10px 26px rgba(0,0,0,.35);
+      animation: fxIn .2s ease;
+    }
+    @keyframes fxIn {
+      from { opacity: 0; transform: translateX(8px); }
+      to   { opacity: 1; transform: translateX(0); }
+    }
+    .fx-card-head { display: flex; align-items: center; gap: .45rem; }
+    .fx-icon {
+      width: 22px; height: 22px;
+      object-fit: contain;
+      flex-shrink: 0;
+      filter: drop-shadow(0 0 6px rgba(139,92,246,.55));
+    }
+    .fx-name {
+      flex: 1;
+      font-size: .72rem;
+      font-weight: 700;
+      color: var(--text);
+      text-shadow: 0 1px 3px rgba(0,0,0,.6);
+    }
+    .fx-time {
+      font-family: var(--font-mono);
+      font-size: .72rem;
+      font-weight: 700;
+    }
+    .fx-bar-wrap {
+      height: 4px;
+      background: var(--border-hi);
+      border-radius: 999px;
+      overflow: hidden;
+    }
+    .fx-bar { height: 100%; border-radius: 999px; }
 
     /* ── SCROLLBAR ── */
     ::-webkit-scrollbar { width: 4px; }
@@ -595,11 +706,12 @@
 
       <!-- mute -->
       <button id="muteBtn" onclick="toggleMute()" class="icon-btn" title="Son">
-        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" id="muteIcon">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" id="muteIcon">
           <polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5"/>
           <path d="M19.07 4.93a10 10 0 0 1 0 14.14"/>
           <path d="M15.54 8.46a5 5 0 0 1 0 7.07"/>
         </svg>
+        <span class="icon-btn-label" id="muteLabel">Son</span>
       </button>
 
       <!-- level / XP -->
@@ -625,15 +737,9 @@
 
       <!-- cristaux -->
       <div class="stat-chip" style="border-color:rgba(192,132,252,.3)">
+        <img src="./images/Crystal.webp" alt="" class="stat-icon" onerror="this.outerHTML='🔮'">
         <span class="val" id="cristauxDisplay" style="color:var(--accent-pink)">0</span>
         <span class="lbl">cristaux</span>
-      </div>
-
-      <!-- points de pouvoir -->
-      <div class="stat-chip" style="border-color:rgba(168,85,247,.4);cursor:pointer"
-           onclick="ouvrirSkillTreeGlobal()">
-        <span class="val" id="ppDisplay" style="color:#a855f7">0</span>
-        <span class="lbl">⚡ PP</span>
       </div>
 
       <!-- rolls -->
@@ -642,21 +748,82 @@
         <span class="lbl">rolls</span>
       </div>
 
-      <!-- luck -->
+      <!-- luck / potion -->
       <div class="stat-chip" style="border-color:rgba(139,92,246,.3)">
+        <img src="./images/PotionLuck.webp" alt="" class="stat-icon" onerror="this.outerHTML='🍀'">
         <span class="val" id="luckLabel" style="color:var(--accent-purple)">x1</span>
-        <span class="lbl">luck</span>
-        <span id="luckTimerHdr" class="hidden" style="font-family:var(--font-mono);font-size:.7rem;font-weight:700;color:var(--accent-purple)"></span>
+        <span class="lbl">Potion</span>
+        <span id="luckTimerHdr" data-potion-hdr="luck" class="hidden" style="font-family:var(--font-mono);font-size:.7rem;font-weight:700;color:var(--accent-purple)"></span>
       </div>
 
       <!-- vitesse -->
       <div class="stat-chip" style="border-color:rgba(56,189,248,.3)">
+        <img src="./images/PotionSpeed.webp" alt="" class="stat-icon" onerror="this.outerHTML='⚡'">
         <span class="val" id="speedLabel" style="color:var(--accent-sky)">x1</span>
         <span class="lbl">vitesse</span>
-        <span id="speedTimerHdr" class="hidden" style="font-family:var(--font-mono);font-size:.7rem;font-weight:700;color:var(--accent-sky)"></span>
+        <span id="speedTimerHdr" data-potion-hdr="speed" class="hidden" style="font-family:var(--font-mono);font-size:.7rem;font-weight:700;color:var(--accent-sky)"></span>
       </div>
     </div>
   </header>
+
+  <!-- EFFETS ACTIFS (côté droit — visible sur grands écrans) -->
+  <aside class="fx-panel" id="fxPanel">
+    <div class="fx-panel-title" id="fxPanelTitle" style="display:none">Effets actifs</div>
+
+    <div class="fx-card hidden" data-potion-barwrap="luck">
+      <div class="fx-card-head">
+        <img class="fx-icon" src="./images/PotionLuck.webp" alt="" onerror="this.outerHTML='🍀'">
+        <span class="fx-name">Potion Chance</span>
+        <span class="fx-time" data-potion-countdown="luck" style="color:var(--accent-purple)"></span>
+      </div>
+      <div class="fx-bar-wrap"><div class="fx-bar" data-potion-bar="luck" style="width:100%;background:var(--accent-purple)"></div></div>
+    </div>
+
+    <div class="fx-card hidden" data-potion-barwrap="speed">
+      <div class="fx-card-head">
+        <img class="fx-icon" src="./images/PotionSpeed.webp" alt="" onerror="this.outerHTML='⚡'">
+        <span class="fx-name">Potion Vitesse</span>
+        <span class="fx-time" data-potion-countdown="speed" style="color:var(--accent-sky)"></span>
+      </div>
+      <div class="fx-bar-wrap"><div class="fx-bar" data-potion-bar="speed" style="width:100%;background:var(--accent-sky)"></div></div>
+    </div>
+
+    <div class="fx-card hidden" data-potion-barwrap="shiny">
+      <div class="fx-card-head">
+        <span class="fx-icon" style="display:flex;align-items:center;justify-content:center;font-size:1.1rem">✨</span>
+        <span class="fx-name">Potion Shiny</span>
+        <span class="fx-time" data-potion-countdown="shiny" style="color:var(--accent-sky)"></span>
+      </div>
+      <div class="fx-bar-wrap"><div class="fx-bar" data-potion-bar="shiny" style="width:100%;background:var(--accent-sky)"></div></div>
+    </div>
+
+    <div class="fx-card hidden" data-potion-barwrap="golden">
+      <div class="fx-card-head">
+        <span class="fx-icon" style="display:flex;align-items:center;justify-content:center;font-size:1.1rem">👑</span>
+        <span class="fx-name">Potion Golden</span>
+        <span class="fx-time" data-potion-countdown="golden" style="color:#fbbf24"></span>
+      </div>
+      <div class="fx-bar-wrap"><div class="fx-bar" data-potion-bar="golden" style="width:100%;background:#fbbf24"></div></div>
+    </div>
+
+    <div class="fx-card hidden" data-potion-barwrap="wished">
+      <div class="fx-card-head">
+        <span class="fx-icon" style="display:flex;align-items:center;justify-content:center;font-size:1.1rem">⭐</span>
+        <span class="fx-name">Potion Wished</span>
+        <span class="fx-time" data-potion-countdown="wished" style="color:#f59e0b"></span>
+      </div>
+      <div class="fx-bar-wrap"><div class="fx-bar" data-potion-bar="wished" style="width:100%;background:#f59e0b"></div></div>
+    </div>
+
+    <div class="fx-card hidden" data-potion-barwrap="richesse">
+      <div class="fx-card-head">
+        <span class="fx-icon" style="display:flex;align-items:center;justify-content:center;font-size:1.1rem">💰</span>
+        <span class="fx-name">Potion Richesse</span>
+        <span class="fx-time" data-potion-countdown="richesse" style="color:#22c55e"></span>
+      </div>
+      <div class="fx-bar-wrap"><div class="fx-bar" data-potion-bar="richesse" style="width:100%;background:#22c55e"></div></div>
+    </div>
+  </aside>
 
   <!-- MAIN -->
   <main class="nr-main">
@@ -807,12 +974,15 @@
 
       <!-- Potion Chance -->
       <div class="potion-card" style="border-color:rgba(139,92,246,.25)">
-        <div class="potion-card-title" style="color:var(--accent-purple)">Potion de Chance</div>
-        <div class="potion-card-desc">Luck x2 — 30 secondes</div>
-        <div id="luckBarWrap" class="hidden" style="height:4px;background:var(--border);border-radius:2px;overflow:hidden;margin-top:.25rem">
-          <div id="luckBar" class="timer-bar" style="width:100%;background:var(--accent-purple)"></div>
+        <div class="potion-card-title" style="color:var(--accent-purple)">
+          <img src="./images/PotionLuck.webp" alt="" onerror="this.outerHTML='🍀'">
+          Potion de Chance
         </div>
-        <div id="luckCountdown" class="hidden" style="font-family:var(--font-mono);font-size:.72rem;font-weight:700;color:var(--accent-purple)"></div>
+        <div class="potion-card-desc">Potion x2 — 30 secondes</div>
+        <div id="luckBarWrap" data-potion-barwrap="luck" class="hidden" style="height:4px;background:var(--border);border-radius:2px;overflow:hidden;margin-top:.25rem">
+          <div id="luckBar" data-potion-bar="luck" class="timer-bar" style="width:100%;background:var(--accent-purple)"></div>
+        </div>
+        <div id="luckCountdown" data-potion-countdown="luck" class="hidden" style="font-family:var(--font-mono);font-size:.72rem;font-weight:700;color:var(--accent-purple)"></div>
       </div>
       <button id="buyLuckBtn" onclick="acheterPotion('luck')" class="potion-buy-btn"
         style="background:linear-gradient(135deg,#7c3aed,var(--accent-purple));color:#fff">
@@ -823,12 +993,15 @@
 
       <!-- Potion Vitesse -->
       <div class="potion-card" style="border-color:rgba(56,189,248,.25)">
-        <div class="potion-card-title" style="color:var(--accent-sky)">Potion de Vitesse</div>
-        <div class="potion-card-desc">Auto-Roll x3 — 20 secondes</div>
-        <div id="speedBarWrap" class="hidden" style="height:4px;background:var(--border);border-radius:2px;overflow:hidden;margin-top:.25rem">
-          <div id="speedBar" class="timer-bar" style="width:100%;background:var(--accent-sky)"></div>
+        <div class="potion-card-title" style="color:var(--accent-sky)">
+          <img src="./images/PotionSpeed.webp" alt="" onerror="this.outerHTML='⚡'">
+          Potion de Vitesse
         </div>
-        <div id="speedCountdown" class="hidden" style="font-family:var(--font-mono);font-size:.72rem;font-weight:700;color:var(--accent-sky)"></div>
+        <div class="potion-card-desc">Auto-Roll x3 — 20 secondes</div>
+        <div id="speedBarWrap" data-potion-barwrap="speed" class="hidden" style="height:4px;background:var(--border);border-radius:2px;overflow:hidden;margin-top:.25rem">
+          <div id="speedBar" data-potion-bar="speed" class="timer-bar" style="width:100%;background:var(--accent-sky)"></div>
+        </div>
+        <div id="speedCountdown" data-potion-countdown="speed" class="hidden" style="font-family:var(--font-mono);font-size:.72rem;font-weight:700;color:var(--accent-sky)"></div>
       </div>
       <button id="buySpeedBtn" onclick="acheterPotion('speed')" class="potion-buy-btn"
         style="background:linear-gradient(135deg,#0369a1,var(--accent-sky));color:#fff">
@@ -842,12 +1015,12 @@
         <div class="potion-card-title" style="color:var(--accent-sky)">Potion de Shiny</div>
         <div class="potion-card-desc">
           Rolls Shiny garantis — 5 secondes
-          <span id="shinyTimerHdr" class="hidden" style="font-family:var(--font-mono);font-weight:700;color:var(--accent-sky)"></span>
+          <span id="shinyTimerHdr" data-potion-hdr="shiny" class="hidden" style="font-family:var(--font-mono);font-weight:700;color:var(--accent-sky)"></span>
         </div>
-        <div id="shinyBarWrap" class="hidden" style="height:4px;background:var(--border);border-radius:2px;overflow:hidden;margin-top:.25rem">
-          <div id="shinyBar" class="timer-bar" style="width:100%;background:var(--accent-sky)"></div>
+        <div id="shinyBarWrap" data-potion-barwrap="shiny" class="hidden" style="height:4px;background:var(--border);border-radius:2px;overflow:hidden;margin-top:.25rem">
+          <div id="shinyBar" data-potion-bar="shiny" class="timer-bar" style="width:100%;background:var(--accent-sky)"></div>
         </div>
-        <div id="shinyCountdown" class="hidden" style="font-family:var(--font-mono);font-size:.72rem;font-weight:700;color:var(--accent-sky)"></div>
+        <div id="shinyCountdown" data-potion-countdown="shiny" class="hidden" style="font-family:var(--font-mono);font-size:.72rem;font-weight:700;color:var(--accent-sky)"></div>
       </div>
       <button id="buyShinyBtn" onclick="acheterPotion('shiny')" class="potion-buy-btn"
         style="background:linear-gradient(135deg,#0284c7,var(--accent-sky));color:#fff">
@@ -861,12 +1034,12 @@
         <div class="potion-card-title" style="color:#f59e0b">Potion Wished</div>
         <div class="potion-card-desc">
           Auto-Roll ×6.7 — 67 secondes
-          <span id="wishedTimerHdr" class="hidden" style="font-family:var(--font-mono);font-weight:700;color:#f59e0b"></span>
+          <span id="wishedTimerHdr" data-potion-hdr="wished" class="hidden" style="font-family:var(--font-mono);font-weight:700;color:#f59e0b"></span>
         </div>
-        <div id="wishedBarWrap" class="hidden" style="height:4px;background:var(--border);border-radius:2px;overflow:hidden;margin-top:.25rem">
-          <div id="wishedBar" class="timer-bar" style="width:100%;background:#f59e0b"></div>
+        <div id="wishedBarWrap" data-potion-barwrap="wished" class="hidden" style="height:4px;background:var(--border);border-radius:2px;overflow:hidden;margin-top:.25rem">
+          <div id="wishedBar" data-potion-bar="wished" class="timer-bar" style="width:100%;background:#f59e0b"></div>
         </div>
-        <div id="wishedCountdown" class="hidden" style="font-family:var(--font-mono);font-size:.72rem;font-weight:700;color:#f59e0b"></div>
+        <div id="wishedCountdown" data-potion-countdown="wished" class="hidden" style="font-family:var(--font-mono);font-size:.72rem;font-weight:700;color:#f59e0b"></div>
       </div>
       <button id="buyWishedBtn" onclick="acheterPotion('wished')" class="potion-buy-btn"
         style="background:linear-gradient(135deg,#b45309,#f59e0b);color:#fff">
@@ -880,12 +1053,12 @@
         <div class="potion-card-title" style="color:#fbbf24">Potion Golden</div>
         <div class="potion-card-desc">
           Rolls Golden garantis — 10 secondes
-          <span id="goldenTimerHdr" class="hidden" style="font-family:var(--font-mono);font-weight:700;color:#fbbf24"></span>
+          <span id="goldenTimerHdr" data-potion-hdr="golden" class="hidden" style="font-family:var(--font-mono);font-weight:700;color:#fbbf24"></span>
         </div>
-        <div id="goldenBarWrap" class="hidden" style="height:4px;background:var(--border);border-radius:2px;overflow:hidden;margin-top:.25rem">
-          <div id="goldenBar" class="timer-bar" style="width:100%;background:#fbbf24"></div>
+        <div id="goldenBarWrap" data-potion-barwrap="golden" class="hidden" style="height:4px;background:var(--border);border-radius:2px;overflow:hidden;margin-top:.25rem">
+          <div id="goldenBar" data-potion-bar="golden" class="timer-bar" style="width:100%;background:#fbbf24"></div>
         </div>
-        <div id="goldenCountdown" class="hidden" style="font-family:var(--font-mono);font-size:.72rem;font-weight:700;color:#fbbf24"></div>
+        <div id="goldenCountdown" data-potion-countdown="golden" class="hidden" style="font-family:var(--font-mono);font-size:.72rem;font-weight:700;color:#fbbf24"></div>
       </div>
       <button id="buyGoldenBtn" onclick="acheterPotion('golden')" class="potion-buy-btn"
         style="background:linear-gradient(135deg,#a16207,#fbbf24);color:#1a1a2e">
@@ -899,16 +1072,16 @@
         <div class="potion-card-title" style="color:#22c55e">Potion de Richesse</div>
         <div class="potion-card-desc">
           Monnaie gagnée ×2 — 1 heure
-          <span id="richesseTimerHdr" class="hidden" style="font-family:var(--font-mono);font-weight:700;color:#22c55e"></span>
+          <span id="richesseTimerHdr" data-potion-hdr="richesse" class="hidden" style="font-family:var(--font-mono);font-weight:700;color:#22c55e"></span>
         </div>
-        <div id="richesseBarWrap" class="hidden" style="height:4px;background:var(--border);border-radius:2px;overflow:hidden;margin-top:.25rem">
-          <div id="richesseBar" class="timer-bar" style="width:100%;background:#22c55e"></div>
+        <div id="richesseBarWrap" data-potion-barwrap="richesse" class="hidden" style="height:4px;background:var(--border);border-radius:2px;overflow:hidden;margin-top:.25rem">
+          <div id="richesseBar" data-potion-bar="richesse" class="timer-bar" style="width:100%;background:#22c55e"></div>
         </div>
-        <div id="richesseCountdown" class="hidden" style="font-family:var(--font-mono);font-size:.72rem;font-weight:700;color:#22c55e"></div>
+        <div id="richesseCountdown" data-potion-countdown="richesse" class="hidden" style="font-family:var(--font-mono);font-size:.72rem;font-weight:700;color:#22c55e"></div>
       </div>
       <button id="buyRichesseBtn" onclick="acheterPotion('richesse')" class="potion-buy-btn"
         style="background:linear-gradient(135deg,#15803d,#22c55e);color:#fff">
-        Acheter — <span class="potion-price" data-type="richesse">10 000</span> 🔮
+        Acheter — <span class="potion-price" data-type="richesse">10 000</span> <img src="./images/Crystal.webp" alt="" class="w-5 h-5 object-contain" onerror="this.outerHTML='🔮'">
       </button>
 
     </div>
@@ -1133,17 +1306,30 @@
 <script src="js/main.js"></script>
 <script>
   function toggleMute() {
-    const on = Sound.toggle();
-    const icon = document.getElementById('muteIcon');
+    const on    = Sound.toggle();
+    const icon  = document.getElementById('muteIcon');
+    const label = document.getElementById('muteLabel');
     if (!on) {
       icon.innerHTML = `<polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5"/>
         <line x1="23" y1="9" x2="17" y2="15"/><line x1="17" y1="9" x2="23" y2="15"/>`;
+      if (label) label.textContent = 'Muet';
     } else {
       icon.innerHTML = `<polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5"/>
         <path d="M19.07 4.93a10 10 0 0 1 0 14.14"/>
         <path d="M15.54 8.46a5 5 0 0 1 0 7.07"/>`;
+      if (label) label.textContent = 'Son';
     }
   }
+  // Synchronise le libellé du bouton avec l'état réel au chargement
+  document.addEventListener('DOMContentLoaded', () => {
+    if (typeof Sound !== 'undefined' && Sound.isEnabled && !Sound.isEnabled()) {
+      const icon  = document.getElementById('muteIcon');
+      const label = document.getElementById('muteLabel');
+      if (icon) icon.innerHTML = `<polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5"/>
+        <line x1="23" y1="9" x2="17" y2="15"/><line x1="17" y1="9" x2="23" y2="15"/>`;
+      if (label) label.textContent = 'Muet';
+    }
+  });
 </script>
 </body>
 </html>
