@@ -340,48 +340,69 @@ function acRollAutorise() {
    roll.js a posé window.effectuerRoll.
 ══════════════════════════════════════════════ */
 
-/* FIX faux positifs (v2) : le plancher légitime réel est
-   AUTOROLL_DELAI_PLANCHER_MS = 25ms (vélocité prestige max + Wished ×6.7 +
-   Naël ×2 cumulés → base/mult ≈ 22ms, clampé à 25ms par autoroll.js).
-   MAIS setInterval(effectuerRoll, 25) ne garantit pas 25ms entre deux
-   EXÉCUTIONS réelles : si effectuerRoll() prend un peu de temps (reflow de
-   l'animation de résultat, son, mise à jour DOM), le thread principal peut
-   accumuler un léger retard puis enchaîner le tick suivant presque
-   immédiatement dès qu'il se libère. Un joueur 100% légitime au build
-   maximal peut donc, ponctuellement, produire deux appels très rapprochés
-   (< 12ms) sans avoir rien triché.
+/* FIX faux positifs (v3) : les versions précédentes jugeaient sur des
+   MICRO-intervalles entre deux appels (12-30ms). Problème structurel : ce
+   genre de mesure est intrinsèquement fragile face au jank du thread
+   principal (reflow d'animation, GC, allocations DOM à 40 rolls/sec...).
+   Un joueur légitime à vitesse max peut voir ses appels s'agglutiner sur
+   quelques ms sans avoir triché, et ça peut se reproduire assez souvent
+   pour accumuler des strikes même avec le système de tolérance précédent.
 
-   L'ancienne version flaggait et bloquait la partie dès le PREMIER
-   dépassement de burst — beaucoup trop sensible à un simple hoquet du
-   navigateur. Un vrai auto-clicker/script au contraire tape en continu :
-   il va reproduire un burst anormal encore et encore, en quelques secondes.
-
-   On passe donc à un système de "strikes" : un burst isolé ne suffit plus
-   à bloquer, il faut plusieurs bursts rapprochés dans le temps pour être
-   considéré comme un pattern de triche confirmé. Un flood massif et
-   évident (beaucoup plus violent qu'un simple jank) reste, lui, bloqué
-   instantanément — pas besoin d'attendre plusieurs strikes pour un
-   `for(;;) effectuerRoll()` qui tape des centaines de fois par seconde. */
+   Changement d'approche : on ne regarde plus QUAND les appels arrivent
+   dans le temps, mais COMBIEN il y en a sur une fenêtre large (2s) — et on
+   compare ce débit réel au débit légitime MAXIMUM calculé EN DIRECT depuis
+   l'état de jeu actuel (delaiAutoRollBase + boosts Wished/Speed/Naël/
+   HugeWished réellement actifs), et non plus une constante figée pire-cas.
+   Le jank redistribue seulement QUAND les appels tombent dans la fenêtre,
+   pas COMBIEN il y en a au total sur 2s — cette méthode est donc insensible
+   par construction au jank, tout en repérant un vrai script qui pousse
+   plus de rolls que ce que le jeu autorise réellement à cet instant. */
 const ROLL_RATELIMIT = {
-  INTERVALLE_MIN_MS:   12,   // en dessous du pire cas légitime (25ms) avec marge de jank
-  BURST_MAX:            8,   // tolérance large pour absorber 1-2 hoquets de rendu
-  FENETRE_BURST_MS:    30,   // fenêtre de comptage du burst
+  FENETRE_DEBIT_MS:     2000,  // fenêtre glissante d'analyse du débit réel
+  MARGE_DEBIT:            1.6, // tolérance ×1.6 vs le débit légitime théorique
+  MARGE_DEBIT_FIXE:        10, // + tolérance additive fixe (petites fenêtres, arrondis)
 
-  BURST_INSTANTANE:    20,   // au-delà, c'est un flood évident → blocage immédiat, pas de strike
+  FENETRE_FLOOD_MS:       100, // sous-fenêtre très courte pour un flood évident
+  BURST_INSTANTANE:        40, // ex: boucle synchrone qui spam effectuerRoll()
 
-  STRIKES_MAX:           3,  // nb de bursts "limites" tolérés avant blocage réel
-  STRIKES_FENETRE_MS: 8000,  // ...s'ils se répètent dans cette fenêtre glissante
+  STRIKES_MAX:               3,  // nb de dépassements de débit tolérés avant blocage réel
+  STRIKES_FENETRE_MS:   15000,   // ...s'ils se répètent dans cette fenêtre glissante
 };
 
-let _rrDernierAppel   = 0;
-let _rrBurstCompte    = 0;
-let _rrBurstFenetre   = 0;
-let _rrStrikes        = [];  // timestamps des bursts "limites" récents
+let _rrTimestamps = [];  // horodatages des derniers effectuerRoll() (fenêtre débit)
+let _rrStrikes    = [];  // horodatages des dépassements de débit récents
 
 function _rrEnregistrerStrike(now) {
   _rrStrikes.push(now);
   _rrStrikes = _rrStrikes.filter(t => now - t <= ROLL_RATELIMIT.STRIKES_FENETRE_MS);
   return _rrStrikes.length;
+}
+
+/* Débit légitime maximum ACTUEL (ms entre deux rolls), recalculé à chaque
+   appel à partir du véritable état de jeu — pas une constante figée.
+   Reproduit la logique de autoroll.js / hugewished.js. Défensif : si une
+   fonction/variable attendue n'existe pas encore (ordre de chargement des
+   scripts, sauvegarde en cours de restauration, etc.), on retombe sur le
+   plancher théorique connu plutôt que de faire planter la protection. */
+function _rrDelaiLegitimeActuel() {
+  try {
+    const base = (typeof delaiAutoRollBase === 'function') ? delaiAutoRollBase() : 1000;
+    let mult = 1;
+
+    if (typeof hwBoostActif !== 'undefined' && hwBoostActif && typeof HUGEWISHED !== 'undefined') {
+      mult *= HUGEWISHED.BOOST_MULT;
+    } else if (typeof etat !== 'undefined' && etat.wishedActive && typeof POTIONS !== 'undefined') {
+      mult *= POTIONS.wished.speedMult;
+    } else if (typeof etat !== 'undefined' && etat.speedActive) {
+      mult *= 3;
+    }
+    if (typeof etat !== 'undefined' && etat.naellSpeedUnlocked) mult *= 2;
+
+    const plancher = (typeof AUTOROLL_DELAI_PLANCHER_MS === 'number') ? AUTOROLL_DELAI_PLANCHER_MS : 25;
+    return mult > 1 ? Math.max(plancher, Math.round(base / mult)) : base;
+  } catch (_) {
+    return 25; // fallback prudent : plancher théorique connu du jeu
+  }
 }
 
 function initProtectionRoll() {
@@ -394,44 +415,29 @@ function initProtectionRoll() {
   window.effectuerRoll = function (...args) {
     const now = Date.now();
 
-    // ── Détection burst synchrone (même ms ou quasi) ──
-    if (now - _rrBurstFenetre <= ROLL_RATELIMIT.FENETRE_BURST_MS) {
-      _rrBurstCompte++;
-    } else {
-      _rrBurstCompte  = 1;
-      _rrBurstFenetre = now;
-    }
+    _rrTimestamps.push(now);
+    _rrTimestamps = _rrTimestamps.filter(t => now - t <= ROLL_RATELIMIT.FENETRE_DEBIT_MS);
 
-    if (_rrBurstCompte > ROLL_RATELIMIT.BURST_INSTANTANE) {
-      // Flood massif et sans ambiguïté : on ne tolère pas, blocage direct.
-      _signalExploit(`effectuerRoll flood : ${_rrBurstCompte} appels en ${ROLL_RATELIMIT.FENETRE_BURST_MS}ms`);
+    // ── Flood évident sur une fenêtre très courte (boucle synchrone) ──
+    const recents = _rrTimestamps.filter(t => now - t <= ROLL_RATELIMIT.FENETRE_FLOOD_MS).length;
+    if (recents > ROLL_RATELIMIT.BURST_INSTANTANE) {
+      _signalExploit(`effectuerRoll flood : ${recents} appels en ${ROLL_RATELIMIT.FENETRE_FLOOD_MS}ms`);
       return;
     }
 
-    if (_rrBurstCompte > ROLL_RATELIMIT.BURST_MAX) {
-      // Burst "limite" : peut être un vrai script, peut être un hoquet de
-      // rendu. On ne bloque pas tout de suite, on incrémente un strike.
+    // ── Débit réel vs débit légitime max actuel, sur la fenêtre large ──
+    const delaiLegit    = _rrDelaiLegitimeActuel();
+    const debitAttendu  = Math.ceil(ROLL_RATELIMIT.FENETRE_DEBIT_MS / delaiLegit);
+    const seuil         = Math.ceil(debitAttendu * ROLL_RATELIMIT.MARGE_DEBIT) + ROLL_RATELIMIT.MARGE_DEBIT_FIXE;
+
+    if (_rrTimestamps.length > seuil) {
       const nbStrikes = _rrEnregistrerStrike(now);
       if (nbStrikes >= ROLL_RATELIMIT.STRIKES_MAX) {
-        _signalExploit(`effectuerRoll burst répété : ${nbStrikes} bursts en ${ROLL_RATELIMIT.STRIKES_FENETRE_MS}ms`);
+        _signalExploit(`débit anormal soutenu : ${_rrTimestamps.length} rolls / ${ROLL_RATELIMIT.FENETRE_DEBIT_MS}ms (seuil ${seuil}), ${nbStrikes} strikes`);
         return;
       }
-      // Strike posé mais pas encore assez pour bloquer : on laisse passer
-      // ce roll (il reste comptabilisé côté inventaire normalement) et on
-      // repart sur une nouvelle fenêtre de burst pour ne pas re-compter
-      // en boucle le même hoquet.
-      _rrBurstCompte  = 1;
-      _rrBurstFenetre = now;
     }
 
-    // ── Rate-limit temporel ──
-    const delta = now - _rrDernierAppel;
-    if (_rrDernierAppel > 0 && delta < ROLL_RATELIMIT.INTERVALLE_MIN_MS) {
-      _signalExploit(`effectuerRoll trop rapide : ${delta}ms < ${ROLL_RATELIMIT.INTERVALLE_MIN_MS}ms`);
-      return;
-    }
-
-    _rrDernierAppel = now;
     return _rollOriginal.apply(this, args);
   };
 }
