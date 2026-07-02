@@ -21,6 +21,19 @@ const etat = {
   /* ── Index : bonus de luck débloqués, persistants après Renaissance ── */
   indexUnlocks: {},  // clé: "rarityKey_variante" → true
 
+  /* ── Lucky Pull : mémoire PERMANENTE (jamais reset au prestige) ──
+     FIX "spam Lucky Pull après Renaissance" : l'ancienne détection se basait
+     sur l'inventaire courant (etat.inventaire), qui est vidé à chaque
+     Renaissance. Résultat : après un reset, absolument CHAQUE roll
+     redevenait "jamais obtenu" et redéclenchait l'overlay plein écran,
+     y compris pour un Shelly Normal en Auto-Roll boosté. En trackant
+     séparément — et pour toujours — chaque combo déjà obtenu au moins une
+     fois dans la vie du compte, ainsi que le meilleur score de rareté
+     jamais atteint, la notif Lucky Pull ne redevient pertinente qu'au sens
+     "jamais vu de toute la partie", pas "jamais vu depuis le dernier reset". */
+  dejaObtenus:    {},  // clé: "brawlerId_variante" → true (à vie)
+  meilleurScoreVu: 0,  // meilleur (div × chanceMult) jamais obtenu (à vie)
+
   autoRollActif: false,
   autoInterval:  null,
 
