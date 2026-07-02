@@ -120,18 +120,9 @@
       _invMutation(() => { etat.inventaire[k2] = (etat.inventaire[k2] || 0) + 1; });
       etat.totalRolls++;
       progresserQuete('roll', { brawlerId: b2.id, variante: v2, pause: false });
-      // Notif Multi-Drop : centrée à l'écran, juste l'image du brawler + "x2!"
-      // (pas d'emoji, pas de carte de roll — un simple badge discret)
-      const notif = document.createElement('div');
-      notif.style.cssText = `position:fixed;top:50%;left:50%;transform:translate(-50%,-50%);
-        display:flex;align-items:center;gap:.6rem;
-        background:rgba(15,15,20,.92);border:1px solid #f9731666;
-        color:#f97316;font-weight:900;font-size:1.1rem;padding:.55rem 1.1rem;
-        border-radius:14px;z-index:999;box-shadow:0 0 24px rgba(249,115,22,.35);
-        pointer-events:none;animation:craftIn .3s cubic-bezier(.22,.68,0,1.2) forwards`;
-      notif.innerHTML = `${brawlerImg(b2, 'w-10 h-10', '', v2)}<span>x2!</span>`;
-      document.body.appendChild(notif);
-      setTimeout(() => notif.remove(), 1800);
+      // Notif Multi-Drop : petite indication discrète collée à l'image du
+      // résultat (pas de carte flottante, pas d'emoji superflu)
+      afficherBadgeMultiDrop(b2, v2);
     }
 
     // Rafraîchir l'index si ouvert
