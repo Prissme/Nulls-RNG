@@ -14,6 +14,10 @@ function ouvrirModal(id) {
   if (id === 'modalCombat' && typeof afficherCombat === 'function') afficherCombat();
   if (id === 'modalLeaderboard' && typeof ouvrirLeaderboard === 'function') ouvrirLeaderboard();
   if (id === 'modalPrestige' && typeof afficherPrestige === 'function') afficherPrestige();
+  // FIX perf : depuis que le roll ne rafraîchit plus ces grilles pendant
+  // qu'elles sont fermées, on les remet à jour explicitement à l'ouverture.
+  if (id === 'modalInventaire' && typeof afficherInventaire === 'function') afficherInventaire();
+  if (id === 'modalCraft' && typeof afficherCraft === 'function') afficherCraft();
 }
 
 /* ── Fermer une popup ── */

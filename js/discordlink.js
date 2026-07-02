@@ -96,6 +96,56 @@ async function lierCompteDiscord() {
   // Sinon : la page part vers Discord, rien de plus à faire ici.
 }
 
+/* ── Connexion à un compte Discord DÉJÀ lié ailleurs (ex : récupérer sur
+   téléphone la progression liée sur PC) ──
+   lierCompteDiscord() (linkIdentity) attache Discord à la session
+   anonyme ACTUELLE et échoue si ce compte Discord est déjà lié à un autre
+   utilisateur — c'est le message "déjà lié" que voit le joueur. Un
+   identifiant Discord ne peut être rattaché qu'à UN SEUL compte à la fois.
+   signInWithOAuth(), à l'inverse, ne rattache rien : il authentifie
+   directement CET appareil en tant que le compte existant propriétaire de
+   l'identité Discord. C'est la bonne opération pour "jouer au même compte
+   sur PC et sur téléphone". */
+async function recupererCompteViaDiscord() {
+  const client = _dlClient();
+  if (!client) {
+    afficherStatutDiscordLink(null, "⚠️ Cloud non prêt, réessaie dans quelques secondes.");
+    return;
+  }
+  if (_discordLinkEnCours) return;
+
+  const aDeProgression = (etat.totalRolls || 0) > 0 || (etat.pieces || 0) > 0
+    || Object.keys(etat.inventaire || {}).length > 0;
+  if (aDeProgression && !confirm(
+    "Se connecter avec un compte Discord déjà lié ailleurs va charger la " +
+    "progression de CE compte Discord et remplacer celle de cet appareil. " +
+    "La progression actuelle de cet appareil sera perdue si elle n'est pas " +
+    "déjà sauvegardée / liée à un autre Discord. Continuer ?"
+  )) return;
+
+  _discordLinkEnCours = true;
+  // On sauvegarde avant de quitter la page, pour ne pas perdre la
+  // progression locale de CET appareil si elle n'est reliée à rien
+  try { if (typeof sauvegarderLocal === 'function') sauvegarderLocal(); } catch (_) {}
+  try { if (typeof sauvegarderEtatCloud === 'function') await sauvegarderEtatCloud(); } catch (_) {}
+
+  const { error } = await client.auth.signInWithOAuth({
+    provider: 'discord',
+    options: {
+      redirectTo: window.location.origin + window.location.pathname,
+    },
+  });
+
+  if (error) {
+    _discordLinkEnCours = false;
+    console.error('[discordlink] Erreur signInWithOAuth :', error);
+    afficherStatutDiscordLink(null, `⚠️ ${error.message || 'Échec de la connexion Discord'}`);
+  }
+  // Sinon : la page part vers Discord, puis revient avec la session du
+  // compte existant déjà appliquée — chargerEtatCloud() la reprendra au
+  // prochain initCloudSave() (voir main.js).
+}
+
 /* ── Délie le compte Discord actuellement lié ── */
 async function delierCompteDiscord() {
   const client = _dlClient();
@@ -176,6 +226,12 @@ function afficherStatutDiscordLink(identite, messageErreur) {
         onmouseover="this.style.filter='brightness(1.1)'"
         onmouseout="this.style.filter='brightness(1)'">
         🔗 Lier mon compte Discord
+      </button>
+      <button onclick="recupererCompteViaDiscord()"
+        style="width:100%;margin-top:.4rem;background:transparent;border:1px dashed rgba(88,101,242,.4);
+          color:#5865F2;border-radius:10px;padding:.4rem .6rem;font-size:.65rem;font-weight:700;
+          cursor:pointer">
+        📱 Déjà lié sur un autre appareil ? Se connecter
       </button>
     `;
   }

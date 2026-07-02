@@ -16,6 +16,7 @@ const etat = {
   /* ── Prestige (Renaissance) : persiste à travers les resets ── */
   prestige:         0,
   cristaux:         0,
+  gemmes:           0,
   prestigeUpgrades: { luck: 0, cps: 0, vente: 0, slot: 0, vitesse: 0, xp: 0, cristaux: 0, multidrop: 0, recyclage: 0, luckroll: 0 },
 
   /* ── Index : bonus de luck débloqués, persistants après Renaissance ── */

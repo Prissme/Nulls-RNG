@@ -143,6 +143,7 @@ function creerEtatCombat() {
     victoire:     null,
     gainPieces:   Math.round(totalHPVague * 0.5 * farmMult),
     gainXP:       Math.round(totalHPVague * 0.2 * farmMult),
+    gainGemmes:   Math.max(1, Math.round(totalHPVague * 0.015 * farmMult)),
     gainPP:       0,
     fureurStacks: 0,
     level,
@@ -433,7 +434,7 @@ function rendreActions() {
         </div>
         ${w ? `
           <div style="font-size:.8rem;color:#fbbf24;margin-bottom:.3rem">
-            +${combat.gainPieces} 💰 &nbsp; +${combat.gainXP} XP &nbsp; +${combat.gainPP} ⚡PP
+            +${combat.gainPieces} 💰 &nbsp; +${combat.gainGemmes}${gemmeImg('w-3 h-3 inline-block')} &nbsp; +${combat.gainXP} XP &nbsp; +${combat.gainPP} ⚡PP
             ${farm ? '<span style="color:#94a3b8;font-size:.65rem"> (×0.3)</span>' : ''}
           </div>
           ${!farm ? `<div style="font-size:.7rem;color:#a855f7;margin-bottom:.5rem">
@@ -592,6 +593,7 @@ async function actionCombat(action) {
         /* Mode farm : pas de progression, 1 PP fixe, récompenses réduites */
         combat.gainPP = 1;
         etat.pieces  += combat.gainPieces;
+        etat.gemmes   = (etat.gemmes || 0) + combat.gainGemmes;
         combat.brawlers.forEach(b => {
           const k = cle(b.brawler.id, b.variante);
           if (!etat.brawlerPP) etat.brawlerPP = {};
@@ -606,6 +608,7 @@ async function actionCombat(action) {
         const winsApres = (etat.combatsGagnes || 0) + 1;
         combat.gainPP   = 1 + (winsApres % 5 === 0 ? 2 : 0);
         etat.pieces        += combat.gainPieces;
+        etat.gemmes         = (etat.gemmes || 0) + combat.gainGemmes;
         etat.combatsGagnes  = winsApres;
         combat.brawlers.forEach(b => {
           const k = cle(b.brawler.id, b.variante);

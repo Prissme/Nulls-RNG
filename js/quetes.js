@@ -228,6 +228,8 @@ function reclamerQuete(uid) {
 
   q.reclamee = true;
   gagnerXP(q.reward);
+  const gainGemmes = Math.max(1, Math.round(q.reward / 40));
+  etat.gemmes = (etat.gemmes || 0) + gainGemmes;
 
   const notif = document.createElement('div');
   const isDiff = etat.quetesDiff && etat.quetesDiff.some(qd => qd.uid === uid);
@@ -237,7 +239,7 @@ function reclamerQuete(uid) {
     font-weight:900;font-size:.9rem;padding:.6rem 1.4rem;border-radius:12px;
     z-index:999;box-shadow:0 0 20px ${isDiff ? '#f9731655' : '#fbbf2455'};
     animation:craftIn .4s cubic-bezier(.22,.68,0,1.2) forwards`;
-  notif.textContent = `${isDiff ? '🔥' : '🎉'} +${q.reward.toLocaleString('fr-FR')} XP !`;
+  notif.innerHTML = `${isDiff ? '🔥' : '🎉'} +${q.reward.toLocaleString('fr-FR')} XP &nbsp; +${gainGemmes}${typeof gemmeImg === 'function' ? gemmeImg('w-4 h-4 inline-block') : ''}`;
   document.body.appendChild(notif);
   setTimeout(() => notif.remove(), 2500);
 

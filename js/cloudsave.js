@@ -114,6 +114,7 @@ function serialiserEtat() {
     pointsPouvoir:     0,
     skillsAchetes:     {},
     cristaux:          etat.cristaux,
+    gemmes:            etat.gemmes || 0,
     prestigeUpgrades:  etat.prestigeUpgrades,
     achievements:      etat.achievements,
     shellyStreak:      etat.shellyStreak,
@@ -175,6 +176,7 @@ function appliquerEtatSauvegarde(saved) {
   if (saved.brawlerPP     && typeof saved.brawlerPP     === 'object') etat.brawlerPP     = saved.brawlerPP;
   if (saved.brawlerSkills && typeof saved.brawlerSkills === 'object') etat.brawlerSkills = saved.brawlerSkills;
   if (typeof saved.cristaux === 'number') etat.cristaux = saved.cristaux;
+  if (typeof saved.gemmes   === 'number') etat.gemmes   = saved.gemmes;
   if (saved.prestigeUpgrades && typeof saved.prestigeUpgrades === 'object') {
     etat.prestigeUpgrades = Object.assign(
       { luck: 0, cps: 0, vente: 0, slot: 0, vitesse: 0 },

@@ -168,7 +168,7 @@ const POTIONS = {
   },
   richesse: {
     cout:       10_000,
-    devise:     'cristaux',   // ← se paie en Cristaux, pas en Pièces
+    devise:     'gemmes',     // ← se paie en Gemmes, pas en Pièces
     duree:      3_600_000,    // 1 heure
     doubleMult: 2,
     label:      "Potion de Richesse",

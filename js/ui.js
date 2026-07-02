@@ -13,6 +13,11 @@ function crystalImg(classes = 'w-4 h-4') {
   return `<img src="./images/Crystal.webp" alt="Cristal" class="${classes} object-contain inline-block align-middle" onerror="this.outerHTML='🔮'">`;
 }
 
+// Icône gemme (monnaie obtenue via quêtes, combats et vente de brawlers)
+function gemmeImg(classes = 'w-4 h-4') {
+  return `<img src="./images/Gemme.webp" alt="Gemme" class="${classes} object-contain inline-block align-middle" onerror="this.outerHTML='💎'">`;
+}
+
 // Icônes des potions Chance / Vitesse (fallback emoji si l'image n'est pas encore présente)
 function potionLuckImg(classes = 'w-4 h-4') {
   return `<img src="./images/PotionLuck.webp" alt="Potion Chance" class="${classes} object-contain inline-block align-middle" onerror="this.outerHTML='🍀'">`;
@@ -160,6 +165,9 @@ function mettreAJourCompteurs() {
 
   const cristauxEl = document.getElementById('cristauxDisplay');
   if (cristauxEl) cristauxEl.textContent = etat.cristaux.toLocaleString('fr-FR');
+
+  const gemmesEl = document.getElementById('gemmesDisplay');
+  if (gemmesEl) gemmesEl.textContent = (etat.gemmes || 0).toLocaleString('fr-FR');
 
   /* ── Points de Pouvoir ── */
   const ppEl = document.getElementById('ppDisplay');

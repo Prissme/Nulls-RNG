@@ -101,9 +101,17 @@
 
     afficherResultat(brawler, variante);
     mettreAJourCompteurs();
-    afficherInventaire();
+    // FIX perf : l'inventaire et le craft ne sont visibles que dans une
+    // modale fermée la plupart du temps. Les reconstruire entièrement à
+    // CHAQUE roll (jusqu'à 40 rolls/s en Auto-Roll boosté) provoquait des
+    // lags importants pour un rendu que personne ne regardait. On ne les
+    // rafraîchit désormais que si la modale correspondante est ouverte ;
+    // ouvrirModal() se charge de les rafraîchir au moment de l'ouverture.
+    const invOuverte   = document.getElementById('modalInventaire')?.classList.contains('open');
+    const craftOuverte = document.getElementById('modalCraft')?.classList.contains('open');
+    if (invOuverte)   afficherInventaire();
+    if (craftOuverte) afficherCraft();
     afficherHistorique();
-    afficherCraft();
 
     // ── Multi-Drop : chance d'obtenir un brawler bonus supplémentaire ──
     if (Math.random() < multidropChance()) {
@@ -112,13 +120,16 @@
       _invMutation(() => { etat.inventaire[k2] = (etat.inventaire[k2] || 0) + 1; });
       etat.totalRolls++;
       progresserQuete('roll', { brawlerId: b2.id, variante: v2, pause: false });
-      // Petite notif discrète en haut à droite
+      // Notif Multi-Drop : centrée à l'écran, juste l'image du brawler + "x2!"
+      // (pas d'emoji, pas de carte de roll — un simple badge discret)
       const notif = document.createElement('div');
-      notif.style.cssText = `position:fixed;top:calc(var(--header-h, 96px) + 10px);right:16px;
-        background:rgba(249,115,22,.18);border:1px solid #f9731666;
-        color:#f97316;font-weight:800;font-size:.72rem;padding:.35rem .75rem;
-        border-radius:9px;z-index:999;animation:craftIn .3s ease forwards`;
-      notif.textContent = `🎯 Multi-Drop ! ${b2.emoji} ${v2 !== 'normal' ? VARIANTES[v2].emoji : ''}`;
+      notif.style.cssText = `position:fixed;top:50%;left:50%;transform:translate(-50%,-50%);
+        display:flex;align-items:center;gap:.6rem;
+        background:rgba(15,15,20,.92);border:1px solid #f9731666;
+        color:#f97316;font-weight:900;font-size:1.1rem;padding:.55rem 1.1rem;
+        border-radius:14px;z-index:999;box-shadow:0 0 24px rgba(249,115,22,.35);
+        pointer-events:none;animation:craftIn .3s cubic-bezier(.22,.68,0,1.2) forwards`;
+      notif.innerHTML = `${brawlerImg(b2, 'w-10 h-10', '', v2)}<span>x2!</span>`;
       document.body.appendChild(notif);
       setTimeout(() => notif.remove(), 1800);
     }

@@ -29,7 +29,7 @@ function mettreAJourPrixPotions() {
 function acheterPotion(type) {
   const potion = POTIONS[type];
   const qte    = _quantitePotionChoisie();
-  const devise = potion.devise === 'cristaux' ? 'cristaux' : 'pieces';
+  const devise = potion.devise || 'pieces';
   const coutTotal = potion.cout * qte;
 
   if (etat[devise] < coutTotal) {
