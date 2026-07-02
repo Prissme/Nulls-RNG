@@ -65,6 +65,13 @@
     let { brawler, variante } = effectuerTirage();
     etat.totalRolls++;
 
+    // FIX quêtes "d'affilée / sans pause" (r2/dr2) : mesure le temps
+    // écoulé depuis le dernier roll pour détecter une vraie pause. Sans
+    // ça, ces quêtes se comportaient exactement comme "effectuer N rolls".
+    const maintenant   = Date.now();
+    const pauseDetectee = !!(etat.dernierRollTs && (maintenant - etat.dernierRollTs) > QUETE_STREAK_PAUSE_MS);
+    etat.dernierRollTs = maintenant;
+
     // ── Roulette Bénie : chance de upgrader un roll normal en Shiny ──
     if (variante === 'normal' && Math.random() < luckrollChance()) {
       variante = 'shiny';
@@ -87,7 +94,7 @@
     else                                 Sound.roll();
 
     // Progression quêtes
-    progresserQuete('roll', { brawlerId: brawler.id, variante });
+    progresserQuete('roll', { brawlerId: brawler.id, variante, pause: pauseDetectee });
 
     // Progression succès
     if (typeof checkAchievementsRoll === 'function') checkAchievementsRoll(brawler.id, variante);
@@ -104,7 +111,7 @@
       const k2 = cle(b2.id, v2);
       _invMutation(() => { etat.inventaire[k2] = (etat.inventaire[k2] || 0) + 1; });
       etat.totalRolls++;
-      progresserQuete('roll', { brawlerId: b2.id, variante: v2 });
+      progresserQuete('roll', { brawlerId: b2.id, variante: v2, pause: false });
       // Petite notif discrète en haut à droite
       const notif = document.createElement('div');
       notif.style.cssText = `position:fixed;top:70px;right:16px;
