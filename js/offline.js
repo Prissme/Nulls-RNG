@@ -32,7 +32,7 @@
     // Même fix que roll.js : du plus rare au plus commun (voir commentaire détaillé là-bas).
     for (const vKey of ORDRE_VARIANTES) {
       const v = VARIANTES[vKey];
-      for (const b of [...BRAWLERS].sort((a, b2) => b2.div - a.div)) {
+      for (const b of BRAWLERS_PAR_RARETE_DESC) {
         const chanceBase      = 1 / b.div;
         const chanceEffective = (chanceBase * luckMult) / v.chanceMult;
         if (Math.random() < chanceEffective) {
