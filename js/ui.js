@@ -100,12 +100,35 @@ function afficherPets() {
   document.getElementById('cpsVal').textContent   = totalCPS();
 }
 
+/* ── Multiplicateur de vitesse affiché dans le header ──
+   FIX "badge de vitesse trompeur" : l'ancien code faisait
+   `etat.speedActive ? 'x3' : 'x1'`, appelé en permanence par
+   mettreAJourCompteurs() — donc dès qu'un roll/achat/etc. déclenchait un
+   refresh des compteurs, ce badge écrasait n'importe quel affichage
+   correct posé ailleurs (ex: par hugewished.js) et retombait à x1 même
+   si Wished (×6.7) ou le bonus permanent Naël (×2) étaient actifs.
+   On calcule ici le VRAI multiplicateur cumulé, cohérent avec la logique
+   réelle de redemarrerAutoRoll()/redemarrerAutoRollHW() dans autoroll.js. */
+function multiplicateurVitesseActuel() {
+  let mult = 1;
+  if (typeof hwBoostActif !== 'undefined' && hwBoostActif) {
+    mult *= HUGEWISHED.BOOST_MULT;
+  } else if (etat.wishedActive) {
+    mult *= POTIONS.wished.speedMult;
+  } else if (etat.speedActive) {
+    mult *= 3;
+  }
+  if (etat.naellSpeedUnlocked) mult *= 2;
+  return mult;
+}
+
 /* ── Compteurs header ── */
 function mettreAJourCompteurs() {
   document.getElementById('coinsDisplay').textContent = etat.pieces.toLocaleString('fr-FR');
   document.getElementById('rollsDisplay').textContent = etat.totalRolls.toLocaleString('fr-FR');
   document.getElementById('luckLabel').textContent    = `x${Number(luckMultiplierTotal().toFixed(2))}`;
-  document.getElementById('speedLabel').textContent   = etat.speedActive ? 'x3' : 'x1';
+  const vitesseMult = multiplicateurVitesseActuel();
+  document.getElementById('speedLabel').textContent   = `x${Number.isInteger(vitesseMult) ? vitesseMult : vitesseMult.toFixed(1)}`;
   document.getElementById('cpsVal').textContent       = totalCPS();
   document.getElementById('totalCPS').textContent     = totalCPS();
 
