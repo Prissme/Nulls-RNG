@@ -180,8 +180,24 @@ function afficherTableRarites() {
 
   const groupOrder = ['epic', 'super-rare', 'rare', 'common'];
 
-  const fmtProba = (div, chanceMult) => {
-    const effective = Math.round((div * chanceMult) / lm);
+  // FIX table des probabilités : le calcul ne tenait compte que de
+  // luckMultiplierTotal(), pas de luckrollChance() (le bonus prestige
+  // "Roulette Bénie" qui convertit après-coup une partie des tirages
+  // 'normal' en 'shiny' — voir roll.js). Les odds Normal affichées étaient
+  // donc légèrement surestimées et les odds Shiny légèrement sous-estimées
+  // pour qui a investi dans cette amélioration. On corrige uniquement ces
+  // deux variantes, les autres (golden/rainbow/monochrome) n'étant pas
+  // concernées par cette conversion post-tirage.
+  const lr = typeof luckrollChance === 'function' ? luckrollChance() : 0;
+
+  const fmtProba = (div, chanceMult, varKey) => {
+    let p = lm / (div * chanceMult); // probabilité brute du tirage (voir roll.js: chanceEffective)
+    if (lr > 0 && (varKey === 'normal' || varKey === 'shiny')) {
+      const pNormalBrut = lm / (div * VARIANTES.normal.chanceMult);
+      if (varKey === 'normal') p = pNormalBrut * (1 - lr);
+      else                     p = p + pNormalBrut * lr;
+    }
+    const effective = Math.round(1 / p);
     if (effective >= 10000) return `1/${Math.round(effective / 1000)}k`;
     if (effective <= 0) return '1/1';
     return `1/${effective}`;
@@ -235,7 +251,7 @@ function afficherTableRarites() {
           <div style="display:flex;justify-content:space-between;align-items:center;
             padding:.08rem .25rem;border-radius:4px;background:rgba(0,0,0,.25)">
             <span style="font-size:.52rem;font-weight:700;color:${vc.color}">${vc.label[0]}</span>
-            <span style="font-size:.52rem;font-family:var(--font-mono);color:#94a3b8">${fmtProba(b.div, v.chanceMult)}</span>
+            <span style="font-size:.52rem;font-family:var(--font-mono);color:#94a3b8">${fmtProba(b.div, v.chanceMult, vc.key)}</span>
             <span style="font-size:.5rem;color:#fbbf24">${cps}/s</span>
           </div>
         `;
