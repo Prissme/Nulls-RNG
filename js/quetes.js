@@ -4,6 +4,12 @@
 
 const QUETE_REFRESH_MS      = 5 * 60 * 1000;
 const QUETE_DIFF_REFRESH_MS = 24 * 60 * 60 * 1000;
+// FIX quêtes "d'affilée / sans pause" (templates r2 et dr2) : l'ancienne
+// implémentation ne vérifiait aucune continuité, se comportant exactement
+// comme une quête "effectuer N rolls" classique malgré son libellé. Un
+// écart de plus de ce seuil entre deux rolls est maintenant considéré
+// comme une pause qui réinitialise le compteur de streak.
+const QUETE_STREAK_PAUSE_MS = 4000;
 
 function randOf(arr) { return arr[Math.floor(Math.random() * arr.length)]; }
 
@@ -171,7 +177,20 @@ function progresserQuete(type, data = {}) {
     if (q.complete || q.reclamee) continue;
     let gain = 0;
 
-    if ((type === 'roll') && (q.type === 'rolls'))   gain = 1;
+    if ((type === 'roll') && (q.type === 'rolls')) {
+      // Quêtes "d'affilée / sans pause" (r2, dr2) : une pause détectée
+      // (voir data.pause, calculée dans roll.js) réinitialise le streak
+      // au lieu de compter comme un roll classique.
+      if (q.templateId === 'r2' || q.templateId === 'dr2') {
+        if (data.pause) {
+          if (q.progres !== 0) { q.progres = 0; changed = true; }
+          continue;
+        }
+        gain = 1;
+      } else {
+        gain = 1;
+      }
+    }
     if (type === 'roll' && q.type === 'pack'     && data.brawlerId === q.brawlerId) gain = 1;
     if (type === 'roll' && q.type === 'variante' && data.variante  === q.variante)  gain = 1;
     if (type === 'potion'     && q.type === 'potions')   gain = 1;
