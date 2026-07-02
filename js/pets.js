@@ -55,25 +55,40 @@ function desequiper(slotIndex) {
 /* ── Équiper automatiquement les meilleurs pets possédés
    (jusqu'au nombre de slots disponibles, augmenté par Prestige).
    "Meilleur" = celui qui génère le plus de pièces/s (CPS).
-   Remplace entièrement les slots actuels. ── */
+   Remplace entièrement les slots actuels. ──
+   FIX : chaque copie d'un même brawler+variante rapporte le même CPS
+   unitaire (pas de rendement décroissant en cumulant des doublons), donc
+   l'ancienne version — qui plafonnait à 1 exemplaire par combo distinct —
+   laissait des slots vides ou occupés par un pet moins bon dès qu'on
+   possédait plusieurs copies du meilleur brawler. On remplit maintenant
+   en priorité avec les doublons du meilleur combo avant de passer au
+   suivant, ce qui est l'optimum réel (glouton correct ici). */
 function equiperMeilleurs() {
   const maxSlots = nbSlotsMax();
 
   const candidats = Object.entries(etat.inventaire)
     .filter(([, qty]) => qty > 0)
-    .map(([k]) => {
+    .map(([k, qty]) => {
       const { brawlerId, variante } = parseKey(k);
       const b = BRAWLERS.find(b => b.id === brawlerId);
-      return { brawler: b, variante, cps: calcCPS(b, variante) };
+      return { brawler: b, variante, qty, cps: calcCPS(b, variante) };
     })
-    .sort((a, b) => b.cps - a.cps)
-    .slice(0, maxSlots);
+    .sort((a, b) => b.cps - a.cps);
 
   if (candidats.length === 0) return;
 
+  const nouveauxPets = [];
+  for (const c of candidats) {
+    const nbACopier = Math.min(c.qty, maxSlots - nouveauxPets.length);
+    for (let i = 0; i < nbACopier; i++) {
+      nouveauxPets.push({ brawler: c.brawler, variante: c.variante });
+    }
+    if (nouveauxPets.length >= maxSlots) break;
+  }
+
   etat.petsEquipes = new Array(maxSlots).fill(null);
-  candidats.forEach((c, i) => {
-    etat.petsEquipes[i] = { brawler: c.brawler, variante: c.variante };
+  nouveauxPets.forEach((p, i) => {
+    etat.petsEquipes[i] = p;
   });
 
   afficherPets();
